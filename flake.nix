@@ -49,6 +49,7 @@
               xorg.libXrandr
               xorg.libXcursor
               xorg.libXi
+              wayland
               systemd
             ];
 
@@ -61,6 +62,7 @@
                   alsa-lib
                   vulkan-loader
                   libxkbcommon
+                  wayland
                 ]
               }"'';
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
