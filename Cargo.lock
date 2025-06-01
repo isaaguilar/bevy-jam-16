@@ -558,6 +558,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_composable"
+version = "0.5.0"
+source = "git+https://github.com/Zellenon/bevy_composable#fe7ff2c666fad4cb1fb4c24a101070e4c09226f1"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_core_pipeline"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1669,6 +1677,7 @@ dependencies = [
  "avian2d",
  "bevy",
  "bevy_asset_loader",
+ "bevy_composable",
  "log",
  "rand 0.9.1",
  "tracing",
