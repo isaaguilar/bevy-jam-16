@@ -3,7 +3,7 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod asset_tracking;
+mod assets;
 mod audio;
 mod demo;
 #[cfg(feature = "dev")]
@@ -12,13 +12,19 @@ mod menus;
 mod screens;
 mod theme;
 
+use avian2d::prelude::{NarrowPhaseSet, PhysicsSchedule};
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
-fn main() -> AppExit {
-    App::new().add_plugins(AppPlugin).run()
+pub mod prelude {
+    pub use crate::assets::{GameAssets, UiAssets};
+    pub use crate::screens::Screen;
+    pub use crate::{AppSystems, PausableSystems};
 }
 
 pub struct AppPlugin;
+
+const WINDOW_X: f32 = 1280.0;
+const WINDOW_Y: f32 = 720.0;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
@@ -34,7 +40,8 @@ impl Plugin for AppPlugin {
                 })
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "{{project-name | title_case}}".to_string(),
+                        title: "Chain Reaction Towers".to_string(),
+                        resolution: (WINDOW_X, WINDOW_Y).into(),
                         fit_canvas_to_parent: true,
                         ..default()
                     }
@@ -45,7 +52,7 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins((
-            asset_tracking::plugin,
+            assets::plugin,
             audio::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
@@ -79,7 +86,7 @@ impl Plugin for AppPlugin {
 /// When adding a new variant, make sure to order it in the `configure_sets`
 /// call above.
 #[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
-enum AppSystems {
+pub enum AppSystems {
     /// Tick timers.
     TickTimers,
     /// Record player input.
@@ -88,14 +95,14 @@ enum AppSystems {
     Update,
 }
 
-/// Whether or not the game is paused.
+/// Whether the game is paused.
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 #[states(scoped_entities)]
 struct Pause(pub bool);
 
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-struct PausableSystems;
+pub struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((Name::new("Camera"), Camera2d));

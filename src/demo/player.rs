@@ -1,24 +1,15 @@
 //! Player-specific behavior.
 
-use bevy::{
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
+use crate::demo::{
+    animation::PlayerAnimation,
+    movement::{MovementController, ScreenWrap},
 };
-
-use crate::{
-    AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
-    demo::{
-        animation::PlayerAnimation,
-        movement::{MovementController, ScreenWrap},
-    },
-};
+use crate::prelude::*;
+use avian2d::prelude::{Collider, RigidBody};
+use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Player>();
-
-    app.register_type::<PlayerAssets>();
-    app.load_resource::<PlayerAssets>();
 
     // Record directional input as movement controls.
     app.add_systems(
@@ -32,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
 /// The player character.
 pub fn player(
     max_speed: f32,
-    player_assets: &PlayerAssets,
+    player_assets: &GameAssets,
     texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
 ) -> impl Bundle {
     // A texture atlas is a way to split a single image into a grid of related images.
@@ -44,6 +35,8 @@ pub fn player(
     (
         Name::new("Player"),
         Player,
+        RigidBody::Static,
+        Collider::rectangle(32.0, 32.0),
         Sprite {
             image: player_assets.ducky.clone(),
             texture_atlas: Some(TextureAtlas {
@@ -92,35 +85,5 @@ fn record_player_directional_input(
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.intent = intent;
-    }
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-pub struct PlayerAssets {
-    #[dependency]
-    ducky: Handle<Image>,
-    #[dependency]
-    pub steps: Vec<Handle<AudioSource>>,
-}
-
-impl FromWorld for PlayerAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            ducky: assets.load_with_settings(
-                "images/ducky.png",
-                |settings: &mut ImageLoaderSettings| {
-                    // Use `nearest` image sampling to preserve pixel art style.
-                    settings.sampler = ImageSampler::nearest();
-                },
-            ),
-            steps: vec![
-                assets.load("audio/sound_effects/step1.ogg"),
-                assets.load("audio/sound_effects/step2.ogg"),
-                assets.load("audio/sound_effects/step3.ogg"),
-                assets.load("audio/sound_effects/step4.ogg"),
-            ],
-        }
     }
 }
