@@ -75,7 +75,6 @@ impl Plugin for AppPlugin {
 
         // Set up the `Pause` state.
         app.init_state::<Pause>();
-
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
 
         // Spawn the main camera.
@@ -104,10 +103,6 @@ struct Pause(pub bool);
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct PausableSystems;
-
-/// A system set for systems that shouldn't run while the game is paused.
-#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct PausablePhysics;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((Name::new("Camera"), Camera2d));

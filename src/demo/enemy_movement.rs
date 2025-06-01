@@ -24,10 +24,6 @@ pub(super) fn plugin(app: &mut App) {
             kinematic_controller_collisions.in_set(NarrowPhaseSet::Last),
         )
         .add_systems(
-            // Run collision handling after collision detection.
-            //
-            // NOTE: The collision implementation here is very basic and a bit buggy.
-            //       A collide-and-slide algorithm would likely work better.
             PreUpdate,
             sleep_physics
                 .in_set(AppSystems::Update)
@@ -35,7 +31,7 @@ pub(super) fn plugin(app: &mut App) {
         );
 }
 
-fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<EnemyController>>) {
+fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>) {
     for entity in enemies {
         commands.entity(entity).insert(Sleeping);
     }
