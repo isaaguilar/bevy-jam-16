@@ -20,4 +20,7 @@ pub struct GameAssets {
     pub music: Handle<AudioSource>,
     #[asset(path = "audio/music/Monkeys Spinning Monkeys.ogg")]
     pub credit_music: Handle<AudioSource>,
+    #[asset(path = "images/badguy.png")]
+    #[asset(image(sampler(filter = nearest)))]
+    pub enemysprite: Handle<Image>,
 }

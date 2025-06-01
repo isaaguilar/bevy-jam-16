@@ -12,6 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
+use avian2d::prelude::{NarrowPhaseSet, PhysicsSchedule};
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
 pub mod prelude {
@@ -21,6 +22,9 @@ pub mod prelude {
 }
 
 pub struct AppPlugin;
+
+const WINDOW_X: f32 = 1280.0;
+const WINDOW_Y: f32 = 720.0;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
@@ -37,6 +41,7 @@ impl Plugin for AppPlugin {
                 .set(WindowPlugin {
                     primary_window: Window {
                         title: "Chain Reaction Towers".to_string(),
+                        resolution: (WINDOW_X, WINDOW_Y).into(),
                         fit_canvas_to_parent: true,
                         ..default()
                     }

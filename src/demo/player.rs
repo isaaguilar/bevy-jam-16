@@ -5,6 +5,7 @@ use crate::demo::{
     movement::{MovementController, ScreenWrap},
 };
 use crate::prelude::*;
+use avian2d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -34,6 +35,8 @@ pub fn player(
     (
         Name::new("Player"),
         Player,
+        RigidBody::Static,
+        Collider::rectangle(32.0, 32.0),
         Sprite {
             image: player_assets.ducky.clone(),
             texture_atlas: Some(TextureAtlas {
