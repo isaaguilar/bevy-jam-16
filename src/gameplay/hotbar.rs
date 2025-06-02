@@ -52,7 +52,7 @@ fn spawn_hotbar() -> impl Bundle {
             position_type: PositionType::Absolute,
             bottom: Val::Px(8.0),
             margin: UiRect::horizontal(Val::Auto),
-            height: Val::Px(80.0),
+            height: Val::Px(88.0),
             padding: UiRect::axes(Val::Px(8.0), Val::Px(8.0)),
             display: Display::Flex,
             column_gap: Val::Px(8.0),
@@ -70,8 +70,8 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
         Name::new(tower.name()),
         Button,
         Node {
-            width: Val::Px(64.),
-            height: Val::Px(64.),
+            width: Val::Px(72.),
+            height: Val::Px(72.),
             ..default()
         },
         BackgroundColor(Color::WHITE.with_alpha(0.25)),
