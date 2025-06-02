@@ -34,7 +34,7 @@ pub fn spawn_level(
         Visibility::default(),
         StateScoped(Screen::Gameplay),
         children![
-            enemy_spawn_bundle(165.0, &assets, &mut texture_atlas_layouts),
+            enemy_spawn_bundle(30.0, &assets, &mut texture_atlas_layouts),
             player(40.0, &assets, &mut texture_atlas_layouts),
             (Name::new("Gameplay Music"), music(assets.music.clone())),
         ],
