@@ -1,6 +1,9 @@
 use crate::{
     AppSystems, PausableSystems,
-    level::{components::LEVEL_SCALING, resource::Level},
+    level::{
+        components::{LEVEL_SCALING, PathNode},
+        resource::{CellDirection, Level},
+    },
 };
 use avian2d::{
     math::*,
@@ -39,12 +42,9 @@ fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>)
     }
 }
 
-/// An event sent for a movement input action.
-#[derive(Component, Default)]
-struct MovementDirection {
-    x: f32,
-    y: f32,
-}
+/// An component sent for a movement input action.
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+struct MovementDirection(pub Vec2);
 
 /// A marker component indicating that an entity is using a character controller.
 #[derive(Component)]
@@ -80,7 +80,6 @@ pub struct EnemyControllerBundle {
     ground_caster: ShapeCaster,
     gravity: ControllerGravity,
     movement: MovementBundle,
-    waypoint: Waypoint,
 }
 
 /// A bundle that contains components for character movement.
@@ -88,11 +87,6 @@ pub struct EnemyControllerBundle {
 pub struct MovementBundle {
     acceleration: MovementAcceleration,
     damping: MovementDampingFactor,
-}
-
-#[derive(Component, Default)]
-pub struct Waypoint {
-    index: usize,
 }
 
 impl MovementBundle {
@@ -125,7 +119,6 @@ impl EnemyControllerBundle {
                 .with_max_distance(4.0),
             gravity: ControllerGravity(gravity),
             movement: MovementBundle::default(),
-            waypoint: Waypoint::default(),
         }
     }
 
@@ -137,38 +130,24 @@ impl EnemyControllerBundle {
 
 /// Sends [`MovementAction`] events based on enemy's waypoint direction
 fn follow_path(
-    level: Res<Level>,
-    mut enemies: Query<(&Transform, &mut Waypoint, &mut MovementDirection), With<EnemyController>>,
+    mut enemies: Query<(&Transform, &mut MovementDirection), With<EnemyController>>,
+    nodes: Query<(&Transform, &PathNode)>,
 ) {
     // path instructions to walk around in a circle
-    for (enemy_transform, mut enemy_waypoint, mut movement_direction) in enemies.iter_mut() {
-        let x = enemy_transform.translation.x;
-        let y = enemy_transform.translation.y;
+    for (enemy_transform, mut movement_direction) in enemies.iter_mut() {
+        let pos = enemy_transform.translation.xy();
 
-        let idx = enemy_waypoint.index;
-        let heading_towards = level.path[idx].0 * LEVEL_SCALING;
+        let mut nodes_sorted_by_distance = nodes
+            .iter()
+            .map(|w| (pos.distance(w.0.translation.xy()), (w.0, w.1.0)))
+            .collect::<Vec<_>>();
+        nodes_sorted_by_distance.sort_by(|w, other| w.0.total_cmp(&other.0));
+        let (closest, second_closest) =
+            (nodes_sorted_by_distance[0].1, nodes_sorted_by_distance[1].1);
 
-        let arrived_x = if x.distance(heading_towards.x) > 5.0 {
-            let direction = if heading_towards.x > x { 1. } else { -1. };
-            movement_direction.x = direction;
-            false
-        } else {
-            movement_direction.x = 0.0;
-            true
-        };
-
-        let arrived_y = if y.distance(heading_towards.y) > 5.0 {
-            let direction = if heading_towards.y > y { 1. } else { -1. };
-            movement_direction.y = direction;
-            false
-        } else {
-            movement_direction.y = 0.0;
-            true
-        };
-
-        if arrived_x && arrived_y && enemy_waypoint.index < level.path.len() - 1 {
-            enemy_waypoint.index += 1;
-        }
+        // I plan on adding more complicated movement logic later to help them go around corners
+        // but this will work for now
+        movement_direction.0 = (closest.1.vec() + second_closest.1.vec()) / 2.;
     }
 }
 
@@ -186,8 +165,8 @@ fn movement(
     let delta_time = time.delta_secs_f64().adjust_precision();
 
     for (movement_direction, movement_acceleration, mut linear_velocity) in &mut controllers {
-        let x_direction = movement_direction.x;
-        let y_direction = movement_direction.y;
+        let x_direction = movement_direction.0.x;
+        let y_direction = movement_direction.0.y;
         if x_direction != 0.0 {
             linear_velocity.x += x_direction * movement_acceleration.0 * delta_time;
         }
