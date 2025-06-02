@@ -11,6 +11,7 @@ mod dev_tools;
 mod gameplay;
 mod level;
 mod menus;
+mod prefabs;
 mod screens;
 mod theme;
 
@@ -61,6 +62,7 @@ impl Plugin for AppPlugin {
             #[cfg(feature = "dev")]
             dev_tools::plugin,
             menus::plugin,
+            prefabs::plugin,
             screens::plugin,
             theme::plugin,
         ));

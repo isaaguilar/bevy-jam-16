@@ -44,34 +44,34 @@ fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>)
 
 /// An component sent for a movement input action.
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
-struct MovementDirection(pub Vec2);
+pub struct MovementDirection(pub Vec2);
 
 /// A marker component indicating that an entity is using a character controller.
-#[derive(Component)]
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 pub struct EnemyController;
 
 /// The acceleration used for character movement.
-#[derive(Component)]
-pub struct MovementAcceleration(Scalar);
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+pub struct MovementAcceleration(pub Scalar);
 
 /// The damping factor used for slowing down movement.
-#[derive(Component)]
-pub struct MovementDampingFactor(Scalar);
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+pub struct MovementDampingFactor(pub Scalar);
 
 /// The gravitational acceleration used for a character controller.
-#[derive(Component)]
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 #[allow(dead_code)]
-pub struct ControllerGravity(Vector);
+pub struct ControllerGravity(pub Vector);
 
 /// The maximum angle a slope can have for a character controller
 /// to be able to climb and jump. If the slope is steeper than this angle,
 /// the character will slide down.
-#[derive(Component)]
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 pub struct MaxSlopeAngle(Scalar);
 
 /// A bundle that contains the components needed for a basic
 /// kinematic character controller.
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct EnemyControllerBundle {
     character_controller: EnemyController,
     movement_direction: MovementDirection,
@@ -83,7 +83,7 @@ pub struct EnemyControllerBundle {
 }
 
 /// A bundle that contains components for character movement.
-#[derive(Bundle)]
+#[derive(Bundle, Clone, Reflect)]
 pub struct MovementBundle {
     acceleration: MovementAcceleration,
     damping: MovementDampingFactor,
@@ -147,7 +147,8 @@ fn follow_path(
 
         // I plan on adding more complicated movement logic later to help them go around corners
         // but this will work for now
-        movement_direction.0 = (closest.1.vec() + second_closest.1.vec()) / 2.;
+        movement_direction.0 =
+            ((closest.1.vec() + second_closest.1.vec()) / 2.).normalize_or_zero();
     }
 }
 
