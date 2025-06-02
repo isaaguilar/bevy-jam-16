@@ -10,28 +10,27 @@ use bevy::math::NormedVectorSpace;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<MovementAction>()
-        .add_systems(
-            Update,
-            (follow_path, movement, apply_movement_damping)
-                .chain()
-                .in_set(AppSystems::Update)
-                .in_set(PausableSystems),
-        )
-        .add_systems(
-            // Run collision handling after collision detection.
-            //
-            // NOTE: The collision implementation here is very basic and a bit buggy.
-            //       A collide-and-slide algorithm would likely work better.
-            PhysicsSchedule,
-            kinematic_controller_collisions.in_set(NarrowPhaseSet::Last),
-        )
-        .add_systems(
-            PreUpdate,
-            sleep_physics
-                .in_set(AppSystems::Update)
-                .in_set(PausableSystems),
-        );
+    app.add_systems(
+        Update,
+        (follow_path, movement, apply_movement_damping)
+            .chain()
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    )
+    .add_systems(
+        // Run collision handling after collision detection.
+        //
+        // NOTE: The collision implementation here is very basic and a bit buggy.
+        //       A collide-and-slide algorithm would likely work better.
+        PhysicsSchedule,
+        kinematic_controller_collisions.in_set(NarrowPhaseSet::Last),
+    )
+    .add_systems(
+        PreUpdate,
+        sleep_physics
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
 }
 
 fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>) {
@@ -41,10 +40,10 @@ fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>)
 }
 
 /// An event sent for a movement input action.
-#[derive(Event)]
-pub enum MovementAction {
-    MoveX(Scalar),
-    MoveY(Scalar),
+#[derive(Component, Default)]
+struct MovementDirection {
+    x: f32,
+    y: f32,
 }
 
 /// A marker component indicating that an entity is using a character controller.
@@ -75,6 +74,7 @@ pub struct MaxSlopeAngle(Scalar);
 #[derive(Bundle)]
 pub struct EnemyControllerBundle {
     character_controller: EnemyController,
+    movement_direction: MovementDirection,
     body: RigidBody,
     collider: Collider,
     ground_caster: ShapeCaster,
@@ -118,6 +118,7 @@ impl EnemyControllerBundle {
 
         Self {
             character_controller: EnemyController,
+            movement_direction: MovementDirection::default(),
             body: RigidBody::Kinematic,
             collider,
             ground_caster: ShapeCaster::new(caster_shape, Vector::ZERO, 0.0, Dir2::NEG_Y)
@@ -136,12 +137,11 @@ impl EnemyControllerBundle {
 
 /// Sends [`MovementAction`] events based on enemy's waypoint direction
 fn follow_path(
-    mut movement_event_writer: EventWriter<MovementAction>,
     level: Res<Level>,
-    mut enemies: Query<(&Transform, &mut Waypoint), With<EnemyController>>,
+    mut enemies: Query<(&Transform, &mut Waypoint, &mut MovementDirection), With<EnemyController>>,
 ) {
     // path instructions to walk around in a circle
-    for (enemy_transform, mut enemy_waypoint) in enemies.iter_mut() {
+    for (enemy_transform, mut enemy_waypoint, mut movement_direction) in enemies.iter_mut() {
         let x = enemy_transform.translation.x;
         let y = enemy_transform.translation.y;
 
@@ -150,19 +150,19 @@ fn follow_path(
 
         let arrived_x = if x.distance(heading_towards.x) > 5.0 {
             let direction = if heading_towards.x > x { 1. } else { -1. };
-
-            movement_event_writer.write(MovementAction::MoveX(direction));
+            movement_direction.x = direction;
             false
         } else {
+            movement_direction.x = 0.0;
             true
         };
 
         let arrived_y = if y.distance(heading_towards.y) > 5.0 {
             let direction = if heading_towards.y > y { 1. } else { -1. };
-
-            movement_event_writer.write(MovementAction::MoveY(direction));
+            movement_direction.y = direction;
             false
         } else {
+            movement_direction.y = 0.0;
             true
         };
 
@@ -175,23 +175,25 @@ fn follow_path(
 /// Responds to [`MovementAction`] events and moves character controllers accordingly.
 fn movement(
     time: Res<Time>,
-    mut movement_event_reader: EventReader<MovementAction>,
-    mut controllers: Query<(&MovementAcceleration, &mut LinearVelocity)>,
+    mut controllers: Query<(
+        &MovementDirection,
+        &MovementAcceleration,
+        &mut LinearVelocity,
+    )>,
 ) {
     // Precision is adjusted so that the example works with
     // both the `f32` and `f64` features. Otherwise you don't need this.
     let delta_time = time.delta_secs_f64().adjust_precision();
 
-    for event in movement_event_reader.read() {
-        for (movement_acceleration, mut linear_velocity) in &mut controllers {
-            match event {
-                MovementAction::MoveX(direction) => {
-                    linear_velocity.x += *direction * movement_acceleration.0 * delta_time;
-                }
-                MovementAction::MoveY(direction) => {
-                    linear_velocity.y += *direction * movement_acceleration.0 * delta_time;
-                }
-            }
+    for (movement_direction, movement_acceleration, mut linear_velocity) in &mut controllers {
+        let x_direction = movement_direction.x;
+        let y_direction = movement_direction.y;
+        if x_direction != 0.0 {
+            linear_velocity.x += x_direction * movement_acceleration.0 * delta_time;
+        }
+
+        if y_direction != 0.0 {
+            linear_velocity.y += y_direction * movement_acceleration.0 * delta_time;
         }
     }
 }
