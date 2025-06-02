@@ -31,7 +31,7 @@ impl From<char> for CellDirection {
 }
 
 // Holds all the information necessary to load a level to the game
-#[derive(Clone, Resource, Debug)]
+#[derive(Clone, Resource, Debug, Default, Reflect)]
 pub struct Level {
     pub path: Vec<Vec2>,
     pub width: usize,

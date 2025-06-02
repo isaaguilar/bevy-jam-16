@@ -25,6 +25,7 @@ pub(super) fn plugin(_app: &mut App) {
 pub fn spawn_level(
     mut commands: Commands,
     assets: Res<GameAssets>,
+    mut level: ResMut<Level>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     commands.spawn((
@@ -38,8 +39,9 @@ pub fn spawn_level(
             (Name::new("Gameplay Music"), music(assets.music.clone())),
         ],
     ));
+    *level = Level::from_str(MAP_TEXT);
     commands.compose(
-        LevelParent::from_data(Level::from_str(MAP_TEXT))
+        LevelParent::from_data(&level)
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );

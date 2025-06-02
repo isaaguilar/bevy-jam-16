@@ -55,6 +55,7 @@ impl Plugin for AppPlugin {
         app.add_plugins((
             assets::plugin,
             audio::plugin,
+            level::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
