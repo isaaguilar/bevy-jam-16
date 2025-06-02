@@ -5,5 +5,5 @@ mod level;
 mod wave_manager;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(hotbar::plugin);
+    app.add_plugins((hotbar::plugin, wave_manager::plugin));
 }
