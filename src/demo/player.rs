@@ -5,7 +5,7 @@ use crate::demo::{
     movement::{MovementController, ScreenWrap},
 };
 use crate::prelude::*;
-use avian2d::prelude::{Collider, RigidBody};
+use avian2d::prelude::{Collider, LockedAxes, RigidBody};
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -35,7 +35,7 @@ pub fn player(
     (
         Name::new("Player"),
         Player,
-        RigidBody::Static,
+        RigidBody::Dynamic,
         Collider::rectangle(32., 32.),
         Sprite {
             image: player_assets.ducky.clone(),
@@ -45,7 +45,8 @@ pub fn player(
             }),
             ..default()
         },
-        Transform::from_scale(Vec2::splat(0.3).extend(1.0)),
+        Transform::from_scale(Vec2::splat(0.2).extend(1.0)).with_translation((15., 0., 0.).into()),
+        LockedAxes::ROTATION_LOCKED,
         MovementController {
             max_speed,
             ..default()
