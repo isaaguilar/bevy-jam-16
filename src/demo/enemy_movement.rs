@@ -114,14 +114,14 @@ impl EnemyControllerBundle {
     pub fn new(collider: Collider, gravity: Vector) -> Self {
         // Create shape caster as a slightly smaller version of collider
         let mut caster_shape = collider.clone();
-        caster_shape.set_scale(Vector::ONE * 0.99, 10);
+        caster_shape.set_scale(Vector::ONE * 0.15, 10);
 
         Self {
             character_controller: EnemyController,
             body: RigidBody::Kinematic,
             collider,
             ground_caster: ShapeCaster::new(caster_shape, Vector::ZERO, 0.0, Dir2::NEG_Y)
-                .with_max_distance(10.0),
+                .with_max_distance(4.0),
             gravity: ControllerGravity(gravity),
             movement: MovementBundle::default(),
             waypoint: Waypoint::default(),
@@ -146,7 +146,7 @@ fn follow_path(
         let y = enemy_transform.translation.y;
 
         let idx = enemy_waypoint.index;
-        let heading_towards = (level.path[idx] + Vec2::new(0.5, 0.5)) * LEVEL_SCALING;
+        let heading_towards = level.path[idx].0 * LEVEL_SCALING;
 
         let arrived_x = if x.distance(heading_towards.x) > 5.0 {
             let direction = if heading_towards.x > x { 1. } else { -1. };
