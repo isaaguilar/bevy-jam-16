@@ -15,7 +15,7 @@ pub mod player;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
-        PhysicsPlugins::default().with_length_unit(20.0),
+        PhysicsPlugins::default().with_length_unit(2.0),
         PhysicsDebugPlugin::default(),
         enemy::plugin,
         enemy_movement::plugin,
