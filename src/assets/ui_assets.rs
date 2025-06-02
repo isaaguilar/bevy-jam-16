@@ -7,4 +7,10 @@ pub struct UiAssets {
     pub button_hover_sound: Handle<AudioSource>,
     #[asset(path = "audio/sound_effects/button_click.ogg")]
     pub button_click_sound: Handle<AudioSource>,
+    #[asset(path = "ui/hotbar_tesla.png")]
+    pub hotbar_tesla_image: Handle<Image>,
+    #[asset(path = "ui/hotbar_water.png")]
+    pub hotbar_water_image: Handle<Image>,
+    #[asset(path = "ui/hotbar_trapdoor.png")]
+    pub hotbar_trapdoor_image: Handle<Image>,
 }
