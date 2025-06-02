@@ -7,6 +7,7 @@ use avian2d::{PhysicsPlugins, prelude::PhysicsDebugPlugin};
 use bevy::prelude::*;
 
 mod animation;
+pub mod enemy_health;
 pub mod enemy_movement;
 pub mod level;
 mod movement;
@@ -17,6 +18,7 @@ pub(super) fn plugin(app: &mut App) {
         PhysicsPlugins::default().with_length_unit(2.0),
         PhysicsDebugPlugin::default(),
         enemy_movement::plugin,
+        enemy_health::plugin,
         animation::plugin,
         level::plugin,
         movement::plugin,
