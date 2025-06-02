@@ -10,6 +10,7 @@ mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod gameplay;
+mod level;
 mod menus;
 mod screens;
 mod theme;
@@ -56,6 +57,7 @@ impl Plugin for AppPlugin {
             data::plugin,
             assets::plugin,
             audio::plugin,
+            level::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
@@ -107,5 +109,13 @@ struct Pause(pub bool);
 pub struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Name::new("Camera"),
+        Camera2d,
+        Projection::Orthographic({
+            let mut proj = OrthographicProjection::default_2d();
+            proj.scale = 0.05;
+            proj
+        }),
+    ));
 }

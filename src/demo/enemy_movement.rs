@@ -1,4 +1,10 @@
-use crate::{AppSystems, PausableSystems};
+use crate::{
+    AppSystems, PausableSystems,
+    level::{
+        components::{LEVEL_SCALING, PathNode},
+        resource::{CellDirection, Level},
+    },
+};
 use avian2d::{
     math::*,
     prelude::{NarrowPhaseSet, *},
@@ -7,28 +13,27 @@ use bevy::math::NormedVectorSpace;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<MovementAction>()
-        .add_systems(
-            Update,
-            (follow_path, movement, apply_movement_damping)
-                .chain()
-                .in_set(AppSystems::Update)
-                .in_set(PausableSystems),
-        )
-        .add_systems(
-            // Run collision handling after collision detection.
-            //
-            // NOTE: The collision implementation here is very basic and a bit buggy.
-            //       A collide-and-slide algorithm would likely work better.
-            PhysicsSchedule,
-            kinematic_controller_collisions.in_set(NarrowPhaseSet::Last),
-        )
-        .add_systems(
-            PreUpdate,
-            sleep_physics
-                .in_set(AppSystems::Update)
-                .in_set(PausableSystems),
-        );
+    app.add_systems(
+        Update,
+        (follow_path, movement, apply_movement_damping)
+            .chain()
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    )
+    .add_systems(
+        // Run collision handling after collision detection.
+        //
+        // NOTE: The collision implementation here is very basic and a bit buggy.
+        //       A collide-and-slide algorithm would likely work better.
+        PhysicsSchedule,
+        kinematic_controller_collisions.in_set(NarrowPhaseSet::Last),
+    )
+    .add_systems(
+        PreUpdate,
+        sleep_physics
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
 }
 
 fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>) {
@@ -37,12 +42,9 @@ fn sleep_physics(mut commands: Commands, enemies: Query<Entity, With<Collider>>)
     }
 }
 
-/// An event sent for a movement input action.
-#[derive(Event)]
-pub enum MovementAction {
-    MoveX(Scalar),
-    MoveY(Scalar),
-}
+/// An component sent for a movement input action.
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+struct MovementDirection(pub Vec2);
 
 /// A marker component indicating that an entity is using a character controller.
 #[derive(Component)]
@@ -72,12 +74,12 @@ pub struct MaxSlopeAngle(Scalar);
 #[derive(Bundle)]
 pub struct EnemyControllerBundle {
     character_controller: EnemyController,
+    movement_direction: MovementDirection,
     body: RigidBody,
     collider: Collider,
     ground_caster: ShapeCaster,
     gravity: ControllerGravity,
     movement: MovementBundle,
-    waypoint: Waypoint,
 }
 
 /// A bundle that contains components for character movement.
@@ -85,12 +87,6 @@ pub struct EnemyControllerBundle {
 pub struct MovementBundle {
     acceleration: MovementAcceleration,
     damping: MovementDampingFactor,
-}
-
-#[derive(Component)]
-pub struct Waypoint {
-    poi: Vec<Vec2>,
-    index: usize,
 }
 
 impl MovementBundle {
@@ -112,29 +108,17 @@ impl EnemyControllerBundle {
     pub fn new(collider: Collider, gravity: Vector) -> Self {
         // Create shape caster as a slightly smaller version of collider
         let mut caster_shape = collider.clone();
-        caster_shape.set_scale(Vector::ONE * 0.99, 10);
-
-        let zigzag = Waypoint {
-            poi: vec![
-                Vector::new(-540., -260.),
-                Vector::new(540., -260.),
-                Vector::new(540., 0.),
-                Vector::new(-540., 0.),
-                Vector::new(-540., 260.),
-                Vector::new(540., 260.),
-            ],
-            index: 0,
-        };
+        caster_shape.set_scale(Vector::ONE * 0.15, 10);
 
         Self {
             character_controller: EnemyController,
+            movement_direction: MovementDirection::default(),
             body: RigidBody::Kinematic,
             collider,
             ground_caster: ShapeCaster::new(caster_shape, Vector::ZERO, 0.0, Dir2::NEG_Y)
-                .with_max_distance(10.0),
+                .with_max_distance(4.0),
             gravity: ControllerGravity(gravity),
             movement: MovementBundle::default(),
-            waypoint: zigzag,
         }
     }
 
@@ -146,66 +130,49 @@ impl EnemyControllerBundle {
 
 /// Sends [`MovementAction`] events based on enemy's waypoint direction
 fn follow_path(
-    mut movement_event_writer: EventWriter<MovementAction>,
-    mut enemies: Query<(&Transform, &mut Waypoint), With<EnemyController>>,
+    mut enemies: Query<(&Transform, &mut MovementDirection), With<EnemyController>>,
+    nodes: Query<(&Transform, &PathNode)>,
 ) {
     // path instructions to walk around in a circle
-    for (enemy_transform, mut enemy_waypoint) in enemies.iter_mut() {
-        let x = enemy_transform.translation.x;
-        let y = enemy_transform.translation.y;
+    for (enemy_transform, mut movement_direction) in enemies.iter_mut() {
+        let pos = enemy_transform.translation.xy();
 
-        let idx = enemy_waypoint.index;
-        let heading_towards = enemy_waypoint.poi[idx];
+        let mut nodes_sorted_by_distance = nodes
+            .iter()
+            .map(|w| (pos.distance(w.0.translation.xy()), (w.0, w.1.0)))
+            .collect::<Vec<_>>();
+        nodes_sorted_by_distance.sort_by(|w, other| w.0.total_cmp(&other.0));
+        let (closest, second_closest) =
+            (nodes_sorted_by_distance[0].1, nodes_sorted_by_distance[1].1);
 
-        let arrived_x = if x.distance(heading_towards.x) > 50.0 {
-            let direction = if heading_towards.x > x { 1. } else { -1. };
-
-            movement_event_writer.write(MovementAction::MoveX(direction));
-            false
-        } else {
-            true
-        };
-
-        let arrived_y = if y.distance(heading_towards.y) > 50.0 {
-            let direction = if heading_towards.y > y { 1. } else { -1. };
-
-            movement_event_writer.write(MovementAction::MoveY(direction));
-            false
-        } else {
-            true
-        };
-
-        if arrived_x && arrived_y {
-            let next_waypoint = enemy_waypoint.index + 1;
-            if next_waypoint > enemy_waypoint.poi.len() - 1 {
-                enemy_waypoint.index = 0;
-            } else {
-                enemy_waypoint.index = next_waypoint;
-            }
-        }
+        // I plan on adding more complicated movement logic later to help them go around corners
+        // but this will work for now
+        movement_direction.0 = (closest.1.vec() + second_closest.1.vec()) / 2.;
     }
 }
 
 /// Responds to [`MovementAction`] events and moves character controllers accordingly.
 fn movement(
     time: Res<Time>,
-    mut movement_event_reader: EventReader<MovementAction>,
-    mut controllers: Query<(&MovementAcceleration, &mut LinearVelocity)>,
+    mut controllers: Query<(
+        &MovementDirection,
+        &MovementAcceleration,
+        &mut LinearVelocity,
+    )>,
 ) {
     // Precision is adjusted so that the example works with
     // both the `f32` and `f64` features. Otherwise you don't need this.
     let delta_time = time.delta_secs_f64().adjust_precision();
 
-    for event in movement_event_reader.read() {
-        for (movement_acceleration, mut linear_velocity) in &mut controllers {
-            match event {
-                MovementAction::MoveX(direction) => {
-                    linear_velocity.x += *direction * movement_acceleration.0 * delta_time;
-                }
-                MovementAction::MoveY(direction) => {
-                    linear_velocity.y += *direction * movement_acceleration.0 * delta_time;
-                }
-            }
+    for (movement_direction, movement_acceleration, mut linear_velocity) in &mut controllers {
+        let x_direction = movement_direction.0.x;
+        let y_direction = movement_direction.0.y;
+        if x_direction != 0.0 {
+            linear_velocity.x += x_direction * movement_acceleration.0 * delta_time;
+        }
+
+        if y_direction != 0.0 {
+            linear_velocity.y += y_direction * movement_acceleration.0 * delta_time;
         }
     }
 }
