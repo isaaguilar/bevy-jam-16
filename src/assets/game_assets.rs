@@ -6,6 +6,17 @@ pub struct GameAssets {
     #[asset(path = "images/ducky.png")]
     #[asset(image(sampler(filter = nearest)))]
     pub ducky: Handle<Image>,
+    #[asset(texture_atlas_layout(
+        tile_size_x = 32,
+        tile_size_y = 32,
+        columns = 6,
+        rows = 2,
+        padding_x = 1,
+        padding_y = 1,
+        offset_x = 0,
+        offset_y = 0
+    ))]
+    pub ducky_layout: Handle<TextureAtlasLayout>,
     #[asset(
         paths(
             "audio/sound_effects/step1.ogg",
@@ -23,4 +34,18 @@ pub struct GameAssets {
     #[asset(path = "images/badguy.png")]
     #[asset(image(sampler(filter = nearest)))]
     pub enemysprite: Handle<Image>,
+}
+
+impl GameAssets {
+    pub fn badguy(&self) -> Handle<Image> {
+        self.enemysprite.clone()
+    }
+
+    pub fn badguy_layout(&self) -> Handle<TextureAtlasLayout> {
+        self.ducky_layout.clone()
+    }
+
+    pub fn ducky(&self) -> Handle<Image> {
+        self.ducky.clone()
+    }
 }
