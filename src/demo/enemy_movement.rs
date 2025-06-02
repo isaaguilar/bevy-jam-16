@@ -1,4 +1,7 @@
-use crate::{AppSystems, PausableSystems};
+use crate::{
+    AppSystems, PausableSystems,
+    level::{components::LEVEL_SCALING, resource::Level},
+};
 use avian2d::{
     math::*,
     prelude::{NarrowPhaseSet, *},
@@ -87,9 +90,8 @@ pub struct MovementBundle {
     damping: MovementDampingFactor,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Waypoint {
-    poi: Vec<Vec2>,
     index: usize,
 }
 
@@ -114,18 +116,6 @@ impl EnemyControllerBundle {
         let mut caster_shape = collider.clone();
         caster_shape.set_scale(Vector::ONE * 0.99, 10);
 
-        let zigzag = Waypoint {
-            poi: vec![
-                Vector::new(-34., -16.),
-                Vector::new(34., -16.),
-                Vector::new(34., 0.),
-                Vector::new(-34., 0.),
-                Vector::new(-34., 16.),
-                Vector::new(34., 16.),
-            ],
-            index: 0,
-        };
-
         Self {
             character_controller: EnemyController,
             body: RigidBody::Kinematic,
@@ -134,7 +124,7 @@ impl EnemyControllerBundle {
                 .with_max_distance(10.0),
             gravity: ControllerGravity(gravity),
             movement: MovementBundle::default(),
-            waypoint: zigzag,
+            waypoint: Waypoint::default(),
         }
     }
 
@@ -147,6 +137,7 @@ impl EnemyControllerBundle {
 /// Sends [`MovementAction`] events based on enemy's waypoint direction
 fn follow_path(
     mut movement_event_writer: EventWriter<MovementAction>,
+    level: Res<Level>,
     mut enemies: Query<(&Transform, &mut Waypoint), With<EnemyController>>,
 ) {
     // path instructions to walk around in a circle
@@ -155,7 +146,7 @@ fn follow_path(
         let y = enemy_transform.translation.y;
 
         let idx = enemy_waypoint.index;
-        let heading_towards = enemy_waypoint.poi[idx];
+        let heading_towards = (level.path[idx] + Vec2::new(0.5, 0.5)) * LEVEL_SCALING;
 
         let arrived_x = if x.distance(heading_towards.x) > 5.0 {
             let direction = if heading_towards.x > x { 1. } else { -1. };
@@ -175,13 +166,8 @@ fn follow_path(
             true
         };
 
-        if arrived_x && arrived_y {
-            let next_waypoint = enemy_waypoint.index + 1;
-            if next_waypoint > enemy_waypoint.poi.len() - 1 {
-                enemy_waypoint.index = 0;
-            } else {
-                enemy_waypoint.index = next_waypoint;
-            }
+        if arrived_x && arrived_y && enemy_waypoint.index < level.path.len() - 1 {
+            enemy_waypoint.index += 1;
         }
     }
 }
