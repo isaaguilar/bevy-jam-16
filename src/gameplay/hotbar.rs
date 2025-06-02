@@ -7,7 +7,9 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_turret_bar);
     app.add_systems(
         Update,
-        (highlight_hovered_tile, on_press_hotbar).run_if(in_state(Screen::Gameplay)),
+        (highlight_hovered_tile, on_press_hotbar)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
     );
 }
 
@@ -15,23 +17,21 @@ pub(super) fn plugin(app: &mut App) {
 struct HotbarItem();
 
 fn spawn_turret_bar(mut commands: Commands, assets: Res<UiAssets>) {
-    let hotbar_items = vec![
-        (
-            "tesla turret",
-            Tower::Tesla,
-            assets.hotbar_tesla_image.clone(),
-        ),
-        (
-            "water bucket",
-            Tower::Water,
-            assets.hotbar_water_image.clone(),
-        ),
-        (
-            "trap door",
-            Tower::TrapDoor,
-            assets.hotbar_trapdoor_image.clone(),
-        ),
-    ];
+    // let hotbar_items = vec![
+    //     (Tower::Tesla, assets.hotbar_tesla_image.clone()),
+    //     (Tower::Water, assets.hotbar_water_image.clone()),
+    //     (Tower::TrapDoor, assets.hotbar_trapdoor_image.clone()),
+    // ];
+
+    let hotbar_items: Vec<_> = Tower::all()
+        .iter()
+        .map(|t| {
+            (
+                *t,
+                assets.hotbar_icons.get(t.ui_asset_key()).unwrap().clone(),
+            )
+        })
+        .collect();
 
     commands.spawn((
         StateScoped(Screen::Gameplay),
@@ -39,7 +39,7 @@ fn spawn_turret_bar(mut commands: Commands, assets: Res<UiAssets>) {
         Children::spawn(SpawnIter(
             hotbar_items
                 .into_iter()
-                .map(|(name, tower, icon)| spawn_hotbar_item(name, tower, icon)),
+                .map(|(tower, icon)| spawn_hotbar_item(tower, icon)),
         )),
     ));
 }
@@ -65,10 +65,9 @@ fn spawn_hotbar() -> impl Bundle {
     )
 }
 
-fn spawn_hotbar_item(name: impl Into<String>, tower: Tower, icon: Handle<Image>) -> impl Bundle {
-    let owned_name = name.into().clone();
+fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
     (
-        Name::new(owned_name.clone()),
+        Name::new(tower.name()),
         Button,
         Node {
             width: Val::Px(64.),
