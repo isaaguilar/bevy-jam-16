@@ -34,9 +34,9 @@ pub fn enemy_spawn_bundle(
             }),
             ..default()
         },
-        EnemyControllerBundle::new(Collider::round_rectangle(32., 32.0, 2.), Vector::splat(0.))
+        EnemyControllerBundle::new(Collider::round_rectangle(32., 32., 0.5), Vector::splat(0.))
             .with_movement(max_speed, 0.96),
-        Transform::from_scale(Vec2::splat(4.0).extend(1.0))
-            .with_translation(Vec3::new(-540.0, -260.0, 1.)),
+        Transform::from_scale(Vec2::splat(0.4).extend(1.0))
+            .with_translation(Vec3::new(-54.0, -26.0, 1.)),
     )
 }

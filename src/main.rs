@@ -3,17 +3,6 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod asset_tracking;
-mod audio;
-mod demo;
-#[cfg(feature = "dev")]
-mod dev_tools;
-mod level;
-mod menus;
-mod prefabs;
-mod screens;
-mod theme;
-
 use bevy::prelude::*;
 use chain_reaction_towers::AppPlugin;
 

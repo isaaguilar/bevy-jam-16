@@ -36,7 +36,7 @@ pub fn player(
         Name::new("Player"),
         Player,
         RigidBody::Static,
-        Collider::rectangle(32.0, 32.0),
+        Collider::rectangle(32., 32.),
         Sprite {
             image: player_assets.ducky.clone(),
             texture_atlas: Some(TextureAtlas {
@@ -45,7 +45,7 @@ pub fn player(
             }),
             ..default()
         },
-        Transform::from_scale(Vec2::splat(8.0).extend(1.0)),
+        Transform::from_scale(Vec2::splat(0.3).extend(1.0)),
         MovementController {
             max_speed,
             ..default()

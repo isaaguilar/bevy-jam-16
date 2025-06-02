@@ -1,13 +1,21 @@
 //! Spawn the main level.
 
-use crate::prelude::*;
 use crate::{
     audio::music,
     demo::{enemy::enemy_spawn_bundle, player::player},
+    level::{
+        components::LevelParent,
+        resource::{Level, MAP_TEXT},
+    },
+    prelude::*,
     screens::Screen,
 };
 
 use bevy::prelude::*;
+use bevy_composable::{
+    app_impl::{ComplexSpawnable, ComponentTreeable},
+    wrappers::name,
+};
 
 pub(super) fn plugin(_app: &mut App) {
     // empty
@@ -25,9 +33,14 @@ pub fn spawn_level(
         Visibility::default(),
         StateScoped(Screen::Gameplay),
         children![
-            enemy_spawn_bundle(1650.0, &assets, &mut texture_atlas_layouts),
-            player(400.0, &assets, &mut texture_atlas_layouts),
+            enemy_spawn_bundle(165.0, &assets, &mut texture_atlas_layouts),
+            player(40.0, &assets, &mut texture_atlas_layouts),
             (Name::new("Gameplay Music"), music(assets.music.clone())),
         ],
     ));
+    commands.compose(
+        LevelParent::from_data(Level::from_str(MAP_TEXT))
+            + name("Level Parent")
+            + StateScoped(Screen::Gameplay).store(),
+    );
 }

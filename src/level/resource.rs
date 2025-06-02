@@ -1,9 +1,7 @@
-use std::cell::Cell;
-
 use bevy::{ecs::resource::Resource, math::Vec2, reflect::Reflect};
 
 // Temporary hardcoded map until I pull the asset-loading changes
-const map_text: &'static str = ">>>>^
+pub const MAP_TEXT: &'static str = ">>>>^
 ^<<<<
 >>>>^
 ^<<<<
@@ -35,11 +33,11 @@ impl From<char> for CellDirection {
 // Holds all the information necessary to load a level to the game
 #[derive(Clone, Resource, Debug)]
 pub struct Level {
-    path: Vec<Vec2>,
-    width: usize,
-    height: usize,
-    walls: Vec<Vec<bool>>,
-    floors: Vec<Vec<bool>>,
+    pub path: Vec<Vec2>,
+    pub width: usize,
+    pub height: usize,
+    pub walls: Vec<Vec<bool>>,
+    pub floors: Vec<Vec<bool>>,
 }
 
 impl Level {
@@ -76,10 +74,10 @@ impl Level {
             width,
             height,
             (0..(width + 1))
-                .map(|x| (0..height).map(|y| true).collect())
+                .map(|_x| (0..height).map(|_y| true).collect())
                 .collect(),
             (0..width)
-                .map(|x| (0..(height + 1)).map(|y| true).collect())
+                .map(|_x| (0..(height + 1)).map(|_y| true).collect())
                 .collect(),
         );
 
@@ -105,7 +103,7 @@ impl Level {
                 }
                 CellDirection::Right => {
                     level.walls[x + 1][y] = false;
-                    y += 1;
+                    x += 1;
                 }
             }
             level.path.push(Vec2::new(x as f32, y as f32));

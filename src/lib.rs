@@ -8,6 +8,7 @@ mod audio;
 mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod level;
 mod menus;
 mod screens;
 mod theme;
@@ -105,5 +106,13 @@ struct Pause(pub bool);
 pub struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Name::new("Camera"),
+        Camera2d,
+        Projection::Orthographic({
+            let mut proj = OrthographicProjection::default_2d();
+            proj.scale = 0.05;
+            proj
+        }),
+    ));
 }

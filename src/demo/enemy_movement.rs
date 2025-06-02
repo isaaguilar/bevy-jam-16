@@ -116,12 +116,12 @@ impl EnemyControllerBundle {
 
         let zigzag = Waypoint {
             poi: vec![
-                Vector::new(-540., -260.),
-                Vector::new(540., -260.),
-                Vector::new(540., 0.),
-                Vector::new(-540., 0.),
-                Vector::new(-540., 260.),
-                Vector::new(540., 260.),
+                Vector::new(-34., -16.),
+                Vector::new(34., -16.),
+                Vector::new(34., 0.),
+                Vector::new(-34., 0.),
+                Vector::new(-34., 16.),
+                Vector::new(34., 16.),
             ],
             index: 0,
         };
@@ -157,7 +157,7 @@ fn follow_path(
         let idx = enemy_waypoint.index;
         let heading_towards = enemy_waypoint.poi[idx];
 
-        let arrived_x = if x.distance(heading_towards.x) > 50.0 {
+        let arrived_x = if x.distance(heading_towards.x) > 5.0 {
             let direction = if heading_towards.x > x { 1. } else { -1. };
 
             movement_event_writer.write(MovementAction::MoveX(direction));
@@ -166,7 +166,7 @@ fn follow_path(
             true
         };
 
-        let arrived_y = if y.distance(heading_towards.y) > 50.0 {
+        let arrived_y = if y.distance(heading_towards.y) > 5.0 {
             let direction = if heading_towards.y > y { 1. } else { -1. };
 
             movement_event_writer.write(MovementAction::MoveY(direction));
