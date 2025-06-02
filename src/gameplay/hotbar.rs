@@ -49,15 +49,19 @@ fn on_enter_game(mut commands: Commands, assets: Res<UiAssets>) {
             CancelInput,
             Visibility::Hidden,
             BackgroundColor(Color::Srgba(Srgba::RED.with_alpha(0.5))),
+            BorderRadius::all(Val::Px(8.0)),
             Node {
                 position_type: PositionType::Absolute,
-                left: Val::Px(8.0),
-                bottom: Val::Px(8.0),
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                left: Val::Px(12.0),
+                bottom: Val::Px(12.0),
                 width: Val::Px(64.0),
                 height: Val::Px(64.0),
                 ..default()
             },
-            children![(Text::new("X"), TextFont::from_font_size(64.0))],
+            children![(Text::new("X"), TextFont::from_font_size(56.0))],
         ))
         .observe(on_click_cancel);
 }
@@ -88,7 +92,6 @@ fn on_click_cancel(
     _: Trigger<Pointer<Released>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
 ) {
-    println!("Clicked on click");
     pointer_input_state.set(PointerInteractionState::Selecting)
 }
 
