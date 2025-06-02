@@ -110,18 +110,30 @@ impl Level {
             match current_tile {
                 CellDirection::Up => {
                     level.floors[x][y + 1] = false;
+                    level
+                        .path
+                        .push((Vec2::new(x as f32, y as f32 + 0.5), current_tile));
                     y += 1;
                 }
                 CellDirection::Down => {
                     level.floors[x][y] = false;
+                    level
+                        .path
+                        .push((Vec2::new(x as f32, y as f32 - 0.5), current_tile));
                     y -= 1;
                 }
                 CellDirection::Left => {
                     level.walls[x][y] = false;
+                    level
+                        .path
+                        .push((Vec2::new(x as f32 - 0.5, y as f32), current_tile));
                     x -= 1;
                 }
                 CellDirection::Right => {
                     level.walls[x + 1][y] = false;
+                    level
+                        .path
+                        .push((Vec2::new(x as f32 + 0.5, y as f32), current_tile));
                     x += 1;
                 }
             }
