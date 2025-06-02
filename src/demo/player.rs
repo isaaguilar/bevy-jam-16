@@ -35,7 +35,7 @@ pub fn player(
     (
         Name::new("Player"),
         Player,
-        RigidBody::Dynamic,
+        RigidBody::Static,
         Collider::rectangle(32., 32.),
         Sprite {
             image: player_assets.ducky.clone(),
