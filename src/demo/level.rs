@@ -27,8 +27,6 @@ pub fn spawn_level(
     mut commands: Commands,
     assets: Res<GameAssets>,
     mut level: ResMut<Level>,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     commands.spawn((
@@ -48,7 +46,7 @@ pub fn spawn_level(
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );
-    commands.compose(basic_trooper(&assets) + pos(0., 0.));
-    commands.compose(chonkus_trooper(&assets) + pos(0., 0.));
-    commands.compose(turbo_trooper(&assets, meshes, materials) + pos(0., 0.));
+    commands.compose(basic_trooper() + pos(0., 0.));
+    commands.compose(chonkus_trooper() + pos(0., 0.));
+    commands.compose(turbo_trooper() + pos(0., 0.));
 }

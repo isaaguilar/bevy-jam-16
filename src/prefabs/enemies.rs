@@ -13,12 +13,12 @@ use std::default::Default;
 
 use super::{
     physics::GamePhysicsLayer as GPL,
-    utils::{image, layout},
+    utils::{color, image, layout, mesh},
 };
 use crate::{
     assets::{GameAssets, game_assets},
     demo::{
-        enemy_health::{self, EnemyHealthBar},
+        enemy_health::{self, EnemyHealth, EnemyHealthBar},
         enemy_movement::{
             EnemyController, MovementAcceleration, MovementBundle, MovementDampingFactor,
             MovementDirection,
@@ -28,38 +28,35 @@ use crate::{
     screens::Screen,
 };
 
-pub fn basic_trooper(game_assets: &GameAssets) -> ComponentTree {
+pub fn basic_trooper() -> ComponentTree {
     name("Minor Trooper") + enemy_requirements(Vec2::new(3., 3.5), 35.)
-        << Transform::from_scale(Vec3::splat(0.2)).store()
+        << (Transform::from_scale(Vec3::splat(0.2)).store()
             + image(GameAssets::badguy)
             + layout(GameAssets::badguy_layout)
+            << health_bar())
 }
 
-pub fn chonkus_trooper(game_assets: &GameAssets) -> ComponentTree {
+pub fn chonkus_trooper() -> ComponentTree {
     name("Minor Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
-        << Transform::from_scale(Vec3::splat(0.25)).store()
+        << (Transform::from_scale(Vec3::splat(0.25)).store()
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
+            << health_bar())
 }
 
-pub fn turbo_trooper(
-    game_assets: &GameAssets, // not used
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>,
-) -> ComponentTree {
+pub fn turbo_trooper() -> ComponentTree {
     name("Minor Trooper") + enemy_requirements(Vec2::new(2., 2.5), 45.)
-        << Transform::from_scale(Vec3::splat(0.15)).store()
+        << (Transform::from_scale(Vec3::splat(0.15)).store()
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
-        << Transform::from_scale(Vec3::splat(0.15)).store() + health_requirements(meshes, materials)
-
-    // << health_requirements(meshes, materials)
+            << health_bar())
 }
 
 pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
     (
         // Transform::from_scale(Vec3::splat(scale)),
         StateScoped(Screen::Gameplay),
+        EnemyHealth::new(),
         EnemyController,
         MovementDirection::default(),
         RigidBody::Kinematic,
@@ -72,20 +69,12 @@ pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
         .store()
 }
 
-pub fn health_requirements(
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) -> ComponentTree {
-    let enemy_health_bar = EnemyHealthBar::new(32., 3.0);
-
-    let mesh = Mesh::from(enemy_health_bar.mesh_shape);
-    let mesh_handle = meshes.add(mesh);
-
+pub fn health_bar() -> ComponentTree {
     (
-        enemy_health_bar,
-        Mesh2d(mesh_handle.clone()),
-        MeshMaterial2d(materials.add(Color::from(GREEN))),
+        EnemyHealthBar,
         Transform::from_translation(Vec3::new(0., 14., 0.)),
     )
         .store()
+        + mesh(GameAssets::health_bar_mesh)
+        + color(GameAssets::health_color)
 }

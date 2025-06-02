@@ -1,4 +1,4 @@
-use crate::{AppSystems, PausableSystems};
+use crate::{AppSystems, PausableSystems, assets::game_assets::HEALTH_BAR_WIDTH};
 use avian2d::prelude::OnCollisionStart;
 use bevy::{
     color::palettes::basic::*,
@@ -23,10 +23,10 @@ pub(super) fn plugin(app: &mut App) {
 // struct EnemyHealth(f32);
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
-pub struct EnemyHealthBar {
-    pub mesh_shape: Rectangle,
-    pub health: f32, // Value between 0.0 and 1.0
-}
+pub struct EnemyHealth(pub f32);
+
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+pub struct EnemyHealthBar;
 
 #[derive(Component)]
 #[component(on_add = calculate_damage)]
@@ -39,14 +39,9 @@ pub struct Damage(f32);
 //     pub enemy_health_bar: EnemyHealthBar,
 // }
 
-impl EnemyHealthBar {
-    pub fn new(width: f32, height: f32) -> Self {
-        let rectangle = Rectangle::new(width, height);
-
-        Self {
-            health: 1.0,
-            mesh_shape: rectangle,
-        }
+impl EnemyHealth {
+    pub fn new() -> Self {
+        Self(1.0)
     }
 }
 
@@ -54,9 +49,9 @@ pub fn health_bar_spawn(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) -> impl Bundle {
-    let enemy_health_bar = EnemyHealthBar::new(32., 3.0);
+    let enemy_health_bar = EnemyHealthBar;
 
-    let mesh = Mesh::from(enemy_health_bar.mesh_shape);
+    let mesh = Mesh::from(Rectangle::new(HEALTH_BAR_WIDTH, 3.));
     let mesh_handle = meshes.add(mesh);
     (
         enemy_health_bar,
@@ -66,14 +61,16 @@ pub fn health_bar_spawn(
     )
 }
 
-fn update_health_bar(time: Res<Time>, mut query: Query<(&mut EnemyHealthBar, &mut Transform)>) {
-    for (mut health_bar, mut transform) in query.iter_mut() {
-        // Use time to simulate damage for now
-        health_bar.health -= time.delta_secs() * 0.01;
-        health_bar.health = health_bar.health.clamp(0.0, 1.0);
-        transform.scale.x = health_bar.health;
-        transform.translation.x =
-            -(health_bar.mesh_shape.size().x * (1.0 - health_bar.health)) / 2.0;
+fn update_health_bar(
+    mut bars: Query<(Entity, &mut Transform), With<EnemyHealthBar>>,
+    relationships: Query<(&ChildOf)>,
+    enemies: Query<&EnemyHealth>,
+) {
+    for (e, mut transform) in bars.iter_mut() {
+        if let Ok(parent_health) = enemies.get(relationships.root_ancestor(e)) {
+            transform.scale.x = parent_health.0;
+            transform.translation.x = -(HEALTH_BAR_WIDTH * (1.0 - parent_health.0)) / 2.0;
+        }
     }
 }
 
