@@ -30,6 +30,23 @@ impl From<char> for CellDirection {
     }
 }
 
+impl Into<Vec2> for CellDirection {
+    fn into(self) -> Vec2 {
+        match self {
+            CellDirection::Up => Vec2::Y,
+            CellDirection::Down => Vec2::NEG_Y,
+            CellDirection::Left => Vec2::NEG_X,
+            CellDirection::Right => Vec2::X,
+        }
+    }
+}
+
+impl CellDirection {
+    pub fn vec(self) -> Vec2 {
+        self.into()
+    }
+}
+
 // Holds all the information necessary to load a level to the game
 #[derive(Clone, Resource, Debug, Default, Reflect)]
 pub struct Level {
