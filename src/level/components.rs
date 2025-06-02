@@ -5,7 +5,7 @@ use bevy::{
 };
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
-use super::resource::Level;
+use super::resource::{CellDirection, Level};
 
 pub const WALL_TOTAL_WIDTH: f32 = 0.10;
 pub const FLOOR_TOTAL_HEIGHT: f32 = 0.10;
@@ -28,6 +28,9 @@ pub struct Floor;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
 pub struct Ceiling;
+
+#[derive(Copy, Clone, Debug, PartialEq, Component, Reflect)]
+pub struct PathNode(pub CellDirection);
 
 impl LevelParent {
     pub fn from_data(level_data: &Level) -> ComponentTree {
@@ -65,6 +68,10 @@ impl LevelParent {
                 }
             }
         }
+        for (pos, direction) in &level_data.path {
+            level = level << node(pos.x * LEVEL_SCALING, pos.y * LEVEL_SCALING, *direction);
+        }
+
         level
     }
 }
@@ -124,15 +131,20 @@ pub fn floor(x: f32, y: f32) -> ComponentTree {
 }
 
 pub fn rect_sprite(x: f32, y: f32, h: f32, w: f32, color: Color) -> ComponentTree {
-    let var_name = (
+    (
         Sprite {
             color,
             custom_size: Some(Vec2::new(w, h)),
             ..default()
         },
         Visibility::Visible,
-    );
-    var_name.store() + pos(x, y)
+    )
+        .store()
+        + pos(x, y)
+}
+
+pub fn node(x: f32, y: f32, direction: CellDirection) -> ComponentTree {
+    (PathNode(direction)).store() + pos(x, y)
 }
 
 pub fn pos(x: f32, y: f32) -> ComponentTree {

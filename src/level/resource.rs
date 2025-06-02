@@ -11,7 +11,7 @@ pub const MAP_TEXT: &'static str = ">>>>^
 // Which direction the enemies need to move in. If we end up adding splitting paths, this won't be
 // usable. It's mainly to help get a FWP going.
 #[derive(Clone, Copy, Debug, Reflect, PartialEq, Eq)]
-enum CellDirection {
+pub enum CellDirection {
     Up,
     Down,
     Left,
@@ -33,7 +33,7 @@ impl From<char> for CellDirection {
 // Holds all the information necessary to load a level to the game
 #[derive(Clone, Resource, Debug, Default, Reflect)]
 pub struct Level {
-    pub path: Vec<Vec2>,
+    pub path: Vec<(Vec2, CellDirection)>,
     pub width: usize,
     pub height: usize,
     pub walls: Vec<Vec<bool>>,
@@ -42,7 +42,7 @@ pub struct Level {
 
 impl Level {
     pub fn new(
-        path: Vec<Vec2>,
+        path: Vec<(Vec2, CellDirection)>,
         width: usize,
         height: usize,
         walls: Vec<Vec<bool>>,
@@ -70,7 +70,7 @@ impl Level {
         let width = lines[0].len();
         // We create the level with all possible walls and floors, and delete them later
         let mut level = Self::new(
-            vec![Vec2::new(-1., 0.), Vec2::new(0., 0.)],
+            vec![(Vec2::new(-1., 0.), CellDirection::Right)],
             width,
             height,
             (0..(width + 1))
@@ -81,13 +81,16 @@ impl Level {
                 .collect(),
         );
 
-        let start_pos = level.path.last().unwrap();
+        let start_pos = Vec2::new(0., 0.);
         let mut x = start_pos.x as usize;
         let mut y = start_pos.y as usize;
         // This loop moves through the maze in a manner dictated by the cell directions and deletes
         // walls/floors as it goes and adds the cells to the stored level path.
         while x < level.width && y < level.height {
             let current_tile = lines[y][x];
+            level
+                .path
+                .push((Vec2::new(x as f32, y as f32), current_tile));
             match current_tile {
                 CellDirection::Up => {
                     level.floors[x][y + 1] = false;
@@ -106,7 +109,6 @@ impl Level {
                     x += 1;
                 }
             }
-            level.path.push(Vec2::new(x as f32, y as f32));
         }
         level
     }
