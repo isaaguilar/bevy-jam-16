@@ -1,5 +1,7 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::GREEN, prelude::*};
 use bevy_asset_loader::prelude::*;
+
+pub const HEALTH_BAR_WIDTH: f32 = 32.0;
 
 #[derive(AssetCollection, Resource)]
 pub struct GameAssets {
@@ -34,6 +36,9 @@ pub struct GameAssets {
     #[asset(path = "images/badguy.png")]
     #[asset(image(sampler(filter = nearest)))]
     pub enemysprite: Handle<Image>,
+
+    health_bar_rect: Handle<Mesh>,
+    health_bar_color: Handle<ColorMaterial>,
 }
 
 impl GameAssets {
@@ -47,5 +52,23 @@ impl GameAssets {
 
     pub fn ducky(&self) -> Handle<Image> {
         self.ducky.clone()
+    }
+
+    pub fn health_bar_mesh(&self) -> Handle<Mesh> {
+        self.health_bar_rect.clone()
+    }
+
+    pub fn health_color(&self) -> Handle<ColorMaterial> {
+        self.health_bar_color.clone()
+    }
+
+    pub fn meshes_and_materials(
+        mut resources: ResMut<Self>,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+    ) {
+        resources.health_bar_rect = meshes.add(Rectangle::new(HEALTH_BAR_WIDTH, 3.));
+
+        resources.health_bar_color = materials.add(Color::from(GREEN));
     }
 }

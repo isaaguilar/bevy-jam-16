@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 mod hotbar;
+mod level;
 mod wave_manager;
 
 pub(super) fn plugin(app: &mut App) {

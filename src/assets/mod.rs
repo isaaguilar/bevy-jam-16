@@ -14,4 +14,6 @@ pub(super) fn plugin(app: &mut App) {
             .load_collection::<GameAssets>()
             .load_collection::<UiAssets>(),
     );
+
+    app.add_systems(OnEnter(Screen::Splash), GameAssets::meshes_and_materials);
 }
