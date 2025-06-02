@@ -1,3 +1,4 @@
+use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
@@ -7,10 +8,21 @@ pub struct UiAssets {
     pub button_hover_sound: Handle<AudioSource>,
     #[asset(path = "audio/sound_effects/button_click.ogg")]
     pub button_click_sound: Handle<AudioSource>,
-    #[asset(path = "ui/hotbar_tesla.png")]
-    pub hotbar_tesla_image: Handle<Image>,
-    #[asset(path = "ui/hotbar_water.png")]
-    pub hotbar_water_image: Handle<Image>,
-    #[asset(path = "ui/hotbar_trapdoor.png")]
-    pub hotbar_trapdoor_image: Handle<Image>,
+    #[asset(
+        paths(
+            "ui/icon_piston.png",
+            "ui/icon_fan.png",
+            "ui/icon_spike_pit.png",
+            "ui/icon_oil.png",
+            "ui/icon_trapdoor.png",
+            "ui/icon_ice.png",
+            "ui/icon_acid.png",
+            "ui/icon_tesla.png",
+            "ui/icon_water_bucket.png",
+            "ui/icon_flame.png",
+            "ui/icon_portal.png",
+        ),
+        collection(mapped, typed)
+    )]
+    pub hotbar_icons: HashMap<AssetFileStem, Handle<Image>>,
 }
