@@ -32,6 +32,12 @@ pub struct Ceiling;
 #[derive(Copy, Clone, Debug, PartialEq, Component, Reflect)]
 pub struct PathNode(pub CellDirection);
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
+pub struct StartNode;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
+pub struct EndNode;
+
 impl LevelParent {
     pub fn from_data(level_data: &Level) -> ComponentTree {
         let mut level = (LevelParent, Transform::default(), Visibility::default()).store();
@@ -68,7 +74,27 @@ impl LevelParent {
                 }
             }
         }
-        for (pos, direction) in &level_data.path {
+        let mut path_iter = level_data.path.iter();
+        let start_node = path_iter.next().unwrap();
+        level = level
+            << (node(
+                start_node.0.x * LEVEL_SCALING,
+                start_node.0.y * LEVEL_SCALING,
+                start_node.1,
+            ) + StartNode.store());
+        let mut path_iter = path_iter.rev();
+        let last_node = path_iter.next().unwrap();
+        let mut path_iter = path_iter.rev();
+
+        level = level
+            << (node(
+                last_node.0.x * LEVEL_SCALING,
+                last_node.0.y * LEVEL_SCALING,
+                last_node.1,
+            ) + EndNode.store());
+
+        for node_i in path_iter {
+            let (pos, direction) = node_i;
             level = level << node(pos.x * LEVEL_SCALING, pos.y * LEVEL_SCALING, *direction);
         }
 
