@@ -12,6 +12,7 @@ mod dev_tools;
 mod gameplay;
 mod level;
 mod menus;
+mod prefabs;
 mod screens;
 mod theme;
 mod utils;
@@ -59,11 +60,12 @@ impl Plugin for AppPlugin {
             data::plugin,
             assets::plugin,
             audio::plugin,
-            level::plugin,
             demo::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
+            level::plugin,
             menus::plugin,
+            prefabs::plugin,
             screens::plugin,
             theme::plugin,
         ));
@@ -119,5 +121,6 @@ fn spawn_camera(mut commands: Commands) {
             proj.scale = 0.05;
             proj
         }),
+        Transform::from_translation(Vec3::new(20., 14., 0.)),
     ));
 }

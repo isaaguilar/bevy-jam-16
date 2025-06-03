@@ -1,8 +1,6 @@
-use crate::data::*;
-use crate::prelude::*;
-use crate::theme::prelude::*;
-use bevy::ecs::spawn::*;
-use bevy::prelude::*;
+use bevy::{ecs::spawn::*, prelude::*};
+
+use crate::{data::*, prelude::*, theme::prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), on_enter_game);

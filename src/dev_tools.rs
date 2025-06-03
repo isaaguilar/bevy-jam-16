@@ -1,12 +1,12 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
-use crate::data::PointerInteractionState;
-use crate::screens::Screen;
 use bevy::{
     dev_tools::states::log_transitions, input::common_conditions::input_just_pressed, prelude::*,
     ui::UiDebugOptions,
 };
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+
+use crate::{data::PointerInteractionState, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     // Log `Screen` state transitions.

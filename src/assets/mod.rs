@@ -1,6 +1,7 @@
-use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+
+use crate::prelude::*;
 
 pub mod game_assets;
 pub mod tower_sprites;
@@ -16,4 +17,6 @@ pub(super) fn plugin(app: &mut App) {
             .load_collection::<TowerSprites>()
             .load_collection::<UiAssets>(),
     );
+
+    app.add_systems(OnEnter(Screen::Splash), GameAssets::meshes_and_materials);
 }
