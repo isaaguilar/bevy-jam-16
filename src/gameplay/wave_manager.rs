@@ -68,7 +68,7 @@ pub fn spawn_next_wave(mut wave_manager: ResMut<WaveManager>, mut commands: Comm
                     commands.compose(enemy.clone());
                 }
                 wave_manager.wave_timer.set_duration(duration);
-                wave_manager.wave_timer.reset(); // TODO: Does set_duration automatically restart?
+                wave_manager.wave_timer.reset();
             } else {
                 wave_manager.current_wave = None;
             }
