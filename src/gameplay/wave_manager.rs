@@ -1,5 +1,3 @@
-use std::{collections::VecDeque, time::Duration};
-
 use bevy::{
     app::{App, Update},
     ecs::{
@@ -13,6 +11,7 @@ use bevy::{
     time::{Time, Timer},
 };
 use bevy_composable::{app_impl::ComplexSpawnable, tree::ComponentTree};
+use std::{collections::VecDeque, time::Duration};
 
 use crate::{
     PausableSystems,

@@ -1,3 +1,9 @@
+use bevy::prelude::*;
+use bevy_composable::{
+    app_impl::{ComplexSpawnable, ComponentTreeable},
+    wrappers::name,
+};
+
 use crate::{
     level::{
         components::LevelParent,
@@ -5,12 +11,6 @@ use crate::{
     },
     prelude::*,
     screens::Screen,
-};
-
-use bevy::prelude::*;
-use bevy_composable::{
-    app_impl::{ComplexSpawnable, ComponentTreeable},
-    wrappers::name,
 };
 
 pub(super) fn plugin(_app: &mut App) {

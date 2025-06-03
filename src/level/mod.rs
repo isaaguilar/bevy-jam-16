@@ -10,7 +10,6 @@ use components::{Ceiling, Floor, LevelParent, PathNode, Wall, WallDirection};
 use resource::Level;
 
 pub mod components;
-pub mod pieces;
 pub mod resource;
 
 pub fn plugin(app: &mut App) {

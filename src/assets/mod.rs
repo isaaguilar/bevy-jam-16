@@ -1,8 +1,10 @@
-use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+
 pub use game_assets::GameAssets;
 pub use ui_assets::UiAssets;
+
+use crate::prelude::*;
 
 pub mod game_assets;
 pub mod ui_assets;
