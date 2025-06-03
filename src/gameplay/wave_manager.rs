@@ -6,10 +6,9 @@ use bevy::{
         component::Component,
         resource::Resource,
         schedule::IntoScheduleConfigs,
-        system::{Commands, Query, Res, ResMut},
+        system::{Commands, Res, ResMut},
     },
     input::{common_conditions::input_just_pressed, keyboard::KeyCode},
-    reflect::Reflect,
     state::{condition::in_state, state::OnEnter},
     time::{Time, Timer},
 };
@@ -63,7 +62,7 @@ pub fn tick_wave_timer(mut wave_manager: ResMut<WaveManager>, time: Res<Time>) {
 pub fn spawn_next_wave(mut wave_manager: ResMut<WaveManager>, mut commands: Commands) {
     if wave_manager.wave_timer.finished() {
         if let Some(wave) = wave_manager.current_wave.as_mut() {
-            if let Some((mut group, duration)) = wave.0.pop_front() {
+            if let Some((group, duration)) = wave.0.pop_front() {
                 for enemy in group.0.iter() {
                     commands.compose(enemy.clone());
                 }

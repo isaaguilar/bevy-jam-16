@@ -1,16 +1,9 @@
-use crate::{
-    AppSystems, PausableSystems,
-    level::{
-        components::{LEVEL_SCALING, PathNode},
-        resource::{CellDirection, Level},
-    },
-};
+use crate::{AppSystems, PausableSystems, level::components::PathNode};
 use avian2d::{
     math::*,
     prelude::{NarrowPhaseSet, *},
 };
-use bevy::math::NormedVectorSpace;
-use bevy::prelude::*;
+use bevy::{math::NormedVectorSpace, prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(

@@ -1,10 +1,6 @@
-use crate::{AppSystems, PausableSystems, assets::game_assets::HEALTH_BAR_WIDTH};
+use crate::assets::game_assets::HEALTH_BAR_WIDTH;
 use avian2d::prelude::OnCollisionStart;
-use bevy::{
-    color::palettes::basic::*,
-    ecs::{component::HookContext, world::DeferredWorld},
-    prelude::*,
-};
+use bevy::prelude::*;
 
 use super::enemy_movement::EnemyController;
 

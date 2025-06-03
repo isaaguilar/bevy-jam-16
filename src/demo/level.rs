@@ -1,13 +1,8 @@
-//! Spawn the main level.
-
 use crate::{
-    audio::music,
-    demo::player::player,
     level::{
-        components::{LevelParent, pos},
+        components::LevelParent,
         resource::{Level, MAP_TEXT},
     },
-    prefabs::enemies::{basic_trooper, chonkus_trooper, turbo_trooper},
     prelude::*,
     screens::Screen,
 };
