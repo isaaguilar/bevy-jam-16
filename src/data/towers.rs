@@ -78,7 +78,7 @@ impl Tower {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Default)]
 pub struct TowerDamage {
     pub min: f32,
     pub max: f32,

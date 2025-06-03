@@ -43,28 +43,15 @@ impl StatusEffect {
     pub fn ui_text(&self) -> impl Bundle {
         (Text::new(self.name()), TextColor(self.color()))
     }
-
-    pub fn ailments(&self) -> Ailments {
-        match self {
-            StatusEffect::Wet => Ailments::new(0.0, 0.0, 0.0, 8., 8.),
-            StatusEffect::Burning => Ailments::new(0.0, 0.005, 0.010, 7., 1.5),
-            StatusEffect::Frozen => Ailments::new(1.0, 0.003, 0.005, 8., 2.),
-            StatusEffect::Electrified => Ailments::new(0.0, 0.006, 0.012, 12., 1.),
-            StatusEffect::Acidic => Ailments::new(0.0, 0.008, 0.016, 9., 2.5),
-            StatusEffect::Oiled => Ailments::new(0.0, 0.0, 0.0, 15., 15.),
-            StatusEffect::Slowed => Ailments::new(0.7, 0.0, 0.0, 10., 10.),
-            StatusEffect::Pushed => Ailments::new(1.0, 0.0, 0.0, 0.25, 0.25),
-        }
-    }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone, PartialEq, Debug)]
 pub struct Ailments {
-    slowdown: f32,
-    min_damage: f32,
-    max_damage: f32,
-    damage_timer: Timer,
-    ailment_timer: Timer,
+    pub slowdown: f32,
+    pub min_damage: f32,
+    pub max_damage: f32,
+    pub damage_timer: Timer,
+    pub ailment_timer: Timer,
 }
 
 impl Ailments {
@@ -83,4 +70,44 @@ impl Ailments {
             damage_timer: Timer::from_seconds(damage_time_s, TimerMode::Repeating),
         }
     }
+}
+
+pub fn add_status_effect(effect_type: &str) -> Option<impl Bundle> {
+    let effect = match effect_type {
+        "Wet" => (StatusEffect::Wet, (Ailments::new(0.0, 0.0, 0.0, 8., 8.))),
+        "Burning" => (
+            StatusEffect::Burning,
+            (Ailments::new(0.0, 0.045, 0.110, 7., 1.5)),
+        ),
+        "Frozen" => (
+            StatusEffect::Frozen,
+            (Ailments::new(1.0, 0.023, 0.185, 8., 2.)),
+        ),
+        "Electrified" => (
+            StatusEffect::Electrified,
+            (Ailments::new(0.0, 0.026, 0.082, 12., 1.)),
+        ),
+        "Acidic" => (
+            StatusEffect::Acidic,
+            (Ailments::new(0.0, 0.100, 0.101, 9., 1.5)),
+        ),
+        "Oiled" => (
+            StatusEffect::Oiled,
+            (Ailments::new(0.0, 0.0, 0.0, 15., 15.)),
+        ),
+        "Slowed" => (
+            StatusEffect::Slowed,
+            (Ailments::new(0.7, 0.0, 0.0, 10., 10.)),
+        ),
+        "Pushed" => (
+            StatusEffect::Pushed,
+            (Ailments::new(1.0, 0.0, 0.0, 0.25, 0.25)),
+        ),
+        _ => {
+            warn!("{effect_type} not a vaild status effect type");
+            return None;
+        }
+    };
+
+    Some(effect)
 }

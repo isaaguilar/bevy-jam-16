@@ -33,6 +33,7 @@ pub fn basic_trooper() -> ComponentTree {
         << (Transform::from_scale(Vec3::splat(0.2)).store()
             + image(GameAssets::badguy)
             + layout(GameAssets::badguy_layout)
+            + Pickable::default().store()
             << health_bar())
 }
 
@@ -41,6 +42,7 @@ pub fn chonkus_trooper() -> ComponentTree {
         << (Transform::from_scale(Vec3::splat(0.25)).store()
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
+            + Pickable::default().store()
             << health_bar())
 }
 
@@ -49,6 +51,7 @@ pub fn turbo_trooper() -> ComponentTree {
         << (Transform::from_scale(Vec3::splat(0.15)).store()
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
+            + Pickable::default().store()
             << health_bar())
 }
 
