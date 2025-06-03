@@ -2,19 +2,25 @@ use bevy::{
     app::{App, Update},
     ecs::{
         component::Component,
+        query::With,
         resource::Resource,
         schedule::IntoScheduleConfigs,
-        system::{Commands, Res, ResMut},
+        system::{Commands, Query, Res, ResMut},
     },
     input::{common_conditions::input_just_pressed, keyboard::KeyCode},
     state::{condition::in_state, state::OnEnter},
     time::{Time, Timer},
+    transform::components::Transform,
 };
-use bevy_composable::{app_impl::ComplexSpawnable, tree::ComponentTree};
+use bevy_composable::{
+    app_impl::{ComplexSpawnable, ComponentTreeable},
+    tree::ComponentTree,
+};
 use std::{collections::VecDeque, time::Duration};
 
 use crate::{
     PausableSystems,
+    level::components::StartNode,
     prefabs::enemies::{basic_trooper, chonkus_trooper, turbo_trooper},
     screens::Screen,
 };
@@ -58,12 +64,16 @@ pub fn tick_wave_timer(mut wave_manager: ResMut<WaveManager>, time: Res<Time>) {
     wave_manager.wave_timer.tick(time.delta());
 }
 
-pub fn spawn_next_wave(mut wave_manager: ResMut<WaveManager>, mut commands: Commands) {
+pub fn spawn_next_wave(
+    mut wave_manager: ResMut<WaveManager>,
+    mut commands: Commands,
+    start_loc: Query<&Transform, With<StartNode>>,
+) {
     if wave_manager.wave_timer.finished() {
-        if let Some(wave) = wave_manager.current_wave.as_mut() {
+        if let (Some(wave), Ok(loc)) = (wave_manager.current_wave.as_mut(), start_loc.single()) {
             if let Some((group, duration)) = wave.0.pop_front() {
                 for enemy in group.0.iter() {
-                    commands.compose(enemy.clone());
+                    commands.compose(enemy.clone() + loc.clone().store());
                 }
                 wave_manager.wave_timer.set_duration(duration);
                 wave_manager.wave_timer.reset();
