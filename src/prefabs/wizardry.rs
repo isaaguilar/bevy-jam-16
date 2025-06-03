@@ -1,15 +1,14 @@
 use bevy::{
-    app::Plugin,
     asset::{Asset, Handle},
     ecs::{resource::Resource, system::IntoObserverSystem},
-    prelude::{Bundle, Commands, Component, Event, Image, OnAdd, Query, Res, Trigger},
-    sprite::Sprite,
+    prelude::{Bundle, Commands, Component, Event, OnAdd, Trigger},
 };
-use bevy_asset_loader::asset_collection::AssetCollection;
-use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree};
-use std::sync::Arc;
 
 /// Add the provided function to all entities with component T.
+/// Usage: app.add_observer(add_observer_to_component::<SomeComponent, _, _, _, _>(
+///           observer_function_to_be_added_to_all_entities_with_that_component,
+///      ));
+
 pub fn add_observer_to_component<T, S, E, B, M>(
     observer_function: S,
 ) -> impl FnMut(Trigger<OnAdd, T>, Commands) -> ()
