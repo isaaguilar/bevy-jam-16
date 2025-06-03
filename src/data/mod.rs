@@ -5,6 +5,7 @@ use crate::prelude::*;
 mod input_state;
 mod state;
 mod towers;
+mod status_effects;
 
 pub use {input_state::PointerInteractionState, state::PlayerState, towers::Tower};
 

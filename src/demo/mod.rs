@@ -9,7 +9,6 @@ use bevy::prelude::*;
 mod animation;
 pub mod enemy_health;
 pub mod enemy_movement;
-pub mod level;
 mod movement;
 pub mod player;
 
@@ -20,7 +19,6 @@ pub(super) fn plugin(app: &mut App) {
         enemy_movement::plugin,
         enemy_health::plugin,
         animation::plugin,
-        level::plugin,
         movement::plugin,
         player::plugin,
     ));
