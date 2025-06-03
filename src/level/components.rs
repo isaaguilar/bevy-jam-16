@@ -121,6 +121,7 @@ pub fn floor(x: f32, y: f32) -> ComponentTree {
         Floor,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         RigidBody::Static,
+        Pickable::default(),
     )
         .store()
         + name("Floor")

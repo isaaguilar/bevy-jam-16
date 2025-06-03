@@ -1,4 +1,5 @@
 use crate::data::Tower;
+use crate::level::components::LEVEL_SCALING;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
@@ -29,7 +30,7 @@ impl TowerSprites {
 
         (Sprite {
             image,
-            custom_size: Some(Vec2::splat(10.0)),
+            custom_size: Some(Vec2::splat(LEVEL_SCALING)),
             texture_atlas: Some(TextureAtlas::from(atlas)),
             ..default()
         })
