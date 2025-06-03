@@ -86,7 +86,7 @@ impl Level {
         let width = lines[0].len();
         // We create the level with all possible walls and floors, and delete them later
         let mut level = Self::new(
-            vec![(Vec2::new(-1., 0.), CellDirection::Right)],
+            Vec::new(),
             width,
             height,
             (0..(width + 1))
