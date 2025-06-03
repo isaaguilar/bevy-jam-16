@@ -6,6 +6,7 @@ use crate::demo::{
 };
 use crate::prelude::*;
 use avian2d::prelude::{Collider, LockedAxes, RigidBody};
+// use bevy::picking::Pickable;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -36,6 +37,7 @@ pub fn player(
         Name::new("Player"),
         Player,
         RigidBody::Static,
+        Pickable::default(),
         Collider::rectangle(32., 32.),
         Sprite {
             image: player_assets.ducky.clone(),

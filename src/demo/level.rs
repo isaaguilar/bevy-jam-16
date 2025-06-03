@@ -45,4 +45,4 @@ pub fn spawn_level(
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );
-}
+} 

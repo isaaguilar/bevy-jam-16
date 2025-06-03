@@ -1,4 +1,5 @@
 use avian2d::prelude::{Collider, RigidBody};
+use bevy::picking::Pickable;
 use bevy::{
     color::Color, ecs::component::Component, math::Vec2, reflect::Reflect,
     render::view::Visibility, sprite::Sprite, transform::components::Transform, utils::default,
@@ -79,6 +80,7 @@ impl LevelParent {
 pub fn wall(x: f32, y: f32, direction: WallDirection) -> ComponentTree {
     (
         Wall(direction),
+        Pickable::default(),
         Collider::rectangle(WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING),
         RigidBody::Static,
     )
@@ -101,6 +103,7 @@ pub fn ceiling(x: f32, y: f32) -> ComponentTree {
         Ceiling,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         RigidBody::Static,
+        Pickable::default(),
     )
         .store()
         + name("Ceiling")
@@ -118,6 +121,7 @@ pub fn floor(x: f32, y: f32) -> ComponentTree {
         Floor,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         RigidBody::Static,
+        Pickable::default(),
     )
         .store()
         + name("Floor")
