@@ -15,8 +15,10 @@ mod menus;
 mod prefabs;
 mod screens;
 mod theme;
+mod utils;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
+
 
 pub mod prelude {
     pub use crate::assets::{GameAssets, UiAssets};

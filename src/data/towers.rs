@@ -66,19 +66,4 @@ impl Tower {
             Tower::Portal => "icon_portal",
         }
     }
-
-    pub fn tooltip(&self, parent: &mut RelatedSpawner<ChildOf>) {
-        let _ = match self {
-            Tower::Piston => {
-                parent.spawn(widget::label("Smash your enemies with a piston!"));
-            }
-            Tower::Fan => {
-                parent.spawn(widget::label("Blow your enemies away with a fan! Applies "));
-                parent.spawn(StatusEffect::Pushed.ui_text());
-            }
-            _ => {
-                parent.spawn(widget::label(format!("This is a {} tower.", self.name())));
-            }
-        };
-    }
 }

@@ -4,8 +4,8 @@ use crate::prelude::*;
 
 mod input_state;
 mod state;
-mod towers;
 mod status_effects;
+mod towers;
 
 pub use {input_state::PointerInteractionState, state::PlayerState, towers::Tower};
 
@@ -18,10 +18,10 @@ pub(super) fn plugin(app: &mut App) {
 
 fn validate_assets(ui_assets: Res<UiAssets>) {
     for tower in Tower::all() {
-        let key = tower.ui_asset_key();
+        let ui_key = tower.ui_asset_key();
         assert!(
-            ui_assets.hotbar_icons.contains_key(key),
-            "missing ui asset for {tower:?} ({key})"
+            ui_assets.hotbar_icons.contains_key(ui_key),
+            "missing ui asset for {tower:?} ({ui_key})"
         );
     }
 }
