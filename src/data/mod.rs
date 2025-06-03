@@ -9,7 +9,7 @@ mod towers;
 
 pub use {
     input_state::PointerInteractionState, state::PlayerState, status_effects::Ailments,
-    status_effects::StatusEffect, status_effects::add_status_effect, towers::Tower,
+    status_effects::StatusEffect, status_effects::get_ailment, towers::Tower,
 };
 
 pub(super) fn plugin(app: &mut App) {
