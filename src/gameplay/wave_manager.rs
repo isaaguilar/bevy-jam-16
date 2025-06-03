@@ -123,14 +123,16 @@ pub fn test_waves() -> VecDeque<Wave> {
         // Wave 1
         vec![
             (vec![basic_trooper()], 2.),
-            (vec![basic_trooper(), turbo_trooper()], 2.),
+            (vec![basic_trooper(), turbo_trooper()], 0.),
         ]
         .into(),
         //
         // Wave 2
         vec![
-            (vec![chonkus_trooper()], 2.),
-            (vec![basic_trooper(), basic_trooper()], 2.),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
         ]
         .into(),
     ]
