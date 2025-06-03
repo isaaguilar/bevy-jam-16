@@ -29,24 +29,27 @@ use crate::{
 };
 
 pub fn basic_trooper() -> ComponentTree {
-    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 3.5), 35.)
+    name("Minor Trooper")
         << (Transform::from_scale(Vec3::splat(0.2)).store()
+            + enemy_requirements(Vec2::new(12., 14.), 35.)
             + image(GameAssets::badguy)
             + layout(GameAssets::badguy_layout)
             << health_bar())
 }
 
 pub fn chonkus_trooper() -> ComponentTree {
-    name("Minor Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
+    name("Minor Trooper")
         << (Transform::from_scale(Vec3::splat(0.25)).store()
+            + enemy_requirements(Vec2::new(12., 14.0), 25.)
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
             << health_bar())
 }
 
 pub fn turbo_trooper() -> ComponentTree {
-    name("Minor Trooper") + enemy_requirements(Vec2::new(2., 2.5), 45.)
+    name("Minor Trooper")
         << (Transform::from_scale(Vec3::splat(0.15)).store()
+            + enemy_requirements(Vec2::new(12., 14.), 45.)
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
             << health_bar())

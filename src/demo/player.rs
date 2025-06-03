@@ -53,6 +53,7 @@ pub fn player(
         },
         ScreenWrap,
         player_animation,
+        avian2d::prelude::CollisionEventsEnabled,
     )
 }
 
