@@ -1,17 +1,21 @@
 use bevy::{
-    app::Plugin,
+    app::{Plugin, Update},
     asset::{Asset, Assets, Handle},
     ecs::system::IntoObserverSystem,
     image::TextureAtlasLayout,
     math::UVec2,
     prelude::{Bundle, Commands, Component, Event, Image, OnAdd, Query, Res, Trigger},
-    render::mesh::{Mesh, Mesh2d},
+    render::{
+        mesh::{Mesh, Mesh2d},
+        view::Visibility,
+    },
     sprite::{ColorMaterial, MeshMaterial2d, Sprite},
+    time::Time,
 };
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree};
 use std::sync::Arc;
 
-use super::wizardry::GimmieFn;
+use super::{enemies::ShowDelay, wizardry::GimmieFn};
 use crate::assets::GameAssets;
 
 #[derive(Component, Clone)]
@@ -47,6 +51,16 @@ pub fn plugin(app: &mut bevy::prelude::App) {
     app.add_observer(give_layouts);
     app.add_observer(give_meshes);
     app.add_observer(give_colors);
+    app.add_systems(Update, show_delay);
+}
+
+pub fn show_delay(mut query: Query<(&mut Visibility, &mut ShowDelay)>, time: Res<Time>) {
+    for (mut vis, mut debug) in query.iter_mut() {
+        debug.0.tick(time.delta());
+        if debug.0.just_finished() {
+            *vis = Visibility::Visible;
+        }
+    }
 }
 
 pub fn give_images(

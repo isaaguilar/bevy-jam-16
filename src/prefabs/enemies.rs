@@ -60,7 +60,8 @@ pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
         EnemyController,
         MovementDirection::default(),
         RigidBody::Kinematic,
-        Visibility::Visible,
+        Visibility::Hidden,
+        ShowDelay::new(),
         MovementAcceleration(speed),
         MovementDampingFactor(0.96),
         Collider::round_rectangle(size.x, size.y, 0.5),
@@ -77,4 +78,15 @@ pub fn health_bar() -> ComponentTree {
         .store()
         + mesh(GameAssets::health_bar_mesh)
         + color(GameAssets::health_color)
+}
+
+// There's a strange glitch where sprites are the incorrect size when first spawned, so if we hide
+// them for 10 ms, they look fine
+#[derive(Component, Clone)]
+pub struct ShowDelay(pub Timer);
+
+impl ShowDelay {
+    pub fn new() -> Self {
+        Self(Timer::from_seconds(0.01, TimerMode::Once))
+    }
 }
