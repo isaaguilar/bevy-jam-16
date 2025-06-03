@@ -1,5 +1,6 @@
-use crate::prelude::*;
 use bevy::prelude::*;
+
+use crate::prelude::*;
 
 mod input_state;
 mod state;

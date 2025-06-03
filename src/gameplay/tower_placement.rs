@@ -1,7 +1,9 @@
-use crate::assets::TowerSprites;
-use crate::data::PointerInteractionState;
-use crate::level::components::{Ceiling, Floor, Wall, WallDirection};
-use crate::utils::destroy_entity;
+use crate::{
+    assets::TowerSprites,
+    data::PointerInteractionState,
+    level::components::{Ceiling, Floor, Wall, WallDirection},
+    utils::destroy_entity,
+};
 use bevy::prelude::*;
 use std::f32::consts::PI;
 
