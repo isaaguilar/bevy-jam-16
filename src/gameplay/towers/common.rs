@@ -14,12 +14,15 @@ use bevy::{
 
 use crate::{data::Tower, demo::enemy_movement::EnemyController};
 
+// Attached to sensor colliders that detect enemies for towers
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct TowerTriggerRange;
 
+// Attached to towers that cannot fire until the timer is up
 #[derive(Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct Cooldown(pub Timer);
 
+// Signal component attached to towers that have something to shoot at
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct TowerHasTargets;
 
