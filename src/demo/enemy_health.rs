@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::assets::game_assets::HEALTH_BAR_WIDTH;
-use crate::assets::{GameAssets, game_assets};
+use crate::assets::{GameAssets, StatusSprites, game_assets};
 use crate::data::{Ailments, StatusEffect, get_ailment, get_collison};
 use crate::data::{Tower, TowerCollision};
 use crate::{AppSystems, PausableSystems};
@@ -28,7 +28,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(display_status);
     // Debug picker helpers
     //app.add_observer(pick_enemy_to_do_damage_example);
-    //app.add_observer(pick_enemy_to_add_status_example);
+    // app.add_observer(pick_enemy_to_add_status_example);
 }
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
@@ -53,6 +53,7 @@ pub struct RecordDamage {
 
 #[derive(Event, Debug)]
 pub struct DisplayStatusEvent {
+    status_effect: StatusEffect,
     timer: StatusAnimationTimer,
     ttl: StatusAnimationTtl,
 }
@@ -255,9 +256,11 @@ pub fn record_damage(trigger: Trigger<RecordDamage>, mut enemies: Query<&mut Ene
 pub fn display_status(
     trigger: Trigger<DisplayStatusEvent>,
     statuses: Query<(Entity, &ChildOf), With<StatusAnimationTtl>>,
-    assets: Res<GameAssets>,
+
+    sprites: Option<Res<StatusSprites>>,
     mut commands: Commands,
 ) {
+    let sprites = sprites.expect("GameAssets should be available");
     let e = trigger.target();
     for (entity, parent) in statuses.iter() {
         if parent.0 == e {
@@ -265,18 +268,13 @@ pub fn display_status(
         }
     }
 
+    let status_sprite_bundle = sprites.status_bundle(&trigger.status_effect);
+
     commands.entity(e).with_children(|p| {
         p.spawn((
             trigger.timer.clone(),
             trigger.ttl.clone(),
-            Sprite {
-                image: assets.poisened.clone(),
-                texture_atlas: Some(TextureAtlas {
-                    layout: assets.poisened_layout.clone(),
-                    index: 0,
-                }),
-                ..default()
-            },
+            status_sprite_bundle,
             Transform::from_translation(Vec3::new(15.0, 12.0, 1.0)),
         ));
     });
@@ -323,16 +321,40 @@ fn pick_enemy_to_add_status_example(
         return;
     };
 
-    let ailment = get_ailment(StatusEffect::Acidic);
+    /*
+    Wet,
+    Burning,
+    Frozen,
+    Electrified,
+    Acidic,
+    Oiled,
+    Slowed,
+    Pushed,
+
+     */
+    let mut rng = rand::rng();
+    let status_effect = match rng.random_range(0..8) {
+        1 => StatusEffect::Burning,
+        2 => StatusEffect::Frozen,
+        3 => StatusEffect::Electrified,
+        4 => StatusEffect::Acidic,
+        5 => StatusEffect::Oiled,
+        6 => StatusEffect::Slowed,
+        7 => StatusEffect::Pushed,
+        _ => StatusEffect::Wet,
+    };
+
+    let ailment = get_ailment(status_effect);
 
     let ttl_timer = ailment.ailment_timer.clone();
 
     commands
         .entity(enemy_target.0)
-        .insert((StatusEffect::Acidic, ailment.clone()));
+        .insert((status_effect, ailment.clone()));
 
     commands.trigger_targets(
         DisplayStatusEvent {
+            status_effect: status_effect,
             timer: StatusAnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             ttl: StatusAnimationTtl(ttl_timer),
         },
