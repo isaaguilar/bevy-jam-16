@@ -63,26 +63,34 @@ impl Tower {
             Tower::Portal => "icon_portal",
         }
     }
+}
 
-    // These towers by themselves will cause damage upon collision
-    pub fn collision_damage(&self) -> TowerDamage {
-        match self {
-            Tower::SpikePit => TowerDamage::new(0.050, 0.100),
-            Tower::Acid => TowerDamage::new(0.050, 0.100),
-            Tower::Flame => TowerDamage::new(0.050, 0.100),
-            _ => TowerDamage::default(),
+#[derive(Component, Default)]
+pub struct TowerCollision {
+    pub slowdown: f32,
+    pub min_damage: f32,
+    pub max_damage: f32,
+    pub iframe: Timer,
+}
+
+impl TowerCollision {
+    fn new(slowdown: f32, min_damage: f32, max_damage: f32, iframe_time_s: f32) -> Self {
+        Self {
+            min_damage,
+            max_damage,
+            slowdown,
+            iframe: Timer::from_seconds(iframe_time_s, TimerMode::Repeating),
         }
     }
 }
 
-#[derive(Default)]
-pub struct TowerDamage {
-    pub min: f32,
-    pub max: f32,
-}
-
-impl TowerDamage {
-    fn new(min: f32, max: f32) -> Self {
-        Self { min, max }
+// These towers by themselves will cause damage upon collision
+pub fn get_collison(tower: &Tower) -> TowerCollision {
+    match tower {
+        Tower::SpikePit => TowerCollision::new(0.0, 0.050, 0.150, 0.75),
+        Tower::Acid => TowerCollision::new(0.0, 0.050, 0.100, 0.5),
+        Tower::Flame => TowerCollision::new(0.0, 0.050, 0.100, 0.35),
+        Tower::Ice => TowerCollision::new(0.0, 0.005, 0.010, 0.20),
+        _ => TowerCollision::new(0.0, 0.0, 0.0, 1.0),
     }
 }

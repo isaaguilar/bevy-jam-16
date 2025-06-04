@@ -1,17 +1,18 @@
-use avian2d::prelude::OnCollisionStart;
+use avian2d::prelude::{OnCollisionEnd, OnCollisionStart};
 use bevy::prelude::*;
 use rand::Rng;
 
 use crate::assets::game_assets::HEALTH_BAR_WIDTH;
 use crate::assets::{GameAssets, game_assets};
-use crate::data::Tower;
-use crate::data::{Ailments, StatusEffect, get_ailment};
+use crate::data::{Ailments, StatusEffect, get_ailment, get_collison};
+use crate::data::{Tower, TowerCollision};
 use crate::{AppSystems, PausableSystems};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
+            active_tower_collision,
             status_effect_ailments,
             update_health_bars,
             animate_status_effects,
@@ -20,9 +21,10 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems)
             .in_set(AppSystems::Update),
     );
-    app.add_observer(collision_event);
-    app.add_observer(ailment_damage);
-    app.add_observer(tower_collision_damage);
+    app.add_observer(start_collision_damage_event);
+    app.add_observer(stop_collision_damage_event);
+    app.add_observer(record_damage);
+    app.add_observer(record_init_collision_damage);
     app.add_observer(display_status);
     // Debug picker helpers
     //app.add_observer(pick_enemy_to_do_damage_example);
@@ -39,13 +41,14 @@ pub struct EnemyChild;
 pub struct EnemyHealthBar;
 
 #[derive(Event, Debug)]
-pub struct Attack {
+pub struct RecordInitCollisionDamage {
     tower_entity: Entity,
 }
 
 #[derive(Event, Debug)]
-pub struct AilmentDamage {
-    ailments: Ailments,
+pub struct RecordDamage {
+    min: f32,
+    max: f32,
 }
 
 #[derive(Event, Debug)]
@@ -125,19 +128,43 @@ pub fn update_health_bars(
     }
 }
 
-fn collision_event(trigger: Trigger<OnCollisionStart>, mut commands: Commands) {
+fn start_collision_damage_event(
+    trigger: Trigger<OnCollisionStart>,
+    towers: Query<&Tower>,
+    mut commands: Commands,
+) {
     let enemy_target = trigger.event().collider;
 
+    let Ok(tower) = towers.get(trigger.target()) else {
+        warn!(target=?trigger.target(), "Tower not found");
+        return;
+    };
+
+    let tower_collision = get_collison(&tower);
+
+    // Perform a immediate damage hit
     commands.trigger_targets(
-        Attack {
+        RecordInitCollisionDamage {
             tower_entity: trigger.target(),
         },
         enemy_target,
     );
+
+    // Add a collision entity that deals damage on a timer while collision is active
+    commands.entity(enemy_target).insert(tower.clone());
+    commands.entity(enemy_target).insert(tower_collision);
 }
 
-pub fn tower_collision_damage(
-    trigger: Trigger<Attack>,
+fn stop_collision_damage_event(trigger: Trigger<OnCollisionEnd>, mut commands: Commands) {
+    info!("No more collision!");
+    let enemy_target = trigger.event().collider;
+
+    commands.entity(enemy_target).remove::<Tower>();
+    commands.entity(enemy_target).remove::<TowerCollision>();
+}
+
+pub fn record_init_collision_damage(
+    trigger: Trigger<RecordInitCollisionDamage>,
     towers: Query<&Tower>,
     mut enemies: Query<&mut EnemyHealth>,
 ) {
@@ -151,14 +178,36 @@ pub fn tower_collision_damage(
         return;
     };
 
-    let tower_damage = tower.collision_damage();
+    let tower_collision = get_collison(tower);
     let rng = &mut rand::rng();
-    let damage = rng.random_range(tower_damage.min..=tower_damage.max);
+    let damage = rng.random_range(tower_collision.min_damage..=tower_collision.max_damage);
 
     parent_health.0 -= damage;
     parent_health.0 = parent_health.0.clamp(0.0, 1.0);
 }
 
+// This is the timer function that deals damage when activley in collision
+fn active_tower_collision(
+    time: Res<Time>,
+    mut enemies: Query<(Entity, &mut TowerCollision)>,
+    mut commands: Commands,
+) {
+    for (entity, mut tower_collision) in enemies.iter_mut() {
+        tower_collision.iframe.tick(time.delta());
+        if tower_collision.iframe.just_finished() {
+            info!("Do damage {} to {:?}", tower_collision.max_damage, entity);
+            commands.trigger_targets(
+                RecordDamage {
+                    min: tower_collision.min_damage,
+                    max: tower_collision.max_damage,
+                },
+                entity,
+            );
+        }
+    }
+}
+
+// This is the timer function that deals damage when an ailment is present
 fn status_effect_ailments(
     time: Res<Time>,
     mut enemies: Query<(Entity, &mut Ailments)>,
@@ -169,8 +218,9 @@ fn status_effect_ailments(
         if ailments.damage_timer.just_finished() {
             info!("Do damage {} to {:?}", ailments.max_damage, entity);
             commands.trigger_targets(
-                AilmentDamage {
-                    ailments: ailments.clone(),
+                RecordDamage {
+                    min: ailments.min_damage,
+                    max: ailments.max_damage,
                 },
                 entity,
             );
@@ -185,15 +235,15 @@ fn status_effect_ailments(
     }
 }
 
-pub fn ailment_damage(trigger: Trigger<AilmentDamage>, mut enemies: Query<&mut EnemyHealth>) {
+// An ailment is triggered on a timer
+pub fn record_damage(trigger: Trigger<RecordDamage>, mut enemies: Query<&mut EnemyHealth>) {
     let Ok(mut parent_health) = enemies.get_mut(trigger.target()) else {
         warn!(target=?trigger.target(), "Enemy target not found");
         return;
     };
 
-    let ailment = &trigger.ailments;
     let rng = &mut rand::rng();
-    let damage = rng.random_range(ailment.min_damage..=ailment.max_damage);
+    let damage = rng.random_range(trigger.min..=trigger.max);
 
     parent_health.0 -= damage;
     parent_health.0 = parent_health.0.clamp(0.0, 1.0);
@@ -244,18 +294,23 @@ fn pick_enemy_to_do_damage_example(
     query: Query<Entity, With<Tower>>,
     mut commands: Commands,
 ) {
-    let tower_entity = match query.iter().next() {
-        Some(e) => e,
-        None => commands.spawn(Tower::SpikePit).id(),
-    };
+    todo!();
+    // let tower_entity = match query.iter().next() {
+    //     Some(e) => e,
+    //     None => commands.spawn(Tower::SpikePit).id(),
+    // };
 
-    let child_of_enemy_target = trigger.target();
+    // let child_of_enemy_target = trigger.target();
 
-    let Some(enemy_target) = world.get::<ChildOf>(child_of_enemy_target) else {
-        return;
-    };
+    // let Some(enemy_target) = world.get::<ChildOf>(child_of_enemy_target) else {
+    //     return;
+    // };
 
-    commands.trigger_targets(Attack { tower_entity }, enemy_target.0);
+    // commands
+    //     .entity(enemy_target.0)
+    //     .insert((StatusEffect::Acidic, ailment.clone()));
+
+    // commands.trigger_targets(Attack { tower_entity }, enemy_target.0);
 }
 
 fn pick_enemy_to_add_status_example(
