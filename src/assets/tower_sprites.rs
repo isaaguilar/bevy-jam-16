@@ -1,4 +1,5 @@
 use crate::data::Tower;
+use crate::gameplay::animation::AnimationFrameQueue;
 use crate::level::components::LEVEL_SCALING;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
@@ -73,14 +74,33 @@ impl TowerSprites {
         }
     }
 
-    pub fn tower_bundle(&self, tower: &Tower) -> Sprite {
+    pub fn tower_animation_frames(&self, tower: &Tower) -> &'static [usize] {
+        match tower {
+            Tower::Piston => &[0, 1, 2, 3, 4, 5, 5, 5],
+            Tower::Fan => &[0, 1],
+            Tower::SpikePit => &[0],
+            Tower::Oil => &[0, 1],
+            Tower::TrapDoor => &[0],
+            Tower::Tesla => &[0, 1],
+            Tower::Water => &[0, 1, 2, 3],
+            Tower::Acid => &[0, 1, 2],
+            Tower::Flame => &[0, 1, 2],
+            Tower::Portal => &[0],
+            Tower::Ice => &[0],
+        }
+    }
+
+    pub fn tower_bundle(&self, tower: &Tower) -> impl Bundle {
         let (image, atlas) = self.tower_sprite(tower);
 
-        Sprite {
-            image: image.clone(),
-            custom_size: Some(Vec2::splat(LEVEL_SCALING)),
-            texture_atlas: Some(TextureAtlas::from(atlas.clone())),
-            ..default()
-        }
+        (
+            Sprite {
+                image: image.clone(),
+                custom_size: Some(Vec2::splat(LEVEL_SCALING)),
+                texture_atlas: Some(TextureAtlas::from(atlas.clone())),
+                ..default()
+            },
+            AnimationFrameQueue::new(self.tower_animation_frames(tower)),
+        )
     }
 }
