@@ -1,4 +1,5 @@
 use crate::data::Tower;
+use crate::gameplay::animation::AnimationFrameQueue;
 use crate::level::components::LEVEL_SCALING;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
@@ -25,9 +26,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 2, rows = 1))]
     oil_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/tower_tesla.png")]
+    #[asset(path = "images/towers/tesla.png")]
     tesla_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 256, columns = 2, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 9, rows = 1))]
     tesla_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/tower_bucket.png")]
@@ -73,14 +74,46 @@ impl TowerSprites {
         }
     }
 
-    pub fn tower_bundle(&self, tower: &Tower) -> Sprite {
+    pub fn tower_idle_frames(&self, tower: &Tower) -> &'static [usize] {
+        match tower {
+            Tower::Piston => &[0, 1, 2, 3, 4, 5, 5, 5],
+            Tower::Fan => &[0, 1],
+            Tower::SpikePit => &[0],
+            Tower::Oil => &[0, 1],
+            Tower::TrapDoor => &[0],
+            Tower::Tesla => &[0, 1, 2, 3, 4],
+            Tower::Water => &[0, 1, 2, 3],
+            Tower::Acid => &[0, 1, 2],
+            Tower::Flame => &[0, 1, 2],
+            Tower::Portal => &[0],
+            Tower::Ice => &[0],
+        }
+    }
+
+    pub fn tower_attack_frames(&self, tower: &Tower) -> &'static [usize] {
+        match tower {
+            Tower::Tesla => &[5, 6, 7, 8],
+            _ => todo!(),
+        }
+    }
+
+    pub fn tower_bundle(&self, tower: &Tower) -> impl Bundle {
         let (image, atlas) = self.tower_sprite(tower);
 
-        Sprite {
-            image: image.clone(),
-            custom_size: Some(Vec2::splat(LEVEL_SCALING)),
-            texture_atlas: Some(TextureAtlas::from(atlas.clone())),
-            ..default()
+        let mut animation_controller = AnimationFrameQueue::new(self.tower_idle_frames(tower));
+
+        if tower == &Tower::Tesla {
+            animation_controller.set_override(self.tower_attack_frames(tower));
         }
+
+        (
+            Sprite {
+                image: image.clone(),
+                custom_size: Some(Vec2::splat(LEVEL_SCALING)),
+                texture_atlas: Some(TextureAtlas::from(atlas.clone())),
+                ..default()
+            },
+            animation_controller,
+        )
     }
 }
