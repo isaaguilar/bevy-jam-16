@@ -1,6 +1,3 @@
-use crate::data::status_effects::StatusEffect;
-use crate::theme::widget;
-use bevy::ecs::relationship::RelatedSpawner;
 use bevy::prelude::*;
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]

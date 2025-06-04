@@ -5,34 +5,82 @@ use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
 pub struct TowerSprites {
+    #[asset(path = "images/towers/piston.png")]
+    piston_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 1))]
+    piston_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/fan.png")]
+    fan_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 2, rows = 1))]
+    fan_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/spikes.png")]
+    spike_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    spike_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/oil.png")]
+    oil_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 2, rows = 1))]
+    oil_layout: Handle<TextureAtlasLayout>,
+
     #[asset(path = "images/towers/tower_tesla.png")]
-    pub tesla_sprite: Handle<Image>,
+    tesla_sprite: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 256, columns = 2, rows = 1))]
-    pub tesla_layout: Handle<TextureAtlasLayout>,
+    tesla_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/tower_bucket.png")]
+    water_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 256, columns = 4, rows = 1))]
+    water_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/acid.png")]
+    acid_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 3, rows = 1))]
+    acid_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/fire.png")]
+    flame_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 3, rows = 1))]
+    flame_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/portal.png")]
+    portal_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    portal_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/ice.png")]
+    ice_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    ice_layout: Handle<TextureAtlasLayout>,
 }
 
 impl TowerSprites {
-    pub fn tower_sprite(&self, tower: &Tower) -> (Handle<Image>, TextureAtlas) {
+    pub fn tower_sprite(&self, tower: &Tower) -> (&Handle<Image>, &Handle<TextureAtlasLayout>) {
         match tower {
-            Tower::Tesla => (
-                self.tesla_sprite.clone(),
-                TextureAtlas::from(self.tesla_layout.clone()),
-            ),
-            _ => (
-                self.tesla_sprite.clone(),
-                TextureAtlas::from(self.tesla_layout.clone()),
-            ),
+            Tower::Piston => (&self.piston_sprite, &self.piston_layout),
+            Tower::Fan => (&self.fan_sprite, &self.fan_layout),
+            Tower::SpikePit => (&self.spike_sprite, &self.spike_layout),
+            Tower::Oil => (&self.oil_sprite, &self.oil_layout),
+            Tower::TrapDoor => (&self.tesla_sprite, &self.tesla_layout),
+            Tower::Tesla => (&self.tesla_sprite, &self.tesla_layout),
+            Tower::Water => (&self.water_sprite, &self.water_layout),
+            Tower::Acid => (&self.acid_sprite, &self.acid_layout),
+            Tower::Flame => (&self.flame_sprite, &self.flame_layout),
+            Tower::Portal => (&self.portal_sprite, &self.portal_layout),
+            Tower::Ice => (&self.ice_sprite, &self.ice_layout),
         }
     }
 
-    pub fn tower_bundle(&self, tower: &Tower) -> impl Bundle {
+    pub fn tower_bundle(&self, tower: &Tower) -> Sprite {
         let (image, atlas) = self.tower_sprite(tower);
 
-        (Sprite {
-            image,
+        Sprite {
+            image: image.clone(),
             custom_size: Some(Vec2::splat(LEVEL_SCALING)),
-            texture_atlas: Some(TextureAtlas::from(atlas)),
+            texture_atlas: Some(TextureAtlas::from(atlas.clone())),
             ..default()
-        })
+        }
     }
 }
