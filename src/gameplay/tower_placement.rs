@@ -1,6 +1,6 @@
 use crate::{
     assets::TowerSprites,
-    data::PointerInteractionState,
+    data::*,
     level::components::{Ceiling, Floor, Wall, WallDirection},
     utils::destroy_entity,
 };
@@ -8,16 +8,69 @@ use bevy::prelude::*;
 use std::f32::consts::PI;
 
 pub(super) fn plugin(app: &mut App) {
+    app.init_state::<TowerPlacementState>();
     app.add_observer(on_turret_placement_hover);
-    app.add_observer(on_turret_placement_exit);
+    app.add_systems(
+        Update,
+        tower_placement_change.run_if(state_changed::<TowerPlacementState>),
+    );
     app.add_systems(
         OnEnter(PointerInteractionState::Selecting),
         destroy_entity::<TowerPreview>,
     );
 }
 
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+enum TowerPlacement {
+    Below,
+    Above,
+    Left,
+    Right,
+}
+
+#[derive(States, Default, Debug, Hash, PartialEq, Eq, Clone)]
+enum TowerPlacementState {
+    #[default]
+    None,
+    Placing(Tower, Entity, TowerPlacement),
+}
+
 #[derive(Component, Debug, Clone, Copy, Reflect)]
 struct TowerPreview;
+
+fn tower_placement_change(
+    tower_placement_state: Res<State<TowerPlacementState>>,
+    previews: Query<Entity, With<TowerPreview>>,
+    sprites: Option<Res<TowerSprites>>,
+    mut commands: Commands,
+) {
+    let tower_placement_state = tower_placement_state.get();
+    let TowerPlacementState::Placing(tower, parent, placement) = tower_placement_state else {
+        return;
+    };
+    let sprites = sprites.expect("GameAssets should be available during turret placement");
+
+    let transform = match placement {
+        TowerPlacement::Above => Transform::from_xyz(0., 5., 0.),
+        TowerPlacement::Below => {
+            Transform::from_xyz(0., -5., 0.).with_rotation(Quat::from_rotation_z(PI))
+        }
+        TowerPlacement::Left => {
+            Transform::from_xyz(-5., 0., 0.).with_rotation(Quat::from_rotation_z(PI / 2.0))
+        }
+        TowerPlacement::Right => {
+            Transform::from_xyz(5., 0., 0.).with_rotation(Quat::from_rotation_z(-PI / 2.0))
+        }
+    };
+
+    for entity in previews {
+        commands.entity(entity).despawn()
+    }
+
+    commands
+        .entity(*parent)
+        .with_child((sprites.tower_bundle(tower), transform, TowerPreview));
+}
 
 fn on_turret_placement_hover(
     trigger: Trigger<Pointer<Over>>,
@@ -25,62 +78,38 @@ fn on_turret_placement_hover(
     floors: Query<(), With<Floor>>,
     ceilings: Query<(), With<Ceiling>>,
     pointer_input_state: Res<State<PointerInteractionState>>,
-    sprites: Option<Res<TowerSprites>>,
-    mut commands: Commands,
+    tower_placement_state: Res<State<TowerPlacementState>>,
+    mut next_tower_placement_state: ResMut<NextState<TowerPlacementState>>,
 ) {
     let PointerInteractionState::Placing(tower) = pointer_input_state.get() else {
         return;
     };
-    let sprites = sprites.expect("GameAssets should be available during turret placement");
 
     let entity = trigger.target;
 
-    let get_sprite = || (sprites.tower_bundle(tower), TowerPreview);
+    if let TowerPlacementState::Placing(t, e, _) = tower_placement_state.get() {
+        if *t == *tower && *e == entity {
+            return;
+        }
+    }
 
     if let Ok(wall) = walls.get(entity) {
-        let transform = match wall.0 {
-            WallDirection::Left => Transform::from_xyz(-5., 0., 0.),
-            WallDirection::Right => Transform::from_xyz(5., 0., 0.),
+        let placement = match wall.0 {
+            WallDirection::Left => TowerPlacement::Left,
+            WallDirection::Right => TowerPlacement::Right,
         };
-        let preview = get_sprite();
-        commands.entity(entity).with_child((preview, transform));
+        next_tower_placement_state.set(TowerPlacementState::Placing(*tower, entity, placement));
     } else if ceilings.get(entity).is_ok() {
-        let preview = get_sprite();
-        commands.entity(entity).with_child((
-            preview,
-            Transform::from_xyz(0., -5., 0.).with_rotation(Quat::from_rotation_x(PI)),
+        next_tower_placement_state.set(TowerPlacementState::Placing(
+            *tower,
+            entity,
+            TowerPlacement::Below,
         ));
     } else if floors.get(entity).is_ok() {
-        let preview = get_sprite();
-        commands
-            .entity(entity)
-            .with_child((preview, Transform::from_xyz(0., 5., 0.)));
-    }
-}
-
-fn on_turret_placement_exit(
-    trigger: Trigger<Pointer<Out>>,
-    walls: Query<(), With<Wall>>,
-    floors: Query<(), With<Floor>>,
-    ceilings: Query<(), With<Ceiling>>,
-    children_query: Query<&Children>,
-    preview_query: Query<(), With<TowerPreview>>,
-    // mut commands: Commands,
-) {
-    let entity = trigger.target;
-
-    // Only proceed if the exited entity is a structure we're interested in
-    if walls.get(entity).is_err() && ceilings.get(entity).is_err() && floors.get(entity).is_err() {
-        return;
-    }
-
-    if let Ok(children) = children_query.get(entity) {
-        for &child in children {
-            if preview_query.get(child).is_ok() {
-                // TODO
-                // commands.entity(child).despawn();
-                // break;
-            }
-        }
+        next_tower_placement_state.set(TowerPlacementState::Placing(
+            *tower,
+            entity,
+            TowerPlacement::Above,
+        ));
     }
 }
