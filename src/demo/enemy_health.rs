@@ -25,8 +25,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(tower_collision_damage);
     app.add_observer(display_status);
     // Debug picker helpers
-    app.add_observer(pick_enemy_to_do_damage_example);
-    app.add_observer(pick_enemy_to_add_status_example);
+    //app.add_observer(pick_enemy_to_do_damage_example);
+    //app.add_observer(pick_enemy_to_add_status_example);
 }
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
