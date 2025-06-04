@@ -44,3 +44,43 @@ impl StatusEffect {
         (Text::new(self.name()), TextColor(self.color()))
     }
 }
+
+#[derive(Component, Default, Clone, PartialEq, Debug)]
+pub struct Ailments {
+    pub slowdown: f32,
+    pub min_damage: f32,
+    pub max_damage: f32,
+    pub damage_timer: Timer,
+    pub ailment_timer: Timer,
+}
+
+impl Ailments {
+    fn new(
+        slowdown: f32,
+        min_damage: f32,
+        max_damage: f32,
+        ailment_time_s: f32,
+        damage_time_s: f32,
+    ) -> Self {
+        Self {
+            slowdown,
+            min_damage,
+            max_damage,
+            ailment_timer: Timer::from_seconds(ailment_time_s, TimerMode::Once),
+            damage_timer: Timer::from_seconds(damage_time_s, TimerMode::Repeating),
+        }
+    }
+}
+
+pub fn get_ailment(status_effect: StatusEffect) -> Ailments {
+    match status_effect {
+        StatusEffect::Wet => (Ailments::new(0.0, 0.0, 0.0, 8., 8.)),
+        StatusEffect::Burning => Ailments::new(0.0, 0.045, 0.110, 7., 1.5),
+        StatusEffect::Frozen => Ailments::new(1.0, 0.023, 0.185, 8., 2.),
+        StatusEffect::Electrified => Ailments::new(0.0, 0.026, 0.082, 12., 1.),
+        StatusEffect::Acidic => Ailments::new(0.0, 0.100, 0.101, 9., 1.5),
+        StatusEffect::Oiled => Ailments::new(0.0, 0.0, 0.0, 15., 15.),
+        StatusEffect::Slowed => Ailments::new(0.7, 0.0, 0.0, 10., 10.),
+        StatusEffect::Pushed => Ailments::new(1.0, 0.0, 0.0, 0.25, 0.25),
+    }
+}
