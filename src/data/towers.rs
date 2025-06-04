@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub enum Tower {
     Piston,
     Fan,
@@ -61,6 +61,31 @@ impl Tower {
             Tower::Water => "icon_water_bucket",
             Tower::Flame => "icon_flame",
             Tower::Portal => "icon_portal",
+        }
+    }
+
+    pub fn has_trigger_zone(&self) -> bool {
+        match self {
+            Tower::Fan | Tower::SpikePit | Tower::Ice => false,
+            _ => true,
+        }
+    }
+
+    pub fn gravity_influences_trigger(&self) -> bool {
+        match self {
+            Tower::Oil | Tower::Ice | Tower::Acid | Tower::Water => true,
+            Tower::Tesla => true, // TODO: IMPORTANT: CHANGE
+            _ => false,
+        }
+    }
+
+    // These towers by themselves will cause damage upon collision
+    pub fn collision_damage(&self) -> TowerDamage {
+        match self {
+            Tower::SpikePit => TowerDamage::new(0.050, 0.100),
+            Tower::Acid => TowerDamage::new(0.050, 0.100),
+            Tower::Flame => TowerDamage::new(0.050, 0.100),
+            _ => TowerDamage::default(),
         }
     }
 }

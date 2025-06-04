@@ -22,6 +22,9 @@ pub enum WallDirection {
 pub struct LevelParent;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
+pub struct Architecture;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
 pub struct Wall(pub WallDirection);
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
@@ -106,6 +109,7 @@ impl LevelParent {
 pub fn wall(x: f32, y: f32, direction: WallDirection) -> ComponentTree {
     (
         Wall(direction),
+        Architecture,
         Pickable::default(),
         Collider::rectangle(WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING),
         RigidBody::Static,
@@ -127,6 +131,7 @@ pub fn wall(x: f32, y: f32, direction: WallDirection) -> ComponentTree {
 pub fn ceiling(x: f32, y: f32) -> ComponentTree {
     (
         Ceiling,
+        Architecture,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         RigidBody::Static,
         Pickable::default(),
@@ -145,6 +150,7 @@ pub fn ceiling(x: f32, y: f32) -> ComponentTree {
 pub fn floor(x: f32, y: f32) -> ComponentTree {
     (
         Floor,
+        Architecture,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         RigidBody::Static,
         Pickable::default(),

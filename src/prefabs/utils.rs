@@ -5,6 +5,7 @@ use bevy::{
     image::TextureAtlasLayout,
     math::UVec2,
     prelude::{Bundle, Commands, Component, Event, Image, OnAdd, Query, Res, Trigger},
+    reflect::Reflect,
     render::{
         mesh::{Mesh, Mesh2d},
         view::Visibility,
@@ -16,7 +17,11 @@ use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree};
 use std::sync::Arc;
 
 use super::{enemies::ShowDelay, wizardry::GimmieFn};
-use crate::assets::GameAssets;
+use crate::{
+    assets::{GameAssets, TowerSprites},
+    data::Tower,
+    level::resource::CellDirection,
+};
 
 #[derive(Component, Clone)]
 pub struct GiveMeImage(pub Arc<dyn GimmieFn<Image, GameAssets>>);
@@ -29,6 +34,9 @@ pub struct GiveMeMesh(pub Arc<dyn GimmieFn<Mesh, GameAssets>>);
 
 #[derive(Component, Clone)]
 pub struct GiveMeColor(pub Arc<dyn GimmieFn<ColorMaterial, GameAssets>>);
+
+#[derive(Component, Clone, Debug, Reflect)]
+pub struct TowerSprite(pub Tower, pub CellDirection);
 
 pub fn image(image: impl GimmieFn<Image, GameAssets>) -> ComponentTree {
     GiveMeImage(Arc::new(image)).store()
@@ -51,6 +59,7 @@ pub fn plugin(app: &mut bevy::prelude::App) {
     app.add_observer(give_layouts);
     app.add_observer(give_meshes);
     app.add_observer(give_colors);
+    app.add_observer(give_tower_sprite);
     app.add_systems(Update, show_delay);
 }
 
@@ -121,5 +130,19 @@ pub fn give_colors(
         .get_entity(entity)
         .unwrap()
         .insert(MeshMaterial2d(requests.get(entity).unwrap().0(&colors)))
-        .remove::<GiveMeImage>();
+        .remove::<GiveMeColor>();
+}
+
+pub fn give_tower_sprite(
+    trigger: Trigger<OnAdd, TowerSprite>,
+    sprites: Res<TowerSprites>,
+    requests: Query<&TowerSprite>,
+    mut commands: Commands,
+) {
+    let entity = trigger.target();
+    commands
+        .get_entity(entity)
+        .unwrap()
+        .insert(sprites.tower_bundle(&requests.get(entity).unwrap().0))
+        .remove::<TowerSprite>();
 }
