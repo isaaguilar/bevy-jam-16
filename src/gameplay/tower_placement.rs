@@ -1,15 +1,30 @@
 use crate::{
+    PausableSystems,
     assets::TowerSprites,
     data::*,
-    level::components::{Ceiling, Floor, Wall, WallDirection},
+    level::{
+        components::{Architecture, Ceiling, Floor, Wall, WallDirection},
+        resource::CellDirection,
+    },
+    prefabs::{towers::tower, wizardry::add_observer_to_component},
+    screens::Screen,
     utils::destroy_entity,
 };
 use bevy::prelude::*;
+use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 use std::f32::consts::PI;
 
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<TowerPlacementState>();
+
+    app.add_event::<SelectTower>();
+    app.add_event::<PlaceTower>();
+
     app.add_observer(on_turret_placement_hover);
+    app.add_observer(add_observer_to_component::<Architecture, _, _, _, _>(
+        click_tower,
+    ));
+
     app.add_systems(
         Update,
         tower_placement_change.run_if(state_changed::<TowerPlacementState>),
@@ -18,9 +33,16 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(PointerInteractionState::Selecting),
         destroy_entity::<TowerPreview>,
     );
+
+    app.add_systems(
+        Update,
+        (place_towers)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Reflect)]
 enum TowerPlacement {
     Below,
     Above,
@@ -28,7 +50,7 @@ enum TowerPlacement {
     Right,
 }
 
-#[derive(States, Default, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(States, Default, Debug, Hash, PartialEq, Eq, Clone, Reflect)]
 enum TowerPlacementState {
     #[default]
     None,
@@ -37,6 +59,12 @@ enum TowerPlacementState {
 
 #[derive(Component, Debug, Clone, Copy, Reflect)]
 struct TowerPreview;
+
+#[derive(Event, Debug, Clone, Copy, Reflect)]
+struct PlaceTower(pub Entity, pub Tower, pub TowerPlacement);
+
+#[derive(Event, Debug, Clone, Copy, Reflect)]
+struct SelectTower(pub Entity);
 
 fn tower_placement_change(
     tower_placement_state: Res<State<TowerPlacementState>>,
@@ -111,5 +139,65 @@ fn on_turret_placement_hover(
             entity,
             TowerPlacement::Above,
         ));
+    }
+}
+
+fn click_tower(
+    trigger: Trigger<Pointer<Pressed>>,
+    pointer_input_state: Res<State<PointerInteractionState>>,
+    tower_placement_state: Res<State<TowerPlacementState>>,
+    mut select_events: EventWriter<SelectTower>,
+    mut place_events: EventWriter<PlaceTower>,
+) {
+    match **pointer_input_state {
+        PointerInteractionState::Selecting => {
+            println!("Selecting!");
+            select_events.write(SelectTower(trigger.target));
+        }
+        PointerInteractionState::Placing(tower) => {
+            println!("Spawning!");
+            let entity = trigger.target;
+
+            let (_, _, orientation) = (match **tower_placement_state {
+                TowerPlacementState::None => None,
+                TowerPlacementState::Placing(tower, entity, tower_placement) => {
+                    Some((tower, entity, tower_placement))
+                }
+            })
+            .unwrap();
+
+            place_events.write(PlaceTower(entity, tower, orientation));
+        }
+    }
+}
+
+pub fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
+    for PlaceTower(entity, tower_type, orientation) in place_events.read() {
+        commands.entity(*entity).with_children(|commands| {
+            commands
+                .compose(tower(*tower_type, (*orientation).into()) + orientation.offset().store());
+        });
+    }
+}
+
+impl TowerPlacement {
+    pub fn offset(&self) -> Transform {
+        match self {
+            TowerPlacement::Above => Transform::from_xyz(0., 5., 0.),
+            TowerPlacement::Below => Transform::from_xyz(0., -5., 0.),
+            TowerPlacement::Left => Transform::from_xyz(-5., 0., 0.),
+            TowerPlacement::Right => Transform::from_xyz(5., 0., 0.),
+        }
+    }
+}
+
+impl Into<CellDirection> for TowerPlacement {
+    fn into(self) -> CellDirection {
+        match self {
+            TowerPlacement::Below => CellDirection::Up,
+            TowerPlacement::Above => CellDirection::Down,
+            TowerPlacement::Left => CellDirection::Right,
+            TowerPlacement::Right => CellDirection::Left,
+        }
     }
 }

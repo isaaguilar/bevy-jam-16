@@ -3,7 +3,7 @@ use bevy::{
     ecs::{
         component::Component,
         entity::Entity,
-        event::EventReader,
+        event::{Event, EventReader, EventWriter},
         hierarchy::{ChildOf, Children},
         query::{Changed, With, Without},
         system::{Commands, Query, Res},
@@ -18,6 +18,10 @@ use crate::{data::Tower, demo::enemy_movement::EnemyController};
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct TowerTriggerRange;
 
+// Attached to sensor colliders that detect enemies for towers that drop things
+#[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
+pub struct TowerTriggerNeedsGravity;
+
 // Attached to towers that cannot fire until the timer is up
 #[derive(Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct Cooldown(pub Timer);
@@ -25,6 +29,9 @@ pub struct Cooldown(pub Timer);
 // Signal component attached to towers that have something to shoot at
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
 pub struct TowerHasTargets;
+
+#[derive(Copy, Clone, Debug, Reflect, Event, PartialEq, Eq)]
+pub struct TowerFired(pub Entity);
 
 pub fn add_tower_targets_from_zone(
     mut collision_events: EventReader<CollisionStarted>,
@@ -76,11 +83,13 @@ pub fn remove_tower_targets(
 
 pub fn towers_fire(
     towers: Query<(Entity, &Tower), (With<TowerHasTargets>, Without<Cooldown>)>,
+    mut fire_events: EventWriter<TowerFired>,
     mut commands: Commands,
 ) {
     for (e, tower) in towers.iter() {
         println!("Firing {:?}!", tower);
         commands.entity(e).insert(Cooldown::new(2.0));
+        fire_events.write(TowerFired(e));
     }
 }
 

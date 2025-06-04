@@ -20,6 +20,7 @@ use super::{enemies::ShowDelay, wizardry::GimmieFn};
 use crate::{
     assets::{GameAssets, TowerSprites},
     data::Tower,
+    level::resource::CellDirection,
 };
 
 #[derive(Component, Clone)]
@@ -35,7 +36,7 @@ pub struct GiveMeMesh(pub Arc<dyn GimmieFn<Mesh, GameAssets>>);
 pub struct GiveMeColor(pub Arc<dyn GimmieFn<ColorMaterial, GameAssets>>);
 
 #[derive(Component, Clone, Debug, Reflect)]
-pub struct TowerSprite(pub Tower);
+pub struct TowerSprite(pub Tower, pub CellDirection);
 
 pub fn image(image: impl GimmieFn<Image, GameAssets>) -> ComponentTree {
     GiveMeImage(Arc::new(image)).store()
