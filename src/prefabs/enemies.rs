@@ -24,17 +24,20 @@ use crate::{
             MovementDirection,
         },
     },
+    gameplay::animation::AnimationFrameQueue,
     level::components::pos,
     screens::Screen,
 };
 
 pub fn basic_trooper() -> ComponentTree {
-    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 3.5), 35.)
-        << (Transform::from_scale(Vec3::splat(0.2)).store()
-            + image(GameAssets::badguy)
-            + layout(GameAssets::badguy_layout)
+    let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6]);
+    name("Minor Trooper") + enemy_requirements(Vec2::new(2.75, 2.75), 35.)
+        << (Transform::from_scale(Vec3::splat(0.14)).store()
+            + animation.store()
+            + image(GameAssets::trooper)
+            + layout(GameAssets::trooper_layout)
             + Pickable::default().store()
-            << health_bar())
+            << health_bar(24.))
 }
 
 pub fn chonkus_trooper() -> ComponentTree {
@@ -43,7 +46,7 @@ pub fn chonkus_trooper() -> ComponentTree {
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
             + Pickable::default().store()
-            << health_bar())
+            << health_bar(14.))
 }
 
 pub fn turbo_trooper() -> ComponentTree {
@@ -52,7 +55,7 @@ pub fn turbo_trooper() -> ComponentTree {
             + image(GameAssets::ducky)
             + layout(GameAssets::badguy_layout)
             + Pickable::default().store()
-            << health_bar())
+            << health_bar(14.))
 }
 
 pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
@@ -73,10 +76,10 @@ pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
         .store()
 }
 
-pub fn health_bar() -> ComponentTree {
+pub fn health_bar(y_offset: f32) -> ComponentTree {
     (
         EnemyHealthBar,
-        Transform::from_translation(Vec3::new(0., 14., 0.)),
+        Transform::from_translation(Vec3::new(0., y_offset, 0.)),
     )
         .store()
         + mesh(GameAssets::health_bar_mesh)
