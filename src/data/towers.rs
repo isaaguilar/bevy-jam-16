@@ -3,7 +3,7 @@ use crate::theme::widget;
 use bevy::ecs::relationship::RelatedSpawner;
 use bevy::prelude::*;
 
-#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub enum Tower {
     Piston,
     Fan,
@@ -64,6 +64,15 @@ impl Tower {
             Tower::Water => "icon_water_bucket",
             Tower::Flame => "icon_flame",
             Tower::Portal => "icon_portal",
+        }
+    }
+
+    pub fn has_trigger_zone(&self) -> bool {
+        match self {
+            Tower::Fan => false,
+            Tower::SpikePit => false,
+            Tower::Ice => false,
+            _ => true,
         }
     }
 }
