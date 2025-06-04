@@ -19,7 +19,6 @@ mod utils;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
-
 pub mod prelude {
     pub use crate::assets::{GameAssets, UiAssets};
     pub use crate::screens::Screen;
@@ -36,6 +35,7 @@ impl Plugin for AppPlugin {
         // Add Bevy plugins.
         app.add_plugins(
             DefaultPlugins
+                .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
                     // This causes errors and even panics on web build on itch.
