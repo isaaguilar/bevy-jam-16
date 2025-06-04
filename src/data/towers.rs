@@ -69,10 +69,16 @@ impl Tower {
 
     pub fn has_trigger_zone(&self) -> bool {
         match self {
-            Tower::Fan => false,
-            Tower::SpikePit => false,
-            Tower::Ice => false,
+            Tower::Fan | Tower::SpikePit | Tower::Ice => false,
             _ => true,
+        }
+    }
+
+    pub fn gravity_influences_trigger(&self) -> bool {
+        match self {
+            Tower::Oil | Tower::Ice | Tower::Acid | Tower::Water => true,
+            Tower::Tesla => true, // TODO: IMPORTANT: CHANGE
+            _ => false,
         }
     }
 }
