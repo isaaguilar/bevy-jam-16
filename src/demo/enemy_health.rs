@@ -156,7 +156,6 @@ fn start_collision_damage_event(
 }
 
 fn stop_collision_damage_event(trigger: Trigger<OnCollisionEnd>, mut commands: Commands) {
-    info!("No more collision!");
     let enemy_target = trigger.event().collider;
 
     commands.entity(enemy_target).remove::<Tower>();
@@ -195,7 +194,6 @@ fn active_tower_collision(
     for (entity, mut tower_collision) in enemies.iter_mut() {
         tower_collision.iframe.tick(time.delta());
         if tower_collision.iframe.just_finished() {
-            info!("Do damage {} to {:?}", tower_collision.max_damage, entity);
             commands.trigger_targets(
                 RecordDamage {
                     min: tower_collision.min_damage,
@@ -216,7 +214,6 @@ fn status_effect_ailments(
     for (entity, mut ailments) in enemies.iter_mut() {
         ailments.damage_timer.tick(time.delta());
         if ailments.damage_timer.just_finished() {
-            info!("Do damage {} to {:?}", ailments.max_damage, entity);
             commands.trigger_targets(
                 RecordDamage {
                     min: ailments.min_damage,
@@ -248,7 +245,7 @@ pub fn record_damage(trigger: Trigger<RecordDamage>, mut enemies: Query<&mut Ene
     parent_health.0 -= damage;
     parent_health.0 = parent_health.0.clamp(0.0, 1.0);
 
-    info!(
+    debug!(
         "Enemy {:?} has {} health",
         trigger.target(),
         parent_health.0
@@ -264,7 +261,6 @@ pub fn display_status(
     let e = trigger.target();
     for (entity, parent) in statuses.iter() {
         if parent.0 == e {
-            info!("Despawned ttl entity {:?}", entity);
             commands.entity(entity).despawn();
         }
     }
