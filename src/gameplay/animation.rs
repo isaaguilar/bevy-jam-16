@@ -15,6 +15,7 @@ pub struct AnimationFrameQueue {
 
 impl AnimationFrameQueue {
     pub fn new(frames: &'static [usize]) -> Self {
+        assert!(!frames.is_empty(), "Animation frames cannot be empty");
         Self {
             frames,
             timer: Timer::from_seconds(FRAME_DURATION, TimerMode::Repeating),
@@ -29,6 +30,12 @@ impl AnimationFrameQueue {
             self.current_index = (self.current_index + 1) % self.frames.len();
             sprite.index = self.frames[self.current_index];
         }
+    }
+
+    pub fn set_frames(&mut self, frames: &'static [usize]) {
+        assert!(!frames.is_empty(), "Animation frames cannot be empty");
+        self.frames = frames;
+        self.current_index = 0;
     }
 }
 
