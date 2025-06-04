@@ -50,6 +50,20 @@ pub struct GameAssets {
         offset_y = 0
     ))]
     pub poisened_layout: Handle<TextureAtlasLayout>,
+    #[asset(path = "images/trooper-Sheet.png")]
+    #[asset(image(sampler(filter = nearest)))]
+    pub trooper: Handle<Image>,
+    #[asset(texture_atlas_layout(
+        tile_size_x = 48,
+        tile_size_y = 48,
+        columns = 7,
+        rows = 1,
+        padding_x = 0,
+        padding_y = 0,
+        offset_x = 0,
+        offset_y = 0
+    ))]
+    pub trooper_layout: Handle<TextureAtlasLayout>,
 
     health_bar_rect: Handle<Mesh>,
     health_bar_color: Handle<ColorMaterial>,
@@ -62,6 +76,14 @@ impl GameAssets {
 
     pub fn badguy_layout(&self) -> Handle<TextureAtlasLayout> {
         self.ducky_layout.clone()
+    }
+
+    pub fn trooper(&self) -> Handle<Image> {
+        self.trooper.clone()
+    }
+
+    pub fn trooper_layout(&self) -> Handle<TextureAtlasLayout> {
+        self.trooper_layout.clone()
     }
 
     pub fn ducky(&self) -> Handle<Image> {

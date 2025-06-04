@@ -6,7 +6,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, animate_sprite_frames);
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Clone, PartialEq)]
 pub struct AnimationFrameQueue {
     frames: &'static [usize],
     timer: Timer,

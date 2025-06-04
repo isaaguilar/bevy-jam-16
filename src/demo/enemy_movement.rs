@@ -4,12 +4,15 @@ use avian2d::{
 };
 use bevy::{math::NormedVectorSpace, prelude::*};
 
-use crate::{AppSystems, PausableSystems, level::components::PathNode};
+use crate::{
+    AppSystems, PausableSystems, gameplay::animation::AnimationFrameQueue,
+    level::components::PathNode,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (follow_path, movement, apply_movement_damping)
+        (flip_sprite, follow_path, movement, apply_movement_damping)
             .chain()
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
@@ -162,6 +165,7 @@ fn movement(
     for (movement_direction, movement_acceleration, mut linear_velocity) in &mut controllers {
         let x_direction = movement_direction.0.x;
         let y_direction = movement_direction.0.y;
+
         if x_direction != 0.0 {
             linear_velocity.x += x_direction * movement_acceleration.0 * delta_time;
         }
@@ -334,6 +338,17 @@ fn kinematic_controller_collisions(
                     linear_velocity.0 -= impulse;
                 }
             }
+        }
+    }
+}
+
+fn flip_sprite(
+    controllers: Query<&MovementDirection>,
+    mut character_sprites: Query<(&mut Sprite, &ChildOf), With<AnimationFrameQueue>>,
+) {
+    for (mut sprite, parent_entity) in character_sprites.iter_mut() {
+        if let Ok(movement_direction) = controllers.get(parent_entity.0) {
+            sprite.flip_x = movement_direction.0.x <= 0.0;
         }
     }
 }
