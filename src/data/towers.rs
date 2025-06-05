@@ -92,9 +92,9 @@ impl Tower {
             Tower::TrapDoor => AttackType::ModifiesSelf,
             Tower::Ice => AttackType::EntireCell(vec![
                 AttackEffect::Damage,
-                AttackEffect::Status(StatusEffect::Frozen),
+                AttackEffect::Status(StatusEffect::Chilled),
             ]),
-            Tower::Acid => todo!(),
+            Tower::Acid => AttackType::DropsLiquid(LiquidType::Acid),
             Tower::Tesla => todo!(),
             Tower::Water => todo!(),
             Tower::Flame => todo!(),
