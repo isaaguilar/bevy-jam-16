@@ -1,3 +1,4 @@
+use crate::level::resource::CellDirection;
 use bevy::prelude::*;
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
@@ -28,7 +29,6 @@ impl Tower {
             Tower::Tesla,
             Tower::Water,
             Tower::Flame,
-            Tower::Portal,
         ]
     }
 

@@ -1,6 +1,7 @@
 use crate::data::Tower;
 use crate::gameplay::animation::AnimationFrameQueue;
 use crate::level::components::LEVEL_SCALING;
+use crate::level::resource::CellDirection;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
@@ -28,12 +29,12 @@ pub struct TowerSprites {
 
     #[asset(path = "images/towers/tesla.png")]
     tesla_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 9, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 5, rows = 6))]
     tesla_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/tower_bucket.png")]
+    #[asset(path = "images/towers/bucket.png")]
     water_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 256, columns = 4, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 6))]
     water_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/acid.png")]
@@ -74,36 +75,13 @@ impl TowerSprites {
         }
     }
 
-    pub fn tower_idle_frames(&self, tower: &Tower) -> &'static [usize] {
-        match tower {
-            Tower::Piston => &[0, 1, 2, 3, 4, 5, 5, 5],
-            Tower::Fan => &[0, 1],
-            Tower::SpikePit => &[0],
-            Tower::Oil => &[0, 1],
-            Tower::TrapDoor => &[0],
-            Tower::Tesla => &[0, 1, 2, 3, 4],
-            Tower::Water => &[0, 1, 2, 3],
-            Tower::Acid => &[0, 1, 2],
-            Tower::Flame => &[0, 1, 2],
-            Tower::Portal => &[0],
-            Tower::Ice => &[0],
-        }
-    }
-
-    pub fn tower_attack_frames(&self, tower: &Tower) -> &'static [usize] {
-        match tower {
-            Tower::Tesla => &[5, 6, 7, 8],
-            _ => todo!(),
-        }
-    }
-
-    pub fn tower_bundle(&self, tower: &Tower) -> impl Bundle {
+    pub fn tower_bundle(&self, tower: &Tower, direction: &CellDirection) -> impl Bundle {
         let (image, atlas) = self.tower_sprite(tower);
 
-        let mut animation_controller = AnimationFrameQueue::new(self.tower_idle_frames(tower));
+        let mut animation_controller = AnimationFrameQueue::new(direction.idle_frames(tower));
 
-        if tower == &Tower::Tesla {
-            animation_controller.set_override(self.tower_attack_frames(tower));
+        if tower == &Tower::Tesla || tower == &Tower::Water {
+            animation_controller.set_override(direction.attack_frames(tower));
         }
 
         (
@@ -115,5 +93,51 @@ impl TowerSprites {
             },
             animation_controller,
         )
+    }
+}
+
+impl CellDirection {
+    pub fn idle_frames(&self, tower: &Tower) -> &'static [usize] {
+        match tower {
+            Tower::Piston => &[0, 1, 2, 3, 4, 5, 5, 5],
+            Tower::Fan => &[0, 1],
+            Tower::SpikePit => &[0],
+            Tower::Oil => &[0, 1],
+            Tower::TrapDoor => &[0],
+            Tower::Tesla => match self {
+                CellDirection::Down => &[0, 1, 2, 3, 4],
+                CellDirection::Up => &[10, 11, 12, 13, 14],
+                CellDirection::Left => &[20, 21, 22, 23, 24],
+                CellDirection::Right => &[20, 21, 22, 23, 24],
+            },
+            Tower::Water => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[12],
+                CellDirection::Left => &[24],
+                CellDirection::Right => &[24],
+            },
+            Tower::Acid => &[0, 1, 2],
+            Tower::Flame => &[0, 1, 2],
+            Tower::Portal => &[0],
+            Tower::Ice => &[0],
+        }
+    }
+
+    pub fn attack_frames(&self, tower: &Tower) -> &'static [usize] {
+        match tower {
+            Tower::Tesla => match self {
+                CellDirection::Down => &[5, 6, 7, 8],
+                CellDirection::Up => &[15, 16, 17, 18],
+                CellDirection::Left => &[25, 26, 27, 28],
+                CellDirection::Right => &[25, 26, 27, 28],
+            },
+            Tower::Water => match self {
+                CellDirection::Down => &[6, 7, 8, 9, 10],
+                CellDirection::Up => &[18, 19, 20, 21, 22],
+                CellDirection::Left => &[30, 31, 32, 33, 34],
+                CellDirection::Right => &[30, 31, 32, 33, 34],
+            },
+            _ => todo!(),
+        }
     }
 }
