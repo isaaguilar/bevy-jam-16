@@ -1,7 +1,13 @@
 use bevy::{ecs::resource::Resource, math::Vec2, reflect::Reflect};
 
 // Temporary hardcoded map until I pull the asset-loading changes
-pub const MAP_TEXT: &'static str = "^<<<<
+pub const MAP_TEXT: &'static str = "^<<v<
+>>^v^
+^<<<^
+>>>>^
+";
+
+pub const MAP_TEXT2: &'static str = "^<<<<
 >>>>^
 ^<<<<
 >>>>^
