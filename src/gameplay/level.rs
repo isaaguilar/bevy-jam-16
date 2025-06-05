@@ -6,7 +6,7 @@ use bevy_composable::{
 
 use crate::{
     data::PlayerState,
-    demo::enemy_movement::EnemyController,
+    demo::enemy_health::EnemyHealth,
     level::{
         components::{EndNode, LevelParent},
         resource::{Level, MAP_TEXT},
@@ -41,7 +41,7 @@ pub fn spawn_level(
 
 pub fn despawn_enemy_on_goal(
     mut commands: Commands,
-    mut enemies: Query<(Entity, &Transform), With<EnemyController>>,
+    mut enemies: Query<(Entity, &Transform), With<EnemyHealth>>,
     goal: Query<&Transform, With<EndNode>>,
     mut game_state: ResMut<PlayerState>,
 ) {
