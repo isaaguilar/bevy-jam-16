@@ -18,6 +18,9 @@ pub enum AttackEffect {
 }
 
 #[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq)]
+pub struct Puddle(pub LiquidType);
+
+#[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq)]
 pub enum LiquidType {
     Water,
     Oil,
