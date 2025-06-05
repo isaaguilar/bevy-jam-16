@@ -54,26 +54,28 @@ impl StatusSprites {
     ) -> (&Handle<Image>, &Handle<TextureAtlasLayout>) {
         match status_effect {
             StatusEffect::Wet => (&self.wet_sprite, &self.wet_layout),
-            StatusEffect::Burning => (&self.burning_sprite, &self.burning_layout),
+            StatusEffect::Ignited => (&self.burning_sprite, &self.burning_layout),
             StatusEffect::Frozen => (&self.frozen_sprite, &self.frozen_layout),
             StatusEffect::Electrified => (&self.electrified_sprite, &self.electrified_layout),
             StatusEffect::Acidic => (&self.acidic_sprite, &self.acidic_layout),
             StatusEffect::Oiled => (&self.oiled_sprite, &self.oiled_layout),
             StatusEffect::Slowed => (&self.slowed_sprite, &self.slowed_layout),
-            StatusEffect::Pushed => (&self.pushed_sprite, &self.pushed_layout),
+            StatusEffect::Burned => (&self.burning_sprite, &self.burning_layout),
+            StatusEffect::Chilled => (&self.frozen_sprite, &self.frozen_layout),
         }
     }
 
     pub fn status_animation_frames(&self, status_effect: &StatusEffect) -> &'static [usize] {
         match status_effect {
             StatusEffect::Wet => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Burning => &[0, 1, 2, 3, 4, 5],
+            StatusEffect::Ignited => &[0, 1, 2, 3, 4, 5],
             StatusEffect::Frozen => &[0, 1, 2, 3, 4, 5, 6, 6, 6, 6],
             StatusEffect::Electrified => &[0, 1, 2, 3, 4, 5],
             StatusEffect::Acidic => &[0, 1, 2, 3, 4, 5],
             StatusEffect::Oiled => &[0, 1, 2, 3, 4, 5],
             StatusEffect::Slowed => &[0],
-            StatusEffect::Pushed => &[0],
+            StatusEffect::Burned => &[0, 2, 4],
+            StatusEffect::Chilled => &[0, 2, 4],
         }
     }
 

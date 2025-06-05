@@ -4,15 +4,15 @@ use super::StatusEffect;
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
 pub enum AttackType {
-    EntireCell(pub Vec<AttackEffect>),
-    Contact(pub Vec<AttackEffect>),
-    DropsLiquid(pub LiquidType),
+    EntireCell(Vec<AttackEffect>),
+    Contact(Vec<AttackEffect>),
+    DropsLiquid(LiquidType),
     ModifiesSelf,
 }
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
 pub enum AttackEffect {
-    Damage,
+    Damage(DamageType),
     Push,
     Status(StatusEffect),
 }

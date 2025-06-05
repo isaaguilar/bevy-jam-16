@@ -1,3 +1,6 @@
+use attacks::{
+    AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
+};
 use bevy::{
     app::{App, FixedUpdate, Update},
     ecs::{
@@ -22,6 +25,7 @@ use crate::{
 };
 use common::*;
 
+pub mod attacks;
 pub mod common;
 pub mod gravity_bullshit;
 pub mod tesla;
@@ -34,11 +38,21 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<TowerHasTargets>()
         .register_type::<RangeDropper>();
 
-    app.add_event::<TowerFired>();
+    app.add_event::<DropLiquid>()
+        .add_event::<TowerFired>()
+        .add_event::<AttackEnemiesInContact>();
 
     app.add_systems(
         Update,
-        (towers_fire, remove_cooldown, tick_cooldown)
+        (
+            (tick_cooldown, remove_cooldown).chain(),
+            (
+                towers_fire,
+                dispatch_attack_effects,
+                (attack_contact_enemies),
+            )
+                .chain(),
+        )
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );

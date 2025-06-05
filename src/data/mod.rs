@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::prelude::*;
 
 mod input_state;
-mod projectiles;
+pub mod projectiles;
 mod state;
 mod status_effects;
 mod towers;
@@ -11,7 +11,7 @@ mod towers;
 pub use {
     input_state::PointerInteractionState, state::PlayerState, status_effects::Ailments,
     status_effects::StatusEffect, status_effects::get_ailment, towers::Tower,
-    towers::TowerCollision, towers::get_collison,
+    towers::TowerCollision, towers::get_collision,
 };
 
 pub(super) fn plugin(app: &mut App) {

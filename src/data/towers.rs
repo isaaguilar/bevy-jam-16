@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use super::{
     StatusEffect,
-    projectiles::{AttackEffect, AttackType, LiquidType},
+    projectiles::{AttackEffect, AttackType, DamageType, LiquidType},
 };
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
@@ -85,19 +85,26 @@ impl Tower {
 
     pub fn attack_def(&self) -> AttackType {
         match self {
-            Tower::Piston => AttackType::EntireCell(vec![AttackEffect::Damage, AttackEffect::Push]),
+            Tower::Piston => AttackType::EntireCell(vec![
+                AttackEffect::Damage(DamageType::Physical),
+                AttackEffect::Push,
+            ]),
             Tower::Fan => AttackType::EntireCell(vec![AttackEffect::Push]),
-            Tower::SpikePit => AttackType::Contact(vec![AttackEffect::Damage]),
+            Tower::SpikePit => {
+                AttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
+            }
             Tower::Oil => AttackType::DropsLiquid(LiquidType::Oil),
             Tower::TrapDoor => AttackType::ModifiesSelf,
             Tower::Ice => AttackType::EntireCell(vec![
-                AttackEffect::Damage,
+                AttackEffect::Damage(DamageType::Cold),
                 AttackEffect::Status(StatusEffect::Chilled),
             ]),
             Tower::Acid => AttackType::DropsLiquid(LiquidType::Acid),
-            Tower::Tesla => todo!(),
-            Tower::Water => todo!(),
-            Tower::Flame => todo!(),
+            Tower::Tesla => {
+                AttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Lightning)])
+            }
+            Tower::Water => AttackType::DropsLiquid(LiquidType::Water),
+            Tower::Flame => AttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Burning)]),
             Tower::Portal => todo!(),
         }
     }
@@ -123,12 +130,9 @@ impl TowerCollision {
 }
 
 // These towers by themselves will cause damage upon collision
-pub fn get_collison(tower: &Tower) -> TowerCollision {
+pub fn get_collision(tower: &Tower) -> Option<TowerCollision> {
     match tower {
-        Tower::SpikePit => TowerCollision::new(0.0, 0.050, 0.150, 0.75),
-        Tower::Acid => TowerCollision::new(0.0, 0.050, 0.100, 0.5),
-        Tower::Flame => TowerCollision::new(0.0, 0.050, 0.100, 0.35),
-        Tower::Ice => TowerCollision::new(0.0, 0.005, 0.010, 0.20),
-        _ => TowerCollision::new(0.0, 0.0, 0.0, 1.0),
+        Tower::SpikePit => Some(TowerCollision::new(0.0, 0.050, 0.150, 0.75)),
+        _ => None,
     }
 }
