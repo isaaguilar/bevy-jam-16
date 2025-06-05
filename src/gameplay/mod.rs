@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 pub mod animation;
-pub mod attacks;
 pub mod hotbar;
 pub mod level;
 pub mod tower_placement;
