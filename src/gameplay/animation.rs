@@ -20,7 +20,7 @@ impl AnimationFrameQueue {
         Self {
             frames,
             frame_override: None,
-            current_index: 0,
+            current_index: frames[0],
             timer: Timer::from_seconds(FRAME_DURATION, TimerMode::Repeating),
         }
     }
