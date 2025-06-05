@@ -17,7 +17,11 @@ mod screens;
 mod theme;
 mod utils;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{
+    asset::AssetMetaCheck,
+    input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel},
+    prelude::*,
+};
 use bevy_turborand::prelude::RngPlugin;
 
 pub mod prelude {
@@ -89,6 +93,14 @@ impl Plugin for AppPlugin {
 
         // Spawn the main camera.
         app.add_systems(Startup, spawn_camera);
+
+        // Camera controls
+        app.add_systems(
+            Update,
+            cameraman
+                .run_if(in_state(crate::prelude::Screen::Gameplay))
+                .in_set(PausableSystems),
+        );
     }
 }
 
@@ -123,6 +135,37 @@ fn spawn_camera(mut commands: Commands) {
             proj.scale = 0.05;
             proj
         }),
-        Transform::from_translation(Vec3::new(20., 14., 0.)),
+        Transform::from_translation(Vec3::new(20., 14., 0.)).with_scale(Vec3::new(1.75, 1.75, 1.0)),
     ));
+}
+
+fn cameraman(
+    mut camera: Query<&mut Transform, With<Camera2d>>,
+    mut mouse_wheel_events: EventReader<MouseWheel>,
+
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+    accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
+) {
+    let Ok(mut camera_transform) = camera.single_mut() else {
+        return;
+    };
+
+    if mouse_button_input.pressed(MouseButton::Right) {
+        let delta = accumulated_mouse_motion.delta;
+        camera_transform.translation += Vec2::new(-delta.x / 100., delta.y / 100.).extend(0.0);
+    }
+
+    for mouse_wheel_event in mouse_wheel_events.read() {
+        let dy = match mouse_wheel_event.unit {
+            MouseScrollUnit::Line => mouse_wheel_event.y,
+            MouseScrollUnit::Pixel => mouse_wheel_event.y,
+        };
+
+        camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
+        if camera_transform.scale.x > 2.5 {
+            camera_transform.scale = Vec2::splat(2.5).extend(1.);
+        } else if camera_transform.scale.x < 0.5 {
+            camera_transform.scale = Vec2::splat(0.5).extend(1.);
+        }
+    }
 }

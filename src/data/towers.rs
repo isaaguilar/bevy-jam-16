@@ -1,3 +1,4 @@
+use crate::level::resource::CellDirection;
 use bevy::prelude::*;
 
 use super::{
@@ -33,7 +34,6 @@ impl Tower {
             Tower::Tesla,
             Tower::Water,
             Tower::Flame,
-            Tower::Portal,
         ]
     }
 

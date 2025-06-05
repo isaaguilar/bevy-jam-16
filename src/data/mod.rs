@@ -10,9 +10,13 @@ mod status_effects;
 mod towers;
 
 pub use {
-    input_state::PointerInteractionState, state::PlayerState, status_effects::Ailments,
-    status_effects::StatusEffect, status_effects::get_ailment, towers::Tower,
-    towers::TowerCollision, towers::get_collision,
+    input_state::PointerInteractionState,
+    state::PlayerState,
+    status_effects::Ailments,
+    status_effects::StatusEffect,
+    status_effects::get_ailment,
+    towers::get_collision,
+    towers::{Tower, TowerCollision},
 };
 
 pub(super) fn plugin(app: &mut App) {

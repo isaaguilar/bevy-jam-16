@@ -23,7 +23,7 @@ pub fn plugin(app: &mut App) {
         .register_type::<Ceiling>()
         .register_type::<Wall>();
 
-    app.add_systems(Update, draw_nodes);
+    //app.add_systems(Update, draw_nodes);
 }
 
 pub fn draw_nodes(mut gizmos: Gizmos, nodes: Query<(&Transform, &PathNode), With<PathNode>>) {
