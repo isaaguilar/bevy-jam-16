@@ -12,7 +12,7 @@ use bevy::{
     time::{Time, Timer},
 };
 
-use crate::{data::Tower, demo::enemy_movement::EnemyController};
+use crate::{data::Tower, demo::enemy_health::EnemyHealth};
 
 // Attached to sensor colliders that detect enemies for towers
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
@@ -37,7 +37,7 @@ pub fn add_tower_targets_from_zone(
     mut collision_events: EventReader<CollisionStarted>,
     trigger_zones: Query<&ChildOf, With<TowerTriggerRange>>,
     towers: Query<Entity, (With<Tower>, Without<TowerHasTargets>)>,
-    enemies: Query<Entity, With<EnemyController>>,
+    enemies: Query<Entity, With<EnemyHealth>>,
     mut commands: Commands,
 ) {
     for event in collision_events.read() {
@@ -61,7 +61,7 @@ pub fn remove_tower_targets(
     trigger_zones: Query<Entity, With<TowerTriggerRange>>,
     towers: Query<(Entity, &Children), (With<Tower>, With<TowerHasTargets>)>,
     collisions: Collisions,
-    enemies: Query<Entity, With<EnemyController>>,
+    enemies: Query<Entity, With<EnemyHealth>>,
     mut commands: Commands,
 ) {
     for (e, children) in towers.iter() {

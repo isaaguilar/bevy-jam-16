@@ -3,7 +3,10 @@
 //! Feel free to change the logic found here if you feel like tinkering around
 //! to get a feeling for the template.
 
-use avian2d::{PhysicsPlugins, prelude::PhysicsDebugPlugin};
+use avian2d::{
+    PhysicsPlugins,
+    prelude::{Gravity, PhysicsDebugPlugin},
+};
 use bevy::prelude::*;
 
 mod animation;
@@ -21,5 +24,6 @@ pub(super) fn plugin(app: &mut App) {
         animation::plugin,
         movement::plugin,
         player::plugin,
-    ));
+    ))
+    .insert_resource(Gravity(Vec2::new(0., -30.)));
 }
