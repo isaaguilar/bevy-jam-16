@@ -14,9 +14,9 @@ pub fn tower(tower: Tower, direction: CellDirection) -> ComponentTree {
     (tower, TowerSprite(tower, direction)).store() + name(tower.name()) + {
         if tower.has_trigger_zone() {
             if tower.gravity_influences_trigger() {
-                ().store() << (trigger_zone(Vec2::new(10., 10.)) + TowerTriggerNeedsGravity.store())
+                ().store() << (trigger_zone(Vec2::new(9., 9.5)) + TowerTriggerNeedsGravity.store())
             } else {
-                ().store() << trigger_zone(Vec2::new(10., 10.))
+                ().store() << trigger_zone(Vec2::new(9., 9.))
             }
         } else {
             ().store()
