@@ -72,7 +72,7 @@ pub fn remove_tower_targets(
                 collisions
                     .entities_colliding_with(*trigger_zone)
                     .next()
-                    .is_none()
+                    .is_some()
             })
             .fold(true, |a, b| a && b);
         if !anyone_in_trigger_zones {
