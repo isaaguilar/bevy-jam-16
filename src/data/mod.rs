@@ -25,6 +25,10 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<Puddle>()
         .register_type::<LiquidType>()
         .register_type::<DamageType>()
+        .register_type::<PlayerState>()
+        .register_type::<StatusEffect>()
+        .register_type::<Ailments>()
+        .register_type::<Tower>()
         .register_type::<PointerInteractionState>();
 
     app.add_systems(OnExit(Screen::Loading), validate_assets);
