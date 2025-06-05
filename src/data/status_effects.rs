@@ -48,7 +48,7 @@ impl StatusEffect {
     }
 }
 
-#[derive(Component, Default, Clone, PartialEq, Debug)]
+#[derive(Component, Default, Clone, PartialEq, Debug, Reflect)]
 pub struct Ailments {
     pub slowdown: f32,
     pub min_damage: f32,
