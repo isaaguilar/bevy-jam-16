@@ -133,7 +133,7 @@ fn spawn_camera(mut commands: Commands) {
             proj.scale = 0.05;
             proj
         }),
-        Transform::from_translation(Vec3::new(20., 14., 0.)),
+        Transform::from_translation(Vec3::new(20., 14., 0.)).with_scale(Vec3::new(1.75, 1.75, 1.0)),
     ));
 }
 
