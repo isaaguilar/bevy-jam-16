@@ -71,7 +71,7 @@ impl Tower {
 
     pub fn has_trigger_zone(&self) -> bool {
         match self {
-            Tower::Fan | Tower::SpikePit | Tower::Ice => false,
+            Tower::Fan | Tower::SpikePit => false,
             _ => true,
         }
     }
