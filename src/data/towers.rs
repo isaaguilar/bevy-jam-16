@@ -78,16 +78,6 @@ impl Tower {
             _ => false,
         }
     }
-
-    // These towers by themselves will cause damage upon collision
-    pub fn collision_damage(&self) -> TowerDamage {
-        match self {
-            Tower::SpikePit => TowerDamage::new(0.050, 0.100),
-            Tower::Acid => TowerDamage::new(0.050, 0.100),
-            Tower::Flame => TowerDamage::new(0.050, 0.100),
-            _ => TowerDamage::default(),
-        }
-    }
 }
 
 #[derive(Component, Default)]
