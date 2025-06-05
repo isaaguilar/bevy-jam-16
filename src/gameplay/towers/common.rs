@@ -88,7 +88,7 @@ pub fn towers_fire(
 ) {
     for (e, tower) in towers.iter() {
         println!("Firing {:?}!", tower);
-        commands.entity(e).insert(Cooldown::new(2.0));
+        commands.entity(e).insert(Cooldown::new(tower.cooldown()));
         fire_events.write(TowerFired(e));
     }
 }

@@ -108,6 +108,22 @@ impl Tower {
             Tower::Portal => todo!(),
         }
     }
+
+    pub fn cooldown(&self) -> f32 {
+        match self {
+            Tower::Piston => 2.0,
+            Tower::Fan => 0.,
+            Tower::SpikePit => 0.32,
+            Tower::Oil => 2.0,
+            Tower::TrapDoor => 3.0,
+            Tower::Ice => 0.67,
+            Tower::Acid => 2.0,
+            Tower::Tesla => 0.67,
+            Tower::Water => 2.0,
+            Tower::Flame => 0.67,
+            Tower::Portal => 3.0,
+        }
+    }
 }
 
 #[derive(Component, Default)]
