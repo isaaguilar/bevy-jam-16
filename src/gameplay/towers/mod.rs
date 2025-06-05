@@ -36,8 +36,6 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_event::<TowerFired>();
 
-    app.add_systems(OnEnter(Screen::Gameplay), test_system);
-
     app.add_systems(
         Update,
         (towers_fire, remove_cooldown, tick_cooldown)
@@ -56,9 +54,4 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );
-}
-
-pub fn test_system(mut commands: Commands, sprites: Res<TowerSprites>) {
-    commands.compose(tower(Tower::Tesla, CellDirection::Down) + pos(30., 30.));
-    commands.compose(tower(Tower::Water, CellDirection::Left) + pos(0., 20.));
 }

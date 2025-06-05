@@ -44,21 +44,25 @@ pub fn spawn_rangedroppers(
 }
 
 pub fn drop_ranges(
-    droppers: Query<(&RayHits, &RangeDropper)>,
-    mut ranges: Query<(&mut Collider, &GlobalTransform, &mut Transform)>,
+    droppers: Query<(Entity, &RayHits, &RangeDropper)>,
+    mut ranges: Query<(&GlobalTransform, &mut Transform)>,
     mut commands: Commands,
 ) {
-    for (hits, RangeDropper(target_entity)) in droppers.iter() {
-        if let Ok((mut collider, center_pos, mut pos)) = ranges.get_mut(*target_entity) {
+    for (dropper, hits, RangeDropper(target_entity)) in droppers.iter() {
+        if let Ok((center_pos, mut pos)) = ranges.get_mut(*target_entity) {
             let mut ray_iter = hits.iter_sorted();
             ray_iter.next();
             let floor = ray_iter.next();
             if let Some(hit_data) = floor {
-                let distance = hit_data.distance;
-                let collider_height = distance + 5.;
-                pos.translation += Vec3::new(0., collider_height / 2. - 5., 0.);
-                collider.scale_by(Vec2::new(1., collider_height / 10.), 0);
-                commands.entity(*target_entity).despawn();
+                let distance = hit_data.distance; // 14.5
+                let collider_height = distance + 5.; // 20.
+                pos.translation -= Vec3::new(0., collider_height / 2. - 5., 0.);
+                commands
+                    .entity(*target_entity)
+                    .insert(Collider::rectangle(10., collider_height));
+                //collider.scale_by(Vec2::new(1., collider_height / 10.), 0);
+                println!("Distance: {}", distance);
+                commands.entity(dropper).despawn();
             }
         }
     }
