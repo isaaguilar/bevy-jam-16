@@ -1,10 +1,12 @@
-use avian2d::prelude::{Collider, RigidBody};
+use avian2d::prelude::{Collider, CollisionLayers, RigidBody};
 use bevy::picking::Pickable;
 use bevy::{
     color::Color, ecs::component::Component, math::Vec2, reflect::Reflect,
     render::view::Visibility, sprite::Sprite, transform::components::Transform, utils::default,
 };
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
+
+use crate::prefabs::physics::GamePhysicsLayer as GPL;
 
 use super::resource::{CellDirection, Level};
 
@@ -112,6 +114,7 @@ pub fn wall(x: f32, y: f32, direction: WallDirection) -> ComponentTree {
         Architecture,
         Pickable::default(),
         Collider::rectangle(WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING),
+        CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
     )
         .store()
@@ -133,6 +136,7 @@ pub fn ceiling(x: f32, y: f32) -> ComponentTree {
         Ceiling,
         Architecture,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
+        CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
         Pickable::default(),
     )
@@ -152,6 +156,7 @@ pub fn floor(x: f32, y: f32) -> ComponentTree {
         Floor,
         Architecture,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
+        CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
         Pickable::default(),
     )
