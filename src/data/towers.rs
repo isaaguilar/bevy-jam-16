@@ -74,7 +74,6 @@ impl Tower {
     pub fn gravity_influences_trigger(&self) -> bool {
         match self {
             Tower::Oil | Tower::Ice | Tower::Acid | Tower::Water => true,
-            Tower::Tesla => true, // TODO: IMPORTANT: CHANGE
             _ => false,
         }
     }
