@@ -3,6 +3,7 @@ use bevy::prelude::*;
 pub mod animation;
 pub mod hotbar;
 pub mod level;
+pub mod projectiles;
 pub mod tower_placement;
 pub mod towers;
 pub mod wave_manager;
