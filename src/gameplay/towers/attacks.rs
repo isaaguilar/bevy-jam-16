@@ -1,26 +1,30 @@
-use avian2d::prelude::Collisions;
+use avian2d::prelude::{Collisions, LinearVelocity, OnCollisionStart, Sensor};
 use bevy::{
     ecs::{
         entity::Entity,
         event::{Event, EventReader, EventWriter},
         hierarchy::Children,
+        observer::Trigger,
         query::With,
-        system::{Commands, Query},
+        system::{Commands, Query, Res},
     },
-    math::Vec3Swizzles,
+    math::{Vec2, Vec3Swizzles},
     reflect::Reflect,
-    transform::components::GlobalTransform,
+    time::Time,
+    transform::components::{GlobalTransform, Transform},
 };
 use bevy_composable::app_impl::ComplexSpawnable;
 
 use crate::{
     data::{
         Tower,
-        projectiles::{AttackEffect, AttackType, LiquidType},
+        projectiles::{
+            AttackEffect, AttackType, DamageType, Droplet, Lifetime, LiquidType, Puddle,
+        },
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    level::components::pos,
-    prefabs::attacks::droplet,
+    level::components::{Architecture, pos},
+    prefabs::attacks::{droplet, puddle},
 };
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
@@ -101,5 +105,73 @@ pub fn drop_liquids(
             .2
             .xy();
         commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
+    }
+}
+
+pub fn splat_droplets(
+    trigger: Trigger<OnCollisionStart>,
+    sensors: Query<(), With<Sensor>>,
+    droplets: Query<(&Transform, &Droplet)>,
+    mut commands: Commands,
+) {
+    let droplet = trigger.target();
+    let other = trigger.collider;
+
+    // We don't want droplets to do things when they hit sensors
+    if sensors.get(other).is_err() {
+        if let Ok((transform, Droplet(liquid))) = droplets.get(droplet) {
+            let loc = transform.translation;
+            commands.entity(droplet).despawn();
+            commands.compose(puddle(*liquid) + pos(loc.x, loc.y));
+        }
+    }
+}
+
+pub fn puddle_damage(
+    trigger: Trigger<OnCollisionStart>,
+    enemies: Query<(), With<EnemyHealth>>,
+    puddles: Query<&Puddle>,
+    mut damage_events: EventWriter<TryDamageToEnemy>,
+) {
+    let droplet = trigger.target();
+    let other = trigger.collider;
+
+    if enemies.get(other).is_ok() {
+        if let Ok(Puddle(liquid)) = puddles.get(droplet) {
+            damage_events.write(TryDamageToEnemy {
+                damage_range: (0.1, 0.2),
+                damage_type: DamageType::Chemical,
+                enemy: other,
+            });
+        }
+    }
+}
+
+pub fn stop_dropping_puddles(
+    trigger: Trigger<OnCollisionStart>,
+    level_parts: Query<(), With<Architecture>>,
+    mut droplets: Query<&mut LinearVelocity, With<Puddle>>,
+) {
+    let puddle = trigger.target();
+    let other = trigger.collider;
+
+    if level_parts.get(other).is_ok() {
+        if let Ok(mut vel) = droplets.get_mut(puddle) {
+            vel.0 = Vec2::ZERO;
+        }
+    }
+}
+
+pub fn tick_lifetimes(mut lifetimes: Query<&mut Lifetime>, time: Res<Time>) {
+    for mut lifetime in lifetimes.iter_mut() {
+        lifetime.0.tick(time.delta());
+    }
+}
+
+pub fn timeout_lifetimes(mut commands: Commands, lifetimes: Query<(Entity, &Lifetime)>) {
+    for (e, lifetime) in lifetimes.iter() {
+        if lifetime.0.finished() {
+            commands.entity(e).despawn();
+        }
     }
 }
