@@ -42,7 +42,7 @@ pub fn basic_trooper() -> ComponentTree {
 
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
+    name("Major Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
         << (Transform::from_scale(Vec3::splat(0.16)).store()
             + animation.store()
             + image(GameAssets::troopers)
@@ -53,7 +53,7 @@ pub fn chonkus_trooper() -> ComponentTree {
 
 pub fn turbo_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(2., 2.5), 45.)
+    name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45.)
         << (Transform::from_scale(Vec3::splat(0.10)).store()
             + animation.store()
             + image(GameAssets::troopers)
