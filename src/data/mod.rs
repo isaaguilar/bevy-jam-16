@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::prelude::*;
 
 mod input_state;
+mod projectiles;
 mod state;
 mod status_effects;
 mod towers;

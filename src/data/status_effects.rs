@@ -4,39 +4,39 @@ use bevy::prelude::*;
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum StatusEffect {
     Wet,
-    Burning,
+    Ignited,
+    Burned,
     Frozen,
     Electrified,
     Acidic,
     Oiled,
     Slowed,
-    Pushed,
 }
 
 impl StatusEffect {
     pub fn name(&self) -> &'static str {
         match self {
             StatusEffect::Wet => "Wet",
-            StatusEffect::Burning => "Burning",
+            StatusEffect::Ignited => "Ignited",
+            StatusEffect::Burned => "Burned",
             StatusEffect::Frozen => "Frozen",
             StatusEffect::Electrified => "Electrified",
             StatusEffect::Acidic => "Acidic",
             StatusEffect::Oiled => "Oiled",
             StatusEffect::Slowed => "Slowed",
-            StatusEffect::Pushed => "Pushed",
         }
     }
 
     pub fn color(&self) -> Color {
         match self {
             StatusEffect::Wet => BLUE.into(),
-            StatusEffect::Burning => RED.into(),
+            StatusEffect::Ignited => RED.into(),
+            StatusEffect::Burned => ORANGE.into(),
             StatusEffect::Frozen => AQUA.into(),
             StatusEffect::Electrified => YELLOW.into(),
             StatusEffect::Acidic => GREEN.into(),
             StatusEffect::Oiled => BROWN.into(),
             StatusEffect::Slowed => PURPLE.into(),
-            StatusEffect::Pushed => ORANGE.into(),
         }
     }
 
@@ -75,12 +75,12 @@ impl Ailments {
 pub fn get_ailment(status_effect: StatusEffect) -> Ailments {
     match status_effect {
         StatusEffect::Wet => (Ailments::new(0.0, 0.0, 0.0, 8., 8.)),
-        StatusEffect::Burning => Ailments::new(0.0, 0.045, 0.110, 7., 1.5),
+        StatusEffect::Burned => Ailments::new(0.0, 0.0, 0.0, 2., 2.),
+        StatusEffect::Ignited => Ailments::new(0.0, 0.045, 0.110, 7., 1.5),
         StatusEffect::Frozen => Ailments::new(1.0, 0.023, 0.185, 8., 2.),
         StatusEffect::Electrified => Ailments::new(0.0, 0.026, 0.082, 12., 1.),
         StatusEffect::Acidic => Ailments::new(0.0, 0.100, 0.101, 9., 1.5),
         StatusEffect::Oiled => Ailments::new(0.0, 0.0, 0.0, 15., 15.),
         StatusEffect::Slowed => Ailments::new(0.7, 0.0, 0.0, 10., 10.),
-        StatusEffect::Pushed => Ailments::new(1.0, 0.0, 0.0, 0.25, 0.25),
     }
 }

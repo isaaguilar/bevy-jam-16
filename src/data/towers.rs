@@ -1,5 +1,10 @@
 use bevy::prelude::*;
 
+use super::{
+    StatusEffect,
+    projectiles::{AttackEffect, AttackType, LiquidType},
+};
+
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub enum Tower {
     Piston,
@@ -73,8 +78,27 @@ impl Tower {
 
     pub fn gravity_influences_trigger(&self) -> bool {
         match self {
-            Tower::Oil | Tower::Ice | Tower::Acid | Tower::Water => true,
+            Tower::Oil | Tower::Acid | Tower::Water => true,
             _ => false,
+        }
+    }
+
+    pub fn attack_def(&self) -> AttackType {
+        match self {
+            Tower::Piston => AttackType::EntireCell(vec![AttackEffect::Damage, AttackEffect::Push]),
+            Tower::Fan => AttackType::EntireCell(vec![AttackEffect::Push]),
+            Tower::SpikePit => AttackType::Contact(vec![AttackEffect::Damage]),
+            Tower::Oil => AttackType::DropsLiquid(LiquidType::Oil),
+            Tower::TrapDoor => AttackType::ModifiesSelf,
+            Tower::Ice => AttackType::EntireCell(vec![
+                AttackEffect::Damage,
+                AttackEffect::Status(StatusEffect::Frozen),
+            ]),
+            Tower::Acid => todo!(),
+            Tower::Tesla => todo!(),
+            Tower::Water => todo!(),
+            Tower::Flame => todo!(),
+            Tower::Portal => todo!(),
         }
     }
 }
