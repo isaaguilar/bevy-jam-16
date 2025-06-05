@@ -19,6 +19,7 @@ bevy_asset_loader = { version = "0.23.0", features = ["2d"] }
 avian2d = "0.3.0"
 bevy_composable = { git = "https://github.com/Zellenon/bevy_composable" }
 bevy-inspector-egui = { version = "0.31" }
+bevy_turborand = "0.11"
 
 [features]
 # Default to a native dev build.

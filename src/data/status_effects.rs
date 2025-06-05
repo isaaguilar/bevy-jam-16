@@ -1,7 +1,7 @@
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 
-#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub enum StatusEffect {
     Wet,
     Ignited,
