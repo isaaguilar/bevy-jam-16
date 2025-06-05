@@ -1,12 +1,19 @@
 use avian2d::prelude::{OnCollisionEnd, OnCollisionStart};
 use bevy::prelude::*;
+use bevy_turborand::{DelegatedRng, GlobalRng};
 use rand::Rng;
 
-use crate::assets::game_assets::HEALTH_BAR_WIDTH;
-use crate::assets::{GameAssets, StatusSprites, game_assets};
-use crate::data::{Ailments, StatusEffect, get_ailment, get_collison};
-use crate::data::{Tower, TowerCollision};
-use crate::{AppSystems, PausableSystems};
+use crate::{
+    AppSystems, PausableSystems,
+    assets::{
+        GameAssets, StatusSprites,
+        game_assets::{self, HEALTH_BAR_WIDTH},
+    },
+    data::{
+        Ailments, StatusEffect, Tower, TowerCollision, get_ailment, get_collision,
+        projectiles::DamageType,
+    },
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -16,15 +23,17 @@ pub(super) fn plugin(app: &mut App) {
             status_effect_ailments,
             update_health_bars,
             animate_status_effects,
-            enemy_despawn,
+            (kill_at_0_health, do_kill_enemies).chain(),
+            (try_enemy_damage, do_enemy_damage).chain(),
         )
             .in_set(PausableSystems)
             .in_set(AppSystems::Update),
     );
+    app.add_event::<KillEnemy>()
+        .add_event::<DoDamageToEnemy>()
+        .add_event::<TryDamageToEnemy>();
     app.add_observer(start_collision_damage_event);
     app.add_observer(stop_collision_damage_event);
-    app.add_observer(record_damage);
-    app.add_observer(record_init_collision_damage);
     app.add_observer(display_status);
     // Debug picker helpers
     //app.add_observer(pick_enemy_to_do_damage_example);
@@ -44,6 +53,23 @@ pub struct EnemyHealthBar;
 pub struct RecordInitCollisionDamage {
     tower_entity: Entity,
 }
+
+#[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
+pub struct TryDamageToEnemy {
+    pub damage_range: (f32, f32),
+    pub damage_type: DamageType,
+    pub enemy: Entity,
+}
+
+#[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
+pub struct DoDamageToEnemy {
+    pub damage: f32,
+    pub damage_type: DamageType,
+    pub enemy: Entity,
+}
+
+#[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
+pub struct KillEnemy(pub Entity);
 
 #[derive(Event, Debug)]
 pub struct RecordDamage {
@@ -70,11 +96,20 @@ impl EnemyHealth {
     }
 }
 
-pub fn enemy_despawn(enemies: Query<(Entity, &EnemyHealth)>, mut commands: Commands) {
+pub fn kill_at_0_health(
+    enemies: Query<(Entity, &EnemyHealth)>,
+    mut events: EventWriter<KillEnemy>,
+) {
     for (entity, health) in enemies {
         if health.0 <= 0.0 {
-            commands.entity(entity).despawn();
+            events.write(KillEnemy(entity));
         }
+    }
+}
+
+pub fn do_kill_enemies(mut events: EventReader<KillEnemy>, mut commands: Commands) {
+    for event in events.read() {
+        commands.entity(event.0).despawn();
     }
 }
 
@@ -133,75 +168,47 @@ fn start_collision_damage_event(
     trigger: Trigger<OnCollisionStart>,
     towers: Query<&Tower>,
     mut commands: Commands,
+    mut damage_events: EventWriter<TryDamageToEnemy>,
 ) {
     let enemy_target = trigger.event().collider;
 
-    let Ok(tower) = towers.get(trigger.target()) else {
-        warn!(target=?trigger.target(), "Tower not found");
-        return;
+    if let Ok(tower) = towers.get(trigger.target()) {
+        let tower_collision = get_collision(&tower);
+
+        if let Some(collision) = tower_collision {
+            // Perform a immediate damage hit
+            damage_events.write(TryDamageToEnemy {
+                damage_range: (collision.min_damage, collision.max_damage),
+                damage_type: DamageType::Physical,
+                enemy: enemy_target,
+            });
+
+            // Add a collision entity that deals damage on a timer while collision is active
+            commands.entity(enemy_target).insert(collision);
+        }
     };
-
-    let tower_collision = get_collison(&tower);
-
-    // Perform a immediate damage hit
-    commands.trigger_targets(
-        RecordInitCollisionDamage {
-            tower_entity: trigger.target(),
-        },
-        enemy_target,
-    );
-
-    // Add a collision entity that deals damage on a timer while collision is active
-    commands.entity(enemy_target).insert(tower.clone());
-    commands.entity(enemy_target).insert(tower_collision);
 }
 
 fn stop_collision_damage_event(trigger: Trigger<OnCollisionEnd>, mut commands: Commands) {
     let enemy_target = trigger.event().collider;
 
-    commands.entity(enemy_target).remove::<Tower>();
     commands.entity(enemy_target).remove::<TowerCollision>();
 }
 
-pub fn record_init_collision_damage(
-    trigger: Trigger<RecordInitCollisionDamage>,
-    towers: Query<&Tower>,
-    mut enemies: Query<&mut EnemyHealth>,
-) {
-    let Ok(mut parent_health) = enemies.get_mut(trigger.target()) else {
-        warn!(target=?trigger.target(), "Enemy target not found");
-        return;
-    };
-
-    let Ok(tower) = towers.get(trigger.tower_entity) else {
-        warn!(target=?trigger.target(), "Tower not found");
-        return;
-    };
-
-    let tower_collision = get_collison(tower);
-    let rng = &mut rand::rng();
-    let damage = rng.random_range(tower_collision.min_damage..=tower_collision.max_damage);
-
-    parent_health.0 -= damage;
-    parent_health.0 = parent_health.0.clamp(0.0, 1.0);
-}
-
-// This is the timer function that deals damage when activley in collision
+// This is the timer function that deals damage when activeley in collision
 fn active_tower_collision(
     time: Res<Time>,
     mut enemies: Query<(Entity, &mut TowerCollision)>,
-    mut commands: Commands,
+    mut damage_events: EventWriter<TryDamageToEnemy>,
 ) {
     for (entity, mut tower_collision) in enemies.iter_mut() {
         tower_collision.iframe.tick(time.delta());
         if tower_collision.iframe.just_finished() {
-            commands.trigger_targets(
-                RecordDamage {
-                    min: tower_collision.min_damage,
-                    max: tower_collision.max_damage,
-                },
-                entity,
-            );
+            damage_events.write(TryDamageToEnemy {
+                damage_range: (tower_collision.min_damage, tower_collision.max_damage),
+                damage_type: DamageType::Physical,
+                enemy: entity,
+            });
         }
     }
 }
@@ -234,23 +241,39 @@ fn status_effect_ailments(
 }
 
 // An ailment is triggered on a timer
-pub fn record_damage(trigger: Trigger<RecordDamage>, mut enemies: Query<&mut EnemyHealth>) {
-    let Ok(mut parent_health) = enemies.get_mut(trigger.target()) else {
-        warn!(target=?trigger.target(), "Enemy target not found");
-        return;
-    };
+pub fn try_enemy_damage(
+    mut attempts: EventReader<TryDamageToEnemy>,
+    mut successes: EventWriter<DoDamageToEnemy>,
+    mut rng: ResMut<GlobalRng>,
+) {
+    for event in attempts.read() {
+        let damage =
+            rng.f32() * (event.damage_range.1 - event.damage_range.0) + event.damage_range.0;
+        // TODO: I-Frame logic, which is how damage can fail
+        // TODO: Elemental resistances and weaknesses from current status effects
+        successes.write(DoDamageToEnemy {
+            damage,
+            damage_type: event.damage_type,
+            enemy: event.enemy,
+        });
+    }
+}
 
-    let rng = &mut rand::rng();
-    let damage = rng.random_range(trigger.min..=trigger.max);
+pub fn do_enemy_damage(
+    mut events: EventReader<DoDamageToEnemy>,
+    mut enemies: Query<&mut EnemyHealth>,
+) {
+    for event in events.read() {
+        if let Ok(mut health) = enemies.get_mut(event.enemy) {
+            health.0 -= event.damage;
+            health.0 = health.0.clamp(0.0, 1.0);
 
-    parent_health.0 -= damage;
-    parent_health.0 = parent_health.0.clamp(0.0, 1.0);
-
-    debug!(
-        "Enemy {:?} has {} health",
-        trigger.target(),
-        parent_health.0
-    );
+            debug!("Enemy {:?} has {} health", event.enemy, health.0);
+        } else {
+            warn!(target=?event.enemy, "Enemy target not found");
+            return;
+        };
+    }
 }
 
 pub fn display_status(
@@ -278,86 +301,4 @@ pub fn display_status(
             Transform::from_translation(Vec3::new(15.0, 12.0, 1.0)),
         ));
     });
-}
-
-// Debug Helpers
-
-fn pick_enemy_to_do_damage_example(
-    trigger: Trigger<Pointer<Pressed>>,
-    world: bevy::ecs::world::DeferredWorld,
-    query: Query<Entity, With<Tower>>,
-    mut commands: Commands,
-) {
-    todo!();
-    // let tower_entity = match query.iter().next() {
-    //     Some(e) => e,
-    //     None => commands.spawn(Tower::SpikePit).id(),
-    // };
-
-    // let child_of_enemy_target = trigger.target();
-
-    // let Some(enemy_target) = world.get::<ChildOf>(child_of_enemy_target) else {
-    //     return;
-    // };
-
-    // commands
-    //     .entity(enemy_target.0)
-    //     .insert((StatusEffect::Acidic, ailment.clone()));
-
-    // commands.trigger_targets(Attack { tower_entity }, enemy_target.0);
-}
-
-fn pick_enemy_to_add_status_example(
-    trigger: Trigger<Pointer<Pressed>>,
-    world: bevy::ecs::world::DeferredWorld,
-    mut commands: Commands,
-    // assets: Res<GameAssets>,
-) {
-    // This is the enemy sprite
-    let child_of_enemy_target = trigger.target();
-
-    // This is the enemy controller
-    let Some(enemy_target) = world.get::<ChildOf>(child_of_enemy_target) else {
-        return;
-    };
-
-    /*
-    Wet,
-    Burning,
-    Frozen,
-    Electrified,
-    Acidic,
-    Oiled,
-    Slowed,
-    Pushed,
-
-     */
-    let mut rng = rand::rng();
-    let status_effect = match rng.random_range(0..8) {
-        1 => StatusEffect::Burning,
-        2 => StatusEffect::Frozen,
-        3 => StatusEffect::Electrified,
-        4 => StatusEffect::Acidic,
-        5 => StatusEffect::Oiled,
-        6 => StatusEffect::Slowed,
-        7 => StatusEffect::Pushed,
-        _ => StatusEffect::Wet,
-    };
-
-    let ailment = get_ailment(status_effect);
-
-    let ttl_timer = ailment.ailment_timer.clone();
-
-    commands
-        .entity(enemy_target.0)
-        .insert((status_effect, ailment.clone()));
-
-    commands.trigger_targets(
-        DisplayStatusEvent {
-            status_effect: status_effect,
-            timer: StatusAnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
-            ttl: StatusAnimationTtl(ttl_timer),
-        },
-        child_of_enemy_target,
-    );
 }

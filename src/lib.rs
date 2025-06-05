@@ -22,6 +22,7 @@ use bevy::{
     input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel},
     prelude::*,
 };
+use bevy_turborand::prelude::RngPlugin;
 
 pub mod prelude {
     pub use crate::assets::{GameAssets, UiAssets};
@@ -72,6 +73,7 @@ impl Plugin for AppPlugin {
             prefabs::plugin,
             screens::plugin,
             theme::plugin,
+            RngPlugin::default(),
         ));
 
         // Order new `AppSystems` variants by adding them here:

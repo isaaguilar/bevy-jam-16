@@ -1,3 +1,8 @@
+use attacks::{
+    AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
+    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles, tick_lifetimes,
+    timeout_lifetimes,
+};
 use bevy::{
     app::{App, FixedUpdate, Update},
     ecs::{
@@ -15,13 +20,17 @@ use std::f32;
 use crate::{
     PausableSystems,
     assets::TowerSprites,
-    data::Tower,
+    data::{
+        Tower,
+        projectiles::{Droplet, Lifetime, Puddle},
+    },
     level::{components::pos, resource::CellDirection},
-    prefabs::towers::tower,
+    prefabs::{towers::tower, wizardry::add_observer_to_component},
     screens::Screen,
 };
 use common::*;
 
+pub mod attacks;
 pub mod common;
 pub mod gravity_bullshit;
 pub mod tesla;
@@ -34,11 +43,32 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<TowerHasTargets>()
         .register_type::<RangeDropper>();
 
-    app.add_event::<TowerFired>();
+    app.add_event::<DropLiquid>()
+        .add_event::<TowerFired>()
+        .add_event::<AttackEnemiesInContact>();
+
+    app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
+        stop_dropping_puddles,
+    ));
+    app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
+        puddle_damage,
+    ));
+    app.add_observer(add_observer_to_component::<Droplet, _, _, _, _>(
+        splat_droplets,
+    ));
 
     app.add_systems(
         Update,
-        (towers_fire, remove_cooldown, tick_cooldown)
+        (
+            (tick_lifetimes, timeout_lifetimes).chain(),
+            (tick_cooldown, remove_cooldown).chain(),
+            (
+                towers_fire,
+                dispatch_attack_effects,
+                (attack_contact_enemies, drop_liquids),
+            )
+                .chain(),
+        )
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );

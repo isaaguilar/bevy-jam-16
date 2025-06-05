@@ -1,4 +1,7 @@
-use avian2d::prelude::{Collider, CollisionLayers, RigidBody, ShapeCaster};
+use avian2d::prelude::{
+    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
+    ShapeCaster,
+};
 use bevy::{
     color::palettes::basic::*,
     math::{Vec2, Vec3},
@@ -19,10 +22,7 @@ use crate::{
     assets::{GameAssets, game_assets},
     demo::{
         enemy_health::{self, EnemyHealth, EnemyHealthBar},
-        enemy_movement::{
-            EnemyController, MovementAcceleration, MovementBundle, MovementDampingFactor,
-            MovementDirection,
-        },
+        enemy_movement::{MovementAcceleration, MovementBundle, MovementDirection},
     },
     gameplay::animation::AnimationFrameQueue,
     level::components::pos,
@@ -67,13 +67,15 @@ pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
         // Transform::from_scale(Vec3::splat(scale)),
         StateScoped(Screen::Gameplay),
         EnemyHealth::new(),
-        EnemyController,
         MovementDirection::default(),
-        RigidBody::Kinematic,
+        RigidBody::Dynamic,
         Visibility::Hidden,
         ShowDelay::new(),
         MovementAcceleration(speed),
-        MovementDampingFactor(0.96),
+        LinearDamping(1.5),
+        GravityScale(1.0),
+        Mass(5.),
+        LockedAxes::ROTATION_LOCKED,
         Collider::round_rectangle(size.x, size.y, 0.5),
         CollisionLayers::new(GPL::Enemy, [GPL::Default, GPL::Level, GPL::Projectiles]),
     )

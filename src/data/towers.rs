@@ -1,6 +1,11 @@
 use crate::level::resource::CellDirection;
 use bevy::prelude::*;
 
+use super::{
+    StatusEffect,
+    projectiles::{AttackEffect, AttackType, DamageType, LiquidType},
+};
+
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub enum Tower {
     Piston,
@@ -66,15 +71,57 @@ impl Tower {
 
     pub fn has_trigger_zone(&self) -> bool {
         match self {
-            Tower::Fan | Tower::SpikePit | Tower::Ice => false,
+            Tower::Fan | Tower::SpikePit => false,
             _ => true,
         }
     }
 
     pub fn gravity_influences_trigger(&self) -> bool {
         match self {
-            Tower::Oil | Tower::Ice | Tower::Acid | Tower::Water => true,
+            Tower::Oil | Tower::Acid | Tower::Water => true,
             _ => false,
+        }
+    }
+
+    pub fn attack_def(&self) -> AttackType {
+        match self {
+            Tower::Piston => AttackType::EntireCell(vec![
+                AttackEffect::Damage(DamageType::Physical),
+                AttackEffect::Push,
+            ]),
+            Tower::Fan => AttackType::EntireCell(vec![AttackEffect::Push]),
+            Tower::SpikePit => {
+                AttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
+            }
+            Tower::Oil => AttackType::DropsLiquid(LiquidType::Oil),
+            Tower::TrapDoor => AttackType::ModifiesSelf,
+            Tower::Ice => AttackType::EntireCell(vec![
+                AttackEffect::Damage(DamageType::Cold),
+                AttackEffect::Status(StatusEffect::Chilled),
+            ]),
+            Tower::Acid => AttackType::DropsLiquid(LiquidType::Acid),
+            Tower::Tesla => {
+                AttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Lightning)])
+            }
+            Tower::Water => AttackType::DropsLiquid(LiquidType::Water),
+            Tower::Flame => AttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Burning)]),
+            Tower::Portal => todo!(),
+        }
+    }
+
+    pub fn cooldown(&self) -> f32 {
+        match self {
+            Tower::Piston => 2.0,
+            Tower::Fan => 0.,
+            Tower::SpikePit => 0.32,
+            Tower::Oil => 2.0,
+            Tower::TrapDoor => 3.0,
+            Tower::Ice => 0.67,
+            Tower::Acid => 2.0,
+            Tower::Tesla => 0.67,
+            Tower::Water => 2.0,
+            Tower::Flame => 0.67,
+            Tower::Portal => 3.0,
         }
     }
 }
@@ -99,12 +146,9 @@ impl TowerCollision {
 }
 
 // These towers by themselves will cause damage upon collision
-pub fn get_collison(tower: &Tower) -> TowerCollision {
+pub fn get_collision(tower: &Tower) -> Option<TowerCollision> {
     match tower {
-        Tower::SpikePit => TowerCollision::new(0.0, 0.050, 0.150, 0.75),
-        Tower::Acid => TowerCollision::new(0.0, 0.050, 0.100, 0.5),
-        Tower::Flame => TowerCollision::new(0.0, 0.050, 0.100, 0.35),
-        Tower::Ice => TowerCollision::new(0.0, 0.005, 0.010, 0.20),
-        _ => TowerCollision::new(0.0, 0.0, 0.0, 1.0),
+        Tower::SpikePit => Some(TowerCollision::new(0.0, 0.050, 0.150, 0.75)),
+        _ => None,
     }
 }

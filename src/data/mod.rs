@@ -1,8 +1,10 @@
 use bevy::prelude::*;
+use projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle};
 
 use crate::prelude::*;
 
 mod input_state;
+pub mod projectiles;
 mod state;
 mod status_effects;
 mod towers;
@@ -13,12 +15,25 @@ pub use {
     status_effects::Ailments,
     status_effects::StatusEffect,
     status_effects::get_ailment,
-    towers::{Tower, TowerCollision, get_collison},
+    towers::get_collision,
+    towers::{Tower, TowerCollision},
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.init_resource::<PlayerState>();
     app.init_state::<PointerInteractionState>();
+
+    app.register_type::<AttackType>()
+        .register_type::<AttackEffect>()
+        .register_type::<Droplet>()
+        .register_type::<Puddle>()
+        .register_type::<LiquidType>()
+        .register_type::<DamageType>()
+        .register_type::<PlayerState>()
+        .register_type::<StatusEffect>()
+        .register_type::<Ailments>()
+        .register_type::<Tower>()
+        .register_type::<PointerInteractionState>();
 
     app.add_systems(OnExit(Screen::Loading), validate_assets);
 }

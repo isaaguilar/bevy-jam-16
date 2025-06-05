@@ -6,7 +6,7 @@ use bevy::{
     math::{Vec2, Vec3Swizzles},
     transform::components::Transform,
 };
-use components::{Ceiling, Floor, LevelParent, PathNode, Wall, WallDirection};
+use components::{Architecture, Ceiling, Floor, LevelParent, PathNode, Wall, WallDirection};
 use resource::Level;
 
 pub mod components;
@@ -16,13 +16,14 @@ pub fn plugin(app: &mut App) {
     app.insert_resource(Level::default());
     app.register_type::<Level>()
         .register_type::<WallDirection>()
+        .register_type::<Architecture>()
         .register_type::<PathNode>()
         .register_type::<LevelParent>()
         .register_type::<Floor>()
         .register_type::<Ceiling>()
         .register_type::<Wall>();
 
-    app.add_systems(Update, draw_nodes);
+    //app.add_systems(Update, draw_nodes);
 }
 
 pub fn draw_nodes(mut gizmos: Gizmos, nodes: Query<(&Transform, &PathNode), With<PathNode>>) {

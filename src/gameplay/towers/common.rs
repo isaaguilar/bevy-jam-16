@@ -12,7 +12,7 @@ use bevy::{
     time::{Time, Timer},
 };
 
-use crate::{data::Tower, demo::enemy_movement::EnemyController};
+use crate::{data::Tower, demo::enemy_health::EnemyHealth};
 
 // Attached to sensor colliders that detect enemies for towers
 #[derive(Copy, Clone, Debug, Reflect, Component, PartialEq, Eq)]
@@ -37,7 +37,7 @@ pub fn add_tower_targets_from_zone(
     mut collision_events: EventReader<CollisionStarted>,
     trigger_zones: Query<&ChildOf, With<TowerTriggerRange>>,
     towers: Query<Entity, (With<Tower>, Without<TowerHasTargets>)>,
-    enemies: Query<Entity, With<EnemyController>>,
+    enemies: Query<Entity, With<EnemyHealth>>,
     mut commands: Commands,
 ) {
     for event in collision_events.read() {
@@ -61,7 +61,7 @@ pub fn remove_tower_targets(
     trigger_zones: Query<Entity, With<TowerTriggerRange>>,
     towers: Query<(Entity, &Children), (With<Tower>, With<TowerHasTargets>)>,
     collisions: Collisions,
-    enemies: Query<Entity, With<EnemyController>>,
+    enemies: Query<Entity, With<EnemyHealth>>,
     mut commands: Commands,
 ) {
     for (e, children) in towers.iter() {
@@ -72,7 +72,7 @@ pub fn remove_tower_targets(
                 collisions
                     .entities_colliding_with(*trigger_zone)
                     .next()
-                    .is_none()
+                    .is_some()
             })
             .fold(true, |a, b| a && b);
         if !anyone_in_trigger_zones {
@@ -88,7 +88,7 @@ pub fn towers_fire(
 ) {
     for (e, tower) in towers.iter() {
         println!("Firing {:?}!", tower);
-        commands.entity(e).insert(Cooldown::new(2.0));
+        commands.entity(e).insert(Cooldown::new(tower.cooldown()));
         fire_events.write(TowerFired(e));
     }
 }

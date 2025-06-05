@@ -155,9 +155,9 @@ fn click_tower(
 pub fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
     for PlaceTower(entity, tower_type, orientation) in place_events.read() {
         commands.entity(*entity).with_children(|commands| {
-            commands.compose(
-                tower(*tower_type, *orientation) + orientation.sprite_offset().store(),
-            );
+            println!("Placing tower with parent {:?}", entity);
+            commands
+                .compose(tower(*tower_type, *orientation) + orientation.sprite_offset().store());
         });
     }
 }
