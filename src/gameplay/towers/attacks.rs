@@ -5,11 +5,13 @@ use bevy::{
         event::{Event, EventReader, EventWriter},
         hierarchy::Children,
         query::With,
-        system::Query,
+        system::{Commands, Query},
     },
+    math::Vec3Swizzles,
     reflect::Reflect,
     transform::components::GlobalTransform,
 };
+use bevy_composable::app_impl::ComplexSpawnable;
 
 use crate::{
     data::{
@@ -17,6 +19,8 @@ use crate::{
         projectiles::{AttackEffect, AttackType, LiquidType},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
+    level::components::pos,
+    prefabs::attacks::droplet,
 };
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
@@ -48,7 +52,9 @@ pub fn dispatch_attack_effects(
                 ));
             }
             AttackType::Contact(attack_effects) => todo!(),
-            AttackType::DropsLiquid(liquid_type) => todo!(),
+            AttackType::DropsLiquid(liquid_type) => {
+                drop_events.write(DropLiquid(event.0, liquid_type));
+            }
             AttackType::ModifiesSelf => todo!(),
         }
     }
@@ -79,5 +85,21 @@ pub fn attack_contact_enemies(
                 AttackEffect::Status(status_effect) => todo!(),
             }
         }
+    }
+}
+
+pub fn drop_liquids(
+    mut events: EventReader<DropLiquid>,
+    mut commands: Commands,
+    towers: Query<&GlobalTransform, With<Tower>>,
+) {
+    for DropLiquid(e, liquid) in events.read() {
+        let loc = towers
+            .get(*e)
+            .unwrap()
+            .to_scale_rotation_translation()
+            .2
+            .xy();
+        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
     }
 }

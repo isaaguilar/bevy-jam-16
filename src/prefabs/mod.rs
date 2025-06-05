@@ -1,5 +1,6 @@
 use bevy::app::App;
 
+pub mod attacks;
 pub mod enemies;
 pub mod physics;
 pub mod towers;

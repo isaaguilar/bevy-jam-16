@@ -1,5 +1,6 @@
 use attacks::{
     AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
+    drop_liquids,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -49,7 +50,7 @@ pub(super) fn plugin(app: &mut App) {
             (
                 towers_fire,
                 dispatch_attack_effects,
-                (attack_contact_enemies),
+                (attack_contact_enemies, drop_liquids),
             )
                 .chain(),
         )
