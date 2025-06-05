@@ -90,18 +90,6 @@ impl Tower {
     }
 }
 
-#[derive(Default)]
-pub struct TowerDamage {
-    pub min: f32,
-    pub max: f32,
-}
-
-impl TowerDamage {
-    fn new(min: f32, max: f32) -> Self {
-        Self { min, max }
-    }
-}
-
 #[derive(Component, Default)]
 pub struct TowerCollision {
     pub slowdown: f32,
