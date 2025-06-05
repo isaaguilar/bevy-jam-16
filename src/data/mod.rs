@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle};
 
 use crate::prelude::*;
 
@@ -17,6 +18,14 @@ pub use {
 pub(super) fn plugin(app: &mut App) {
     app.init_resource::<PlayerState>();
     app.init_state::<PointerInteractionState>();
+
+    app.register_type::<AttackType>()
+        .register_type::<AttackEffect>()
+        .register_type::<Droplet>()
+        .register_type::<Puddle>()
+        .register_type::<LiquidType>()
+        .register_type::<DamageType>()
+        .register_type::<PointerInteractionState>();
 
     app.add_systems(OnExit(Screen::Loading), validate_assets);
 }

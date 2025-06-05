@@ -1,4 +1,4 @@
-use bevy::reflect::Reflect;
+use bevy::{ecs::component::Component, reflect::Reflect};
 
 use super::StatusEffect;
 
@@ -17,7 +17,10 @@ pub enum AttackEffect {
     Status(StatusEffect),
 }
 
-#[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq)]
+#[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
+pub struct Droplet(pub LiquidType);
+
+#[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
 pub struct Puddle(pub LiquidType);
 
 #[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq)]
