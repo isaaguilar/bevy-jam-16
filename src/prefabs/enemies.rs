@@ -31,8 +31,8 @@ use crate::{
 
 pub fn basic_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[8, 9, 10, 11, 12, 13, 14]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(2.75, 2.75), 35.)
-        << (Transform::from_scale(Vec3::splat(0.14)).store()
+    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35.)
+        << (Transform::from_scale(Vec3::splat(0.11)).store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
