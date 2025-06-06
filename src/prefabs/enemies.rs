@@ -29,42 +29,56 @@ use crate::{
     screens::Screen,
 };
 
+#[derive(Component, Reflect, Debug, PartialEq, Eq, Clone, Copy)]
+pub struct EnemySprite;
+
 pub fn basic_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[8, 9, 10, 11, 12, 13, 14]);
     name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35.)
-        << (Transform::from_scale(Vec3::splat(0.11)).store()
+        << ((
+            Transform::from_scale(Vec3::splat(0.11)),
+            Pickable::default(),
+            EnemySprite,
+        )
+            .store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
-            + Pickable::default().store()
             << health_bar(24.))
 }
 
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
     name("Major Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
-        << (Transform::from_scale(Vec3::splat(0.16)).store()
+        << ((
+            Transform::from_scale(Vec3::splat(0.16)),
+            Pickable::default(),
+            EnemySprite,
+        )
+            .store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
-            + Pickable::default().store()
             << health_bar(24.))
 }
 
 pub fn turbo_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7]);
     name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45.)
-        << (Transform::from_scale(Vec3::splat(0.10)).store()
+        << ((
+            Transform::from_scale(Vec3::splat(0.10)),
+            Pickable::default(),
+            EnemySprite,
+        )
+            .store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
-            + Pickable::default().store()
             << health_bar(24.))
 }
 
 pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
     (
-        // Transform::from_scale(Vec3::splat(scale)),
         StateScoped(Screen::Gameplay),
         EnemyHealth::new(),
         MovementDirection::default(),
