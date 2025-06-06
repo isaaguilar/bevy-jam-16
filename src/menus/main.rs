@@ -1,10 +1,10 @@
 //! The main menu (seen on the title screen).
 
+use crate::{menus::Menu, screens::Screen, theme::widget};
 use bevy::color::palettes::tailwind;
 use bevy::prelude::*;
 
-use crate::prelude::UiAssets;
-use crate::{menus::Menu, screens::Screen, theme::widget};
+const TITLE_TEXT: &str = "Zod's Tower Combinator";
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
@@ -17,7 +17,7 @@ fn spawn_main_menu(mut commands: Commands) {
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
-            widget::title("Defender Zod's\nTower Combinator"),
+            widget::title(TITLE_TEXT),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
@@ -25,6 +25,7 @@ fn spawn_main_menu(mut commands: Commands) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            widget::title(TITLE_TEXT),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
