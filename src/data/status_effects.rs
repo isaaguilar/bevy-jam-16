@@ -70,17 +70,6 @@ pub enum StatusEnum {
     Oiled,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Wet>()
-        .register_type::<Ignited>()
-        .register_type::<Burned>()
-        .register_type::<Chilled>()
-        .register_type::<Frozen>()
-        .register_type::<Electrocuted>()
-        .register_type::<Acidified>()
-        .register_type::<Oiled>();
-}
-
 impl<T: StatusEffectTrait> StatusEffect<T> {
     pub fn damage_multiplier(&self) -> f32 {
         match self.strength {

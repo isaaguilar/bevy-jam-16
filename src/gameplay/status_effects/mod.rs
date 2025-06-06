@@ -52,6 +52,7 @@ pub(super) fn plugin(app: &mut App) {
 
 pub fn implement_status_effect<T: StatusEffectTrait>(app: &mut App) {
     app.register_type::<StatusEffect<T>>()
+        .register_type::<T>()
         .add_event::<ApplyStatus<T>>()
         .add_event::<RemoveStatus<T>>()
         .add_systems(
