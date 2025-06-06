@@ -73,7 +73,7 @@ pub fn add_status_animation<T: StatusEffectTrait>(
             }
         }
 
-        let status_sprite_bundle = sprites.status_bundle(T::name());
+        let status_sprite_bundle = sprites.status_bundle(T::corresponding_enum());
 
         commands.entity(*enemy_sprite_entity).with_children(|p| {
             p.spawn((

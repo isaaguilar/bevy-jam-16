@@ -1,3 +1,4 @@
+use crate::data::status_effects::StatusEnum;
 use crate::gameplay::animation::AnimationFrameQueue;
 use crate::level::components::LEVEL_SCALING;
 use bevy::prelude::*;
@@ -49,37 +50,34 @@ pub struct StatusSprites {
 impl StatusSprites {
     pub fn status_sprite(
         &self,
-        status_effect: &'static str,
+        status_effect: StatusEnum,
     ) -> (&Handle<Image>, &Handle<TextureAtlasLayout>) {
         match status_effect {
-            "Wet" => (&self.wet_sprite, &self.wet_layout),
-            "Ignited" => (&self.burning_sprite, &self.burning_layout),
-            "Frozen" => (&self.frozen_sprite, &self.frozen_layout),
-            "Electrified" => (&self.electrified_sprite, &self.electrified_layout),
-            "Acidic" => (&self.acidic_sprite, &self.acidic_layout),
-            "Oiled" => (&self.oiled_sprite, &self.oiled_layout),
-            "Slowed" => (&self.slowed_sprite, &self.slowed_layout),
-            "Burned" => (&self.burning_sprite, &self.burning_layout),
-            "Chilled" => (&self.frozen_sprite, &self.frozen_layout),
-            &_ => todo!(),
+            StatusEnum::Wet => (&self.wet_sprite, &self.wet_layout),
+            StatusEnum::Burned => (&self.burning_sprite, &self.burning_layout),
+            StatusEnum::Frozen => (&self.frozen_sprite, &self.frozen_layout),
+            StatusEnum::Electrocuted => (&self.electrified_sprite, &self.electrified_layout),
+            StatusEnum::Acidified => (&self.acidic_sprite, &self.acidic_layout),
+            StatusEnum::Oiled => (&self.oiled_sprite, &self.oiled_layout),
+            StatusEnum::Ignited => (&self.burning_sprite, &self.burning_layout),
+            StatusEnum::Chilled => (&self.frozen_sprite, &self.frozen_layout),
         }
     }
 
-    pub fn status_animation_frames(&self, status_effect: &'static str) -> &'static [usize] {
+    pub fn status_animation_frames(&self, status_effect: StatusEnum) -> &'static [usize] {
         match status_effect {
-            "Wet" => &[0, 1, 2, 3, 4, 5],
-            "Ignited" => &[0, 1, 2, 3, 4, 5],
-            "Burned" => &[0, 2, 4],
-            "Chilled" => &[0, 2, 4],
-            "Frozen" => &[0, 1, 2, 3, 4, 5, 6, 6, 6, 6],
-            "Electrified" => &[0, 1, 2, 3, 4, 5],
-            "Acidic" => &[0, 1, 2, 3, 4, 5],
-            "Oiled" => &[0, 1, 2, 3, 4, 5],
-            &_ => todo!(),
+            StatusEnum::Wet => &[0, 1, 2, 3, 4, 5],
+            StatusEnum::Burned => &[0, 1, 2, 3, 4, 5],
+            StatusEnum::Frozen => &[0, 2, 4],
+            StatusEnum::Electrocuted => &[0, 2, 4],
+            StatusEnum::Acidified => &[0, 1, 2, 3, 4, 5, 6, 6, 6, 6],
+            StatusEnum::Oiled => &[0, 1, 2, 3, 4, 5],
+            StatusEnum::Ignited => &[0, 1, 2, 3, 4, 5],
+            StatusEnum::Chilled => &[0, 1, 2, 3, 4, 5],
         }
     }
 
-    pub fn status_bundle(&self, status_effect: &'static str) -> impl Bundle {
+    pub fn status_bundle(&self, status_effect: StatusEnum) -> impl Bundle {
         let (image, atlas) = self.status_sprite(status_effect);
         let frames = self.status_animation_frames(status_effect);
 
