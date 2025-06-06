@@ -13,6 +13,7 @@ pub mod wave_manager;
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
         animation::plugin,
+        damage_numbers::plugin,
         hotbar::plugin,
         hud::plugin,
         level::plugin,
