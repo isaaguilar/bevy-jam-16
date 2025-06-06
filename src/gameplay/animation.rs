@@ -3,7 +3,7 @@ use bevy::prelude::*;
 const FRAME_DURATION: f32 = 0.15;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, animate_sprite_frames);
+    app.add_systems(Update, (animate_sprite_frames, animate_image_node_frames));
 }
 
 #[derive(Component, Default, Clone, PartialEq)]
@@ -71,6 +71,19 @@ fn animate_sprite_frames(
 ) {
     for (mut queue, mut sprite) in &mut query {
         if let Some(atlas) = sprite.texture_atlas.as_mut() {
+            queue.tick_and_advance(&time, atlas);
+        } else {
+            continue;
+        }
+    }
+}
+
+fn animate_image_node_frames(
+    time: Res<Time>,
+    mut query: Query<(&mut AnimationFrameQueue, &mut ImageNode)>,
+) {
+    for (mut queue, mut node) in &mut query {
+        if let Some(atlas) = node.texture_atlas.as_mut() {
             queue.tick_and_advance(&time, atlas);
         } else {
             continue;

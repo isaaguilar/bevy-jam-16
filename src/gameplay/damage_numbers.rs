@@ -45,7 +45,7 @@ pub fn show_damage_numbers(
             StateScoped(Screen::Gameplay),
             Text2d::new(((event.damage * 100.) as i32).to_string()),
             TextColor(event.damage_type.status_effect().color()),
-            TextFont::from_font_size(18.0).with_font(BASE_FONT),
+            TextFont::from_font_size(18.0).with_font(TITLE_FONT),
             DamageNumber,
             DamageNumberLifetime {
                 timer: Timer::from_seconds(0.6, TimerMode::Once),
