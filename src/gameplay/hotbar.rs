@@ -1,5 +1,6 @@
 use bevy::{ecs::spawn::*, prelude::*};
 
+use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
@@ -101,7 +102,6 @@ fn spawn_hotbar() -> impl Bundle {
             position_type: PositionType::Absolute,
             bottom: Val::Px(8.0),
             margin: UiRect::horizontal(Val::Auto),
-            // height: Val::Px(88.0),
             padding: UiRect::axes(Val::Px(8.0), Val::Px(8.0)),
             display: Display::Flex,
             column_gap: Val::Px(12.0),
@@ -132,18 +132,24 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
         children![
             (
                 Tooltip,
-                BackgroundColor(Color::BLACK.with_alpha(0.75)),
-                BorderRadius::all(Val::Px(8.0)),
-                BorderColor(Color::WHITE),
+                BackgroundColor(Color::BLACK.with_alpha(0.85)),
+                BorderRadius::all(Val::Px(4.0)),
+                BorderColor(LABEL_TEXT),
                 Node {
                     border: UiRect::all(Val::Px(2.0)),
                     padding: UiRect::all(Val::Px(8.0)),
                     position_type: PositionType::Absolute,
-                    top: Val::Px(-56.0),
-                    max_width: Val::Px(256.0),
+                    row_gap: Val::Px(4.0),
+                    bottom: Val::Px(84.0),
+                    width: Val::Px(256.0),
+                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
-                Children::spawn((Spawn(Text(tower.name().into())),)),
+                Children::spawn((
+                    Spawn(widget::label(tower.name())),
+                    Spawn(widget::body_text(tower.description())),
+                    Spawn(widget::body_text(format!("Cost: {}", tower.price()))),
+                )),
             ),
             (
                 Node {

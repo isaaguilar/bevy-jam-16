@@ -1,7 +1,9 @@
 //! The main menu (seen on the title screen).
 
+use bevy::color::palettes::tailwind;
 use bevy::prelude::*;
 
+use crate::prelude::UiAssets;
 use crate::{menus::Menu, screens::Screen, theme::widget};
 
 pub(super) fn plugin(app: &mut App) {
@@ -15,6 +17,7 @@ fn spawn_main_menu(mut commands: Commands) {
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            widget::title("Defender Zod's\nTower Combinator"),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
@@ -27,6 +30,8 @@ fn spawn_main_menu(mut commands: Commands) {
             widget::button("Credits", open_credits_menu),
         ],
     ));
+    commands.insert_resource(ClearColor(tailwind::SLATE_950.into()));
+    commands.spawn(());
 }
 
 fn enter_loading_or_gameplay_screen(

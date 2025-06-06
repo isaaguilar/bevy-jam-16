@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use crate::theme::prelude::*;
 use crate::theme::{interaction::InteractionPalette, palette::*};
 use bevy::color::palettes::tailwind;
+use bevy::sprite::Anchor;
 use bevy::{
     ecs::{spawn::SpawnWith, system::IntoObserverSystem},
     prelude::*,
@@ -30,23 +31,24 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     )
 }
 
-/// A simple header label. Bigger than [`label`].
-pub fn header(text: impl Into<String>) -> impl Bundle {
+/// Game title
+pub fn title(text: impl Into<String>) -> impl Bundle {
     (
-        Name::new("Header"),
+        Name::new("Title"),
         Text(text.into()),
-        TextFont::from_font_size(40.0),
+        Anchor::Center,
+        TextFont::from_font(TITLE_FONT).with_font_size(52.0),
         TextColor(HEADER_TEXT),
     )
 }
 
 /// A simple header label. Bigger than [`label`].
-pub fn ui_font(text: impl Into<String>) -> impl Bundle {
+pub fn header(text: impl Into<String>) -> impl Bundle {
     (
-        Name::new("Text"),
+        Name::new("Header"),
         Text(text.into()),
-        TextFont::from_font(BASE_FONT).with_font_size(18.0),
-        TextColor(tailwind::STONE_900.into()),
+        TextFont::from_font(LABEL_FONT).with_font_size(40.0),
+        TextColor(HEADER_TEXT),
     )
 }
 
@@ -55,7 +57,26 @@ pub fn label(text: impl Into<String>) -> impl Bundle {
     (
         Name::new("Label"),
         Text(text.into()),
-        TextFont::from_font_size(24.0),
+        TextFont::from_font(LABEL_FONT).with_font_size(24.0),
+        TextColor(LABEL_TEXT),
+    )
+}
+
+pub fn ui_font(text: impl Into<String>) -> impl Bundle {
+    (
+        Name::new("Text"),
+        Text(text.into()),
+        TextFont::from_font(LABEL_FONT).with_font_size(18.0),
+        TextColor(tailwind::STONE_900.into()),
+    )
+}
+
+/// A simple text label.
+pub fn body_text(text: impl Into<String>) -> impl Bundle {
+    (
+        Name::new("Label"),
+        Text(text.into()),
+        TextFont::from_font(BODY_FONT).with_font_size(16.0),
         TextColor(LABEL_TEXT),
     )
 }
@@ -73,7 +94,7 @@ where
         (
             Node {
                 width: Px(380.0),
-                height: Px(80.0),
+                height: Px(64.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()
@@ -133,7 +154,7 @@ where
                     children![(
                         Name::new("Button Text"),
                         Text(text),
-                        TextFont::from_font(BASE_FONT).with_font_size(40.0),
+                        TextFont::from_font(LABEL_FONT).with_font_size(32.0),
                         TextColor(BUTTON_TEXT),
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,

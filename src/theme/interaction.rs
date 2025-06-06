@@ -1,6 +1,8 @@
 use crate::assets::ui_assets::UiAssets;
 use crate::audio::sound_effect;
 use bevy::prelude::*;
+use bevy_turborand::{DelegatedRng, GlobalRng};
+use rand::prelude::IteratorRandom;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<InteractionPalette>();
@@ -42,13 +44,18 @@ fn play_on_hover_sound_effect(
     mut commands: Commands,
     interaction_assets: Option<Res<UiAssets>>,
     interaction_query: Query<(), With<Interaction>>,
+    mut rng: ResMut<GlobalRng>,
 ) {
     let Some(interaction_assets) = interaction_assets else {
         return;
     };
 
+    let sound = rng
+        .sample_iter(interaction_assets.button_hover_sounds.iter())
+        .unwrap();
+
     if interaction_query.contains(trigger.target()) {
-        commands.spawn(sound_effect(interaction_assets.button_hover_sound.clone()));
+        commands.spawn(sound_effect(sound.clone()));
     }
 }
 

@@ -1,3 +1,4 @@
+use bevy::color::palettes::tailwind;
 use bevy::prelude::*;
 use bevy_composable::{
     app_impl::{ComplexSpawnable, ComponentTreeable},
@@ -25,12 +26,9 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// A system that spawns the main level.
-pub fn spawn_level(
-    mut commands: Commands,
-    assets: Res<GameAssets>,
-    mut level: ResMut<Level>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-) {
+pub fn spawn_level(mut commands: Commands, mut level: ResMut<Level>) {
+    commands.insert_resource(ClearColor(tailwind::SLATE_700.into()));
+
     *level = Level::from_str(MAP_TEXT);
     commands.compose(
         LevelParent::from_data(&level)
