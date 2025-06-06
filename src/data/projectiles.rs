@@ -49,3 +49,16 @@ impl Lifetime {
         Lifetime(Timer::from_seconds(duration, bevy::time::TimerMode::Once))
     }
 }
+
+impl LiquidType {
+    pub fn contact_effects(&self) -> Vec<AttackEffect> {
+        match self {
+            LiquidType::Water => vec![AttackEffect::Status(StatusEnum::Wet)],
+            LiquidType::Oil => vec![AttackEffect::Status(StatusEnum::Oiled)],
+            LiquidType::Acid => vec![
+                AttackEffect::Damage(DamageType::Chemical),
+                AttackEffect::Status(StatusEnum::Acidified),
+            ],
+        }
+    }
+}
