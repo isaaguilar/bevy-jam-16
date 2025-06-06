@@ -9,6 +9,7 @@ use bevy::{
         system::{Commands, Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
+    prelude::warn,
     reflect::Reflect,
     time::Time,
     transform::components::{GlobalTransform, Transform},
@@ -23,7 +24,11 @@ use crate::{
         },
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    level::components::{Architecture, pos},
+    gameplay::animation::AnimationFrameQueue,
+    level::{
+        components::{Architecture, pos},
+        resource::CellDirection,
+    },
     prefabs::attacks::{droplet, puddle},
 };
 
@@ -39,11 +44,25 @@ pub fn dispatch_attack_effects(
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
-    towers: Query<(&Tower, &Children, &GlobalTransform)>,
+    mut towers: Query<(
+        &Tower,
+        &Children,
+        &GlobalTransform,
+        &CellDirection,
+        &mut AnimationFrameQueue,
+    )>,
     ranges: Query<(), With<TowerTriggerRange>>,
 ) {
     for event in fire_events.read() {
-        let (tower, children, global_pos) = towers.get(event.0).unwrap();
+        let Ok((tower, children, global_pos, cell_direction, mut animation)) =
+            towers.get_mut(event.0)
+        else {
+            warn!("Tower not found in dispatch_attack_effects");
+            return;
+        };
+
+        animation.set_override(cell_direction.attack_frames(&tower));
+
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
                 contact_events.write(AttackEnemiesInContact(
@@ -98,12 +117,12 @@ pub fn drop_liquids(
     towers: Query<&GlobalTransform, With<Tower>>,
 ) {
     for DropLiquid(e, liquid) in events.read() {
-        let loc = towers
-            .get(*e)
-            .unwrap()
-            .to_scale_rotation_translation()
-            .2
-            .xy();
+        let Ok(global_transform) = towers.get(*e) else {
+            warn!("Tower not found in drop_liquids");
+            return;
+        };
+
+        let loc = global_transform.to_scale_rotation_translation().2.xy();
         commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
     }
 }

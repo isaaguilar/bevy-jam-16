@@ -15,7 +15,7 @@ pub const MAP_TEXT2: &'static str = "^<<<<
 
 // Which direction the enemies need to move in. If we end up adding splitting paths, this won't be
 // usable. It's mainly to help get a FWP going.
-#[derive(Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
 pub enum CellDirection {
     Up,
     Down,
