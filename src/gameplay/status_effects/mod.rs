@@ -5,10 +5,11 @@ use bevy::{
     time::common_conditions::on_timer,
 };
 use common::{
-    ApplyStatus, StatusTimeout, TryApplyStatus, apply_status_effects, dispatch_typed_events,
-    periodic_damage, tick_statuses, timeout_statuses,
+    ApplyStatus, RemoveStatus, TryApplyStatus, apply_status_effects, dispatch_typed_events,
+    do_remove_status, periodic_damage, tick_statuses, timeout_statuses,
 };
 use display::{add_status_animation, animate_status_effect, remove_status_animation_on_timeout};
+use ice::freeze_when_wet;
 use std::time::Duration;
 
 use crate::{
@@ -22,6 +23,7 @@ use crate::{
 
 pub mod common;
 pub mod display;
+pub mod ice;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TryApplyStatus>()
@@ -36,6 +38,8 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
 
+    app.add_observer(freeze_when_wet);
+
     implement_status_effect::<Wet>(app);
     implement_status_effect::<Ignited>(app);
     implement_status_effect::<Burned>(app);
@@ -49,7 +53,7 @@ pub(super) fn plugin(app: &mut App) {
 pub fn implement_status_effect<T: StatusEffectTrait>(app: &mut App) {
     app.register_type::<StatusEffect<T>>()
         .add_event::<ApplyStatus<T>>()
-        .add_event::<StatusTimeout<T>>()
+        .add_event::<RemoveStatus<T>>()
         .add_systems(
             Update,
             (
@@ -57,6 +61,7 @@ pub fn implement_status_effect<T: StatusEffectTrait>(app: &mut App) {
                 apply_status_effects::<T>,
                 tick_statuses::<T>,
                 timeout_statuses::<T>,
+                do_remove_status::<T>,
                 remove_status_animation_on_timeout::<T>,
             )
                 .in_set(PausableSystems)

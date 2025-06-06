@@ -19,7 +19,7 @@ use crate::{
     assets::StatusSprites, data::status_effects::StatusEffectTrait, prefabs::enemies::EnemySprite,
 };
 
-use super::common::{ApplyStatus, StatusTimeout};
+use super::common::{ApplyStatus, RemoveStatus};
 
 #[derive(Reflect, Debug, Component, PartialEq, Eq)]
 pub struct StatusAnimation<T> {
@@ -86,12 +86,12 @@ pub fn add_status_animation<T: StatusEffectTrait>(
 }
 
 pub fn remove_status_animation_on_timeout<T: StatusEffectTrait>(
-    mut events: EventReader<StatusTimeout<T>>,
+    mut events: EventReader<RemoveStatus<T>>,
     children: Query<&Children>,
     existing_status_animations: Query<(), With<StatusAnimation<T>>>,
     mut commands: Commands,
 ) {
-    for StatusTimeout {
+    for RemoveStatus {
         enemy, strength, ..
     } in events.read()
     {

@@ -34,7 +34,7 @@ pub struct ApplyStatus<T: StatusEffectTrait> {
 }
 
 #[derive(Reflect, Debug, Event, PartialEq, Eq)]
-pub struct StatusTimeout<T: StatusEffectTrait> {
+pub struct RemoveStatus<T: StatusEffectTrait> {
     pub enemy: Entity,
     pub strength: usize,
     #[reflect(ignore)]
@@ -105,14 +105,26 @@ pub fn tick_statuses<T: StatusEffectTrait>(
 
 pub fn timeout_statuses<T: StatusEffectTrait>(
     mut enemies: Query<(Entity, &StatusEffect<T>)>,
-    mut commands: Commands,
-    mut events: EventWriter<StatusTimeout<T>>,
+    mut events: EventWriter<RemoveStatus<T>>,
 ) {
     for (enemy, status) in enemies.iter() {
         if status.duration.finished() {
-            events.write(StatusTimeout::new(enemy, status.strength));
-            commands.entity(enemy).remove::<StatusEffect<T>>();
+            events.write(RemoveStatus::new(enemy, status.strength));
         }
+    }
+}
+
+pub fn do_remove_status<T: StatusEffectTrait>(
+    mut events: EventReader<RemoveStatus<T>>,
+    mut commands: Commands,
+) {
+    for RemoveStatus {
+        enemy,
+        strength,
+        _phantom,
+    } in events.read()
+    {
+        commands.entity(*enemy).remove::<StatusEffect<T>>();
     }
 }
 
@@ -126,9 +138,9 @@ impl<T: StatusEffectTrait> ApplyStatus<T> {
     }
 }
 
-impl<T: StatusEffectTrait> StatusTimeout<T> {
-    pub fn new(enemy: Entity, strength: usize) -> StatusTimeout<T> {
-        StatusTimeout {
+impl<T: StatusEffectTrait> RemoveStatus<T> {
+    pub fn new(enemy: Entity, strength: usize) -> RemoveStatus<T> {
+        RemoveStatus {
             enemy,
             strength,
             _phantom: PhantomData,
