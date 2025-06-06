@@ -1,3 +1,4 @@
+use avian2d::prelude::{Collider, Sleeping};
 use bevy::color::palettes::tailwind;
 use bevy::prelude::*;
 use bevy_composable::{
@@ -12,6 +13,7 @@ use crate::{
         components::{EndNode, LevelParent},
         resource::{Level, MAP_TEXT},
     },
+    menus::Menu,
     prelude::*,
     screens::Screen,
 };
@@ -23,6 +25,20 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );
+    app.add_systems(PreUpdate, pause_physics.run_if(in_state(Menu::Pause)));
+    app.add_systems(PreUpdate, unpause_physics.run_if(in_state(Menu::None)));
+}
+
+fn pause_physics(mut commands: Commands, colliders: Query<Entity, With<Collider>>) {
+    for entity in colliders {
+        commands.entity(entity).insert(Sleeping);
+    }
+}
+
+fn unpause_physics(mut commands: Commands, colliders: Query<Entity, With<Collider>>) {
+    for entity in colliders {
+        commands.entity(entity).remove::<Sleeping>();
+    }
 }
 
 /// A system that spawns the main level.
