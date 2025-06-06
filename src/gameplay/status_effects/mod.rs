@@ -13,7 +13,8 @@ use std::time::Duration;
 use crate::{
     PausableSystems,
     data::status_effects::{
-        Acidified, Burned, Chilled, Electrocuted, Frozen, Ignited, Oiled, StatusEffectTrait, Wet,
+        Acidified, Burned, Chilled, Electrocuted, Frozen, Ignited, Oiled, StatusEffect,
+        StatusEffectTrait, Wet,
     },
     screens::Screen,
 };
@@ -21,7 +22,8 @@ use crate::{
 pub mod common;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<TryApplyStatus>();
+    app.register_type::<TryApplyStatus>()
+        .add_event::<TryApplyStatus>();
 
     app.add_systems(
         FixedUpdate,
@@ -43,7 +45,8 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 pub fn implement_status_effect<T: StatusEffectTrait>(app: &mut App) {
-    app.add_event::<ApplyStatus<T>>()
+    app.register_type::<StatusEffect<T>>()
+        .add_event::<ApplyStatus<T>>()
         .add_event::<StatusTimeout<T>>()
         .add_systems(
             Update,
