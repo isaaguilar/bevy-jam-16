@@ -1,27 +1,22 @@
 use bevy::{
     ecs::{
-        component::Component,
         entity::Entity,
         event::{Event, EventReader, EventWriter},
-        hierarchy::Children,
         query::With,
         schedule::{IntoScheduleConfigs, ScheduleConfigs},
         system::{Commands, Local, Query, Res, ScheduleSystem},
     },
-    math::Vec3,
     reflect::Reflect,
-    sprite::Sprite,
     time::{Time, Timer},
-    transform::components::Transform,
 };
-use std::{marker::PhantomData, time::Duration};
+use std::marker::PhantomData;
 
 use crate::{
-    assets::StatusSprites,
     data::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum, duration_multiplier},
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    prefabs::enemies::EnemySprite,
 };
+
+use super::display::StatusAnimation;
 
 #[derive(Reflect, Debug, Event, PartialEq, Eq, Clone, Copy)]
 pub struct TryApplyStatus {
@@ -46,12 +41,6 @@ pub struct StatusTimeout<T: StatusEffectTrait> {
     _phantom: PhantomData<T>,
 }
 
-#[derive(Reflect, Debug, Component, PartialEq, Eq)]
-pub struct StatusAnimation<T> {
-    #[reflect(ignore)]
-    _phantom: PhantomData<T>,
-}
-
 pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<ScheduleSystem> {
     let damage_per_tick = dps / 2.;
     (move |enemies: Query<Entity, (With<EnemyHealth>, With<StatusEffect<T>>)>,
@@ -70,64 +59,6 @@ pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<Schedu
         }
     })
     .into_configs()
-}
-
-pub fn animate_status_effect<T: StatusEffectTrait>(
-    time: Res<Time>,
-    mut enemies: Query<(Entity, &mut Sprite), With<StatusAnimation<T>>>,
-) {
-    for (entity, mut sprite) in enemies.iter_mut() {
-        if let Some(atlas) = &mut sprite.texture_atlas {
-            if atlas.index >= 5 {
-                atlas.index = 0
-            } else {
-                atlas.index += 1
-            }
-        }
-    }
-}
-
-pub fn add_status_animation<T: StatusEffectTrait>(
-    mut events: EventReader<ApplyStatus<T>>,
-    children: Query<&Children>,
-    enemy_sprites: Query<(), With<EnemySprite>>,
-    existing_status_animations: Query<(), With<StatusAnimation<T>>>,
-    sprites: Option<Res<StatusSprites>>,
-    mut commands: Commands,
-) {
-    let sprites = sprites.expect("GameAssets should be available");
-    for event in events.read() {
-        let e = event.enemy;
-
-        // Get the entity that holds the enemy's sprite
-        let enemy_sprite_entity = children
-            .get(e)
-            .unwrap()
-            .iter()
-            .filter(|w| enemy_sprites.get(**w).is_ok())
-            .next()
-            .unwrap();
-
-        // Get rid of any existing Entity in charge of representing this status effect
-        if let Ok(children_) = children.get(*enemy_sprite_entity) {
-            for entity in children_
-                .iter()
-                .filter(|w| existing_status_animations.get(**w).is_ok())
-            {
-                commands.entity(*entity).despawn();
-            }
-        }
-
-        let status_sprite_bundle = sprites.status_bundle(T::name());
-
-        commands.entity(*enemy_sprite_entity).with_children(|p| {
-            p.spawn((
-                StatusAnimation::<T>::new(),
-                status_sprite_bundle,
-                Transform::from_translation(Vec3::new(15.0, 12.0, 1.0)),
-            ));
-        });
-    }
 }
 
 pub fn dispatch_typed_events<T: StatusEffectTrait>(
@@ -200,14 +131,6 @@ impl<T: StatusEffectTrait> StatusTimeout<T> {
         StatusTimeout {
             enemy,
             strength,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-impl<T: StatusEffectTrait> StatusAnimation<T> {
-    pub fn new() -> StatusAnimation<T> {
-        StatusAnimation {
             _phantom: PhantomData,
         }
     }

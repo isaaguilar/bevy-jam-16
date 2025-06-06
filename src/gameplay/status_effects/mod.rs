@@ -5,9 +5,10 @@ use bevy::{
     time::common_conditions::on_timer,
 };
 use common::{
-    ApplyStatus, StatusTimeout, TryApplyStatus, add_status_animation, animate_status_effect,
-    apply_status_effects, dispatch_typed_events, periodic_damage, tick_statuses, timeout_statuses,
+    ApplyStatus, StatusTimeout, TryApplyStatus, apply_status_effects, dispatch_typed_events,
+    periodic_damage, tick_statuses, timeout_statuses,
 };
+use display::{add_status_animation, animate_status_effect, remove_status_animation_on_timeout};
 use std::time::Duration;
 
 use crate::{
@@ -20,6 +21,7 @@ use crate::{
 };
 
 pub mod common;
+pub mod display;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TryApplyStatus>()
@@ -55,6 +57,7 @@ pub fn implement_status_effect<T: StatusEffectTrait>(app: &mut App) {
                 apply_status_effects::<T>,
                 tick_statuses::<T>,
                 timeout_statuses::<T>,
+                remove_status_animation_on_timeout::<T>,
             )
                 .in_set(PausableSystems)
                 .run_if(in_state(Screen::Gameplay)),
