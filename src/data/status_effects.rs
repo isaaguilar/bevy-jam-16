@@ -1,11 +1,13 @@
 use std::{default, marker::PhantomData};
 
 use crate::define_status_effect;
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{color::palettes::css::*, prelude::*, reflect::GetTypeRegistration};
 
 use super::projectiles::DamageType;
 
-pub trait StatusEffectTrait: 'static + Send + Sync + Reflect + Copy + Sized + TypePath {
+pub trait StatusEffectTrait:
+    'static + Send + Sync + Reflect + Copy + Sized + TypePath + GetTypeRegistration
+{
     fn name() -> &'static str;
     fn color() -> Color;
     fn ui_text() -> impl Bundle {

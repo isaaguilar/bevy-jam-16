@@ -7,6 +7,7 @@ use crate::prelude::*;
 mod input_state;
 pub mod projectiles;
 mod state;
+pub mod stats;
 pub mod status_effects;
 mod towers;
 

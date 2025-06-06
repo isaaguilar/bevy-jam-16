@@ -20,9 +20,10 @@ use super::{
 };
 use crate::{
     assets::{GameAssets, game_assets},
+    data::stats::{DamageMultiplier, MoveSpeed, Stat},
     demo::{
-        enemy_health::{self, EnemyHealth, EnemyHealthBar},
-        enemy_movement::{MovementAcceleration, MovementBundle, MovementDirection},
+        enemy_health::{EnemyHealth, EnemyHealthBar},
+        enemy_movement::MovementDirection,
     },
     gameplay::animation::AnimationFrameQueue,
     level::components::pos,
@@ -49,7 +50,9 @@ pub fn basic_trooper() -> ComponentTree {
 
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
-    name("Major Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
+    name("Major Trooper")
+        + enemy_requirements(Vec2::new(4., 5.0), 25.)
+        + (Stat::<DamageMultiplier>::new(0.8)).store()
         << ((
             Transform::from_scale(Vec3::splat(0.16)),
             Pickable::default(),
@@ -85,10 +88,11 @@ pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
         RigidBody::Dynamic,
         Visibility::Hidden,
         ShowDelay::new(),
-        MovementAcceleration(speed),
         LinearDamping(1.5),
         GravityScale(1.0),
         Mass(5.),
+        Stat::<DamageMultiplier>::new(1.0),
+        Stat::<MoveSpeed>::new(speed),
         LockedAxes::ROTATION_LOCKED,
         Collider::round_rectangle(size.x, size.y, 0.5),
         CollisionLayers::new(GPL::Enemy, [GPL::Default, GPL::Level, GPL::Projectiles]),

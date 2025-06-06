@@ -12,7 +12,10 @@ use bevy::{
 use std::marker::PhantomData;
 
 use crate::{
-    data::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum, duration_multiplier},
+    data::{
+        stats::{Stat, StatTrait},
+        status_effects::{StatusEffect, StatusEffectTrait, StatusEnum, duration_multiplier},
+    },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
 };
 
@@ -56,6 +59,39 @@ pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<Schedu
                     enemy: enemy,
                 });
             }
+        }
+    })
+    .into_configs()
+}
+
+pub fn status_debuff_premul_flat<S: StatusEffectTrait, T: StatTrait>(
+    debuff: f32,
+) -> ScheduleConfigs<ScheduleSystem> {
+    (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
+        for (mut stat, status) in enemies.iter_mut() {
+            stat.premul_bonus(debuff * status.damage_multiplier());
+        }
+    })
+    .into_configs()
+}
+
+pub fn status_debuff_multiplier<S: StatusEffectTrait, T: StatTrait>(
+    debuff: f32,
+) -> ScheduleConfigs<ScheduleSystem> {
+    (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
+        for (mut stat, status) in enemies.iter_mut() {
+            stat.multiplier(debuff * status.damage_multiplier());
+        }
+    })
+    .into_configs()
+}
+
+pub fn status_debuff_postmul_flat<S: StatusEffectTrait, T: StatTrait>(
+    debuff: f32,
+) -> ScheduleConfigs<ScheduleSystem> {
+    (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
+        for (mut stat, status) in enemies.iter_mut() {
+            stat.postmul_bonus(debuff * status.damage_multiplier());
         }
     })
     .into_configs()

@@ -5,6 +5,7 @@ mod damage_numbers;
 pub mod hotbar;
 pub mod hud;
 pub mod level;
+pub mod stats;
 pub mod status_effects;
 pub mod tower_placement;
 pub mod towers;
@@ -18,6 +19,7 @@ pub(super) fn plugin(app: &mut App) {
         hud::plugin,
         level::plugin,
         status_effects::plugin,
+        stats::plugin,
         towers::plugin,
         tower_placement::plugin,
         wave_manager::plugin,

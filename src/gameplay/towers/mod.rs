@@ -20,12 +20,15 @@ use liquids::{
 };
 use std::f32;
 
+use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
 use crate::{
     PausableSystems,
     assets::TowerSprites,
     data::{
         Tower,
         projectiles::{Droplet, Lifetime, Puddle},
+        stats::{MoveSpeed, Stat},
+        status_effects::Frozen,
     },
     level::{components::pos, resource::CellDirection},
     prefabs::{towers::tower, wizardry::add_observer_to_component},
@@ -65,6 +68,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
+            (status_debuff_multiplier::<Frozen, MoveSpeed>(0.)).in_set(StatSet::Modify),
             (tick_lifetimes, timeout_lifetimes).chain(),
             (tick_cooldown, remove_cooldown).chain(),
             (
