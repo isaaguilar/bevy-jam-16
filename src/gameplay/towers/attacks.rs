@@ -3,7 +3,7 @@ use bevy::{
     ecs::{
         entity::Entity,
         event::{Event, EventReader, EventWriter},
-        hierarchy::{ChildOf, Children},
+        hierarchy::Children,
         observer::Trigger,
         query::With,
         system::{Commands, Query, Res},
@@ -26,7 +26,7 @@ use crate::{
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::animation::AnimationFrameQueue,
     level::{
-        components::{Architecture, Ceiling, Floor, Wall, pos},
+        components::{Architecture, pos},
         resource::CellDirection,
     },
     prefabs::attacks::{droplet, puddle},
@@ -48,22 +48,20 @@ pub fn dispatch_attack_effects(
         &Tower,
         &Children,
         &GlobalTransform,
-        &ChildOf,
+        &CellDirection,
         &mut AnimationFrameQueue,
     )>,
     ranges: Query<(), With<TowerTriggerRange>>,
-    walls: Query<&Wall>,
-    floors: Query<(), With<Floor>>,
-    ceilings: Query<(), With<Ceiling>>,
 ) {
     for event in fire_events.read() {
-        let Ok((tower, children, global_pos, parent, mut animation)) = towers.get_mut(event.0)
+        let Ok((tower, children, global_pos, cell_direction, mut animation)) =
+            towers.get_mut(event.0)
         else {
             warn!("Tower not found in dispatch_attack_effects");
             return;
         };
 
-        animate_attack(parent.0, &mut animation, tower, walls, floors, ceilings);
+        animation.set_override(cell_direction.attack_frames(&tower));
 
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
@@ -111,30 +109,6 @@ pub fn attack_contact_enemies(
             }
         }
     }
-}
-
-pub fn animate_attack(
-    mount_entity: Entity,
-    animation: &mut AnimationFrameQueue,
-    tower: &Tower,
-    walls: Query<&Wall>,
-    floors: Query<(), With<Floor>>,
-    ceilings: Query<(), With<Ceiling>>,
-) {
-    let cell_direction = if let Ok(wall) = walls.get(mount_entity) {
-        match wall.0 {
-            crate::level::components::WallDirection::Left => CellDirection::Left,
-            crate::level::components::WallDirection::Right => CellDirection::Right,
-        }
-    } else if let Ok(_) = floors.get(mount_entity) {
-        CellDirection::Down
-    } else if let Ok(_) = ceilings.get(mount_entity) {
-        CellDirection::Up
-    } else {
-        CellDirection::Down
-    };
-
-    animation.set_override(cell_direction.attack_frames(&tower));
 }
 
 pub fn drop_liquids(

@@ -11,7 +11,7 @@ use crate::{
 use super::{physics::GamePhysicsLayer as GPL, utils::TowerSprite};
 
 pub fn tower(tower: Tower, direction: CellDirection) -> ComponentTree {
-    (tower, TowerSprite(tower, direction)).store() + name(tower.name()) + {
+    (tower, direction, TowerSprite(tower, direction)).store() + name(tower.name()) + {
         if tower.has_trigger_zone() {
             if tower.gravity_influences_trigger() {
                 ().store() << (trigger_zone(Vec2::new(9., 9.5)) + TowerTriggerNeedsGravity.store())
