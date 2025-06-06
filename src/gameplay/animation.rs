@@ -28,7 +28,7 @@ impl AnimationFrameQueue {
     pub fn set_frames(&mut self, frames: &'static [usize]) {
         assert!(!frames.is_empty(), "Animation frames cannot be empty");
         self.frames = frames;
-        self.current_index = 0;
+        self.current_index = frames[0];
         self.timer.reset();
     }
 
@@ -38,7 +38,7 @@ impl AnimationFrameQueue {
             "Override frames cannot be empty"
         );
         self.frame_override = Some(override_frames);
-        self.current_index = 0;
+        self.current_index = override_frames[0];
         self.timer.reset();
     }
 
@@ -59,7 +59,6 @@ impl AnimationFrameQueue {
                     self.current_index = 0;
                 }
             }
-
             sprite.index = active_frames[self.current_index];
         }
     }
