@@ -11,6 +11,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
+/// Despawn after a certain time.
 #[derive(Component, Clone, Debug, Reflect, PartialEq, Eq)]
 pub struct Lifetime(pub Timer);
 

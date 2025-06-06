@@ -69,7 +69,7 @@ impl Tower {
         }
     }
 
-    pub fn price(&self) -> u32 {
+    pub fn price(&self) -> i32 {
         match self {
             Tower::Piston => 100,
             Tower::Fan => 50,

@@ -1,7 +1,7 @@
-use bevy::{ecs::spawn::*, prelude::*};
-
 use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
+use bevy::input::common_conditions::input_just_pressed;
+use bevy::{ecs::spawn::*, prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), on_enter_game);
@@ -10,6 +10,11 @@ pub(super) fn plugin(app: &mut App) {
         (highlight_hovered_tile, on_press_hotbar)
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.add_systems(
+        Update,
+        unset_cursor_state.run_if(input_just_pressed(KeyCode::Escape)),
     );
 
     app.add_systems(Update, watch_pointer_state);
@@ -91,6 +96,10 @@ fn on_click_cancel(
     _: Trigger<Pointer<Released>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
 ) {
+    pointer_input_state.set(PointerInteractionState::Selecting)
+}
+
+fn unset_cursor_state(mut pointer_input_state: ResMut<NextState<PointerInteractionState>>) {
     pointer_input_state.set(PointerInteractionState::Selecting)
 }
 
@@ -179,6 +188,7 @@ fn on_press_hotbar(
     current_pointer_input_state: Res<State<PointerInteractionState>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
     mut tile_query: Query<(&Interaction, &Tower), With<HotbarItem>>,
+    player_state: Res<PlayerState>,
 ) {
     for (interaction, tower) in &mut tile_query {
         match interaction {
@@ -187,6 +197,9 @@ fn on_press_hotbar(
                     if &t == tower {
                         continue;
                     }
+                }
+                if tower.price() > player_state.money {
+                    return;
                 }
                 pointer_input_state.set(PointerInteractionState::Placing(*tower));
             }

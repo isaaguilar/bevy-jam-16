@@ -1,23 +1,8 @@
-use avian2d::prelude::{
-    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
-    ShapeCaster,
-};
-use bevy::{
-    color::palettes::basic::*,
-    math::{Vec2, Vec3},
-    prelude::*,
-    render::view::Visibility,
-    state::state_scoped::StateScoped,
-    transform::components::Transform,
-};
-
-use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
-use std::default::Default;
-
 use super::{
     physics::GamePhysicsLayer as GPL,
     utils::{color, image, layout, mesh},
 };
+use crate::demo::enemy_health::Bounty;
 use crate::{
     assets::{GameAssets, game_assets},
     data::stats::{DamageMultiplier, MoveSpeed, Stat},
@@ -26,16 +11,21 @@ use crate::{
         enemy_movement::MovementDirection,
     },
     gameplay::animation::AnimationFrameQueue,
-    level::components::pos,
     screens::Screen,
 };
+use avian2d::prelude::{
+    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
+};
+use bevy::prelude::*;
+use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
+use std::default::Default;
 
 #[derive(Component, Reflect, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct EnemySprite;
 
 pub fn basic_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[8, 9, 10, 11, 12, 13, 14]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35.)
+    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35., 10)
         << ((
             Transform::from_scale(Vec3::splat(0.11)),
             Pickable::default(),
@@ -51,7 +41,7 @@ pub fn basic_trooper() -> ComponentTree {
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
     name("Major Trooper")
-        + enemy_requirements(Vec2::new(4., 5.0), 25.)
+        + enemy_requirements(Vec2::new(4., 5.0), 25., 20)
         + (Stat::<DamageMultiplier>::new(0.8)).store()
         << ((
             Transform::from_scale(Vec3::splat(0.16)),
@@ -67,7 +57,7 @@ pub fn chonkus_trooper() -> ComponentTree {
 
 pub fn turbo_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7]);
-    name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45.)
+    name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45., 15)
         << ((
             Transform::from_scale(Vec3::splat(0.10)),
             Pickable::default(),
@@ -80,9 +70,10 @@ pub fn turbo_trooper() -> ComponentTree {
             << health_bar(24.))
 }
 
-pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
+pub fn enemy_requirements(size: Vec2, speed: f32, bounty: i32) -> ComponentTree {
     (
         StateScoped(Screen::Gameplay),
+        Bounty(bounty),
         EnemyHealth::new(),
         MovementDirection::default(),
         RigidBody::Dynamic,

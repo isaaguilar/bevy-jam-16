@@ -12,7 +12,6 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
-use std::f32::consts::PI;
 
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<TowerPlacementState>();
@@ -126,9 +125,12 @@ fn on_turret_placement_hover(
 fn click_tower(
     trigger: Trigger<Pointer<Pressed>>,
     pointer_input_state: Res<State<PointerInteractionState>>,
+    mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
     tower_placement_state: Res<State<TowerPlacementState>>,
     mut select_events: EventWriter<SelectTower>,
     mut place_events: EventWriter<PlaceTower>,
+    input: Res<ButtonInput<KeyCode>>,
+    mut player_state: ResMut<PlayerState>,
 ) {
     match **pointer_input_state {
         PointerInteractionState::Selecting => {
@@ -136,7 +138,6 @@ fn click_tower(
             select_events.write(SelectTower(trigger.target));
         }
         PointerInteractionState::Placing(tower) => {
-            println!("Spawning!");
             let entity = trigger.target;
 
             let (_, _, orientation) = (match **tower_placement_state {
@@ -147,12 +148,22 @@ fn click_tower(
             })
             .unwrap();
 
+            if tower.price() > player_state.money {
+                info!("Not enough money to place tower!");
+                return;
+            }
+
+            player_state.money -= tower.price();
             place_events.write(PlaceTower(entity, tower, orientation));
+
+            if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
+                next_pointer_state.set(PointerInteractionState::Selecting);
+            }
         }
     }
 }
 
-pub fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
+fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
     for PlaceTower(entity, tower_type, orientation) in place_events.read() {
         commands.entity(*entity).with_children(|commands| {
             println!("Placing tower with parent {:?}", entity);
