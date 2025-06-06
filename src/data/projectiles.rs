@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use bevy::{ecs::component::Component, reflect::Reflect, time::Timer};
 
-use super::StatusEffect;
+use super::status_effects::{StatusEffectTrait, StatusEnum};
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
 pub enum AttackType {
@@ -14,7 +16,7 @@ pub enum AttackType {
 pub enum AttackEffect {
     Damage(DamageType),
     Push,
-    Status(StatusEffect),
+    Status(StatusEnum),
 }
 
 #[derive(Component, Clone, Debug, Reflect, PartialEq, Eq)]

@@ -1,90 +1,136 @@
-use bevy::color::palettes::css::*;
-use bevy::prelude::*;
+use std::{default, marker::PhantomData};
 
-#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
-pub enum StatusEffect {
+use crate::define_status_effect;
+use bevy::{color::palettes::css::*, prelude::*};
+
+use super::projectiles::DamageType;
+
+pub trait StatusEffectTrait: 'static + Send + Sync + Reflect + Copy + Sized {
+    fn name() -> &'static str;
+    fn color() -> Color;
+    fn ui_text() -> impl Bundle {
+        (Text::new(Self::name()), TextColor(Self::color()))
+    }
+    fn base_duration() -> f32;
+    fn damage_element() -> DamageType;
+    fn as_effect(strength: usize, duration: f32) -> StatusEffect<Self> {
+        StatusEffect::new(strength, duration)
+    }
+    fn corresponding_enum() -> StatusEnum;
+}
+
+#[derive(Component, Eq, PartialEq, Debug, Reflect)]
+pub struct StatusEffect<T: StatusEffectTrait> {
+    pub strength: usize,
+    pub duration: Timer,
+    #[reflect(ignore)]
+    _phantom: PhantomData<T>,
+}
+
+impl<T: StatusEffectTrait> StatusEffect<T> {
+    pub fn new(strength: usize, duration: f32) -> StatusEffect<T> {
+        StatusEffect {
+            strength,
+            duration: Timer::from_seconds(duration, TimerMode::Once),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+define_status_effect!(Wet, "Wet", BLUE.into(), 3., DamageType::Cold);
+define_status_effect!(Ignited, "Ignited", RED.into(), 3., DamageType::Burning);
+define_status_effect!(Burned, "Burned", ORANGE.into(), 3., DamageType::Burning);
+define_status_effect!(Chilled, "Chilled", AQUA.into(), 2.5, DamageType::Cold);
+define_status_effect!(Frozen, "Frozen", AQUA.into(), 2.0, DamageType::Cold);
+define_status_effect!(
+    Electrocuted,
+    "Electrocuted",
+    YELLOW.into(),
+    0.5,
+    DamageType::Lightning
+);
+define_status_effect!(
+    Acidified,
+    "Acidified",
+    LIME.into(),
+    2.0,
+    DamageType::Chemical
+);
+define_status_effect!(Oiled, "Oiled", BROWN.into(), 3.0, DamageType::Chemical);
+
+#[derive(Clone, Copy, Debug, Reflect, PartialEq, Eq)]
+pub enum StatusEnum {
     Wet,
     Ignited,
     Burned,
     Chilled,
     Frozen,
-    Electrified,
-    Acidic,
+    Electrocuted,
+    Acidified,
     Oiled,
-    Slowed,
 }
 
-impl StatusEffect {
-    pub fn name(&self) -> &'static str {
-        match self {
-            StatusEffect::Wet => "Wet",
-            StatusEffect::Ignited => "Ignited",
-            StatusEffect::Burned => "Burned",
-            StatusEffect::Chilled => "Chilled",
-            StatusEffect::Frozen => "Frozen",
-            StatusEffect::Electrified => "Electrified",
-            StatusEffect::Acidic => "Acidic",
-            StatusEffect::Oiled => "Oiled",
-            StatusEffect::Slowed => "Slowed",
-        }
-    }
-
-    pub fn color(&self) -> Color {
-        match self {
-            StatusEffect::Wet => BLUE.into(),
-            StatusEffect::Ignited => RED.into(),
-            StatusEffect::Burned => ORANGE.into(),
-            StatusEffect::Chilled => AQUA.into(),
-            StatusEffect::Frozen => AQUA.into(),
-            StatusEffect::Electrified => YELLOW.into(),
-            StatusEffect::Acidic => GREEN.into(),
-            StatusEffect::Oiled => BROWN.into(),
-            StatusEffect::Slowed => PURPLE.into(),
-        }
-    }
-
-    pub fn ui_text(&self) -> impl Bundle {
-        (Text::new(self.name()), TextColor(self.color()))
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.register_type::<Wet>()
+        .register_type::<Ignited>()
+        .register_type::<Burned>()
+        .register_type::<Chilled>()
+        .register_type::<Frozen>()
+        .register_type::<Electrocuted>()
+        .register_type::<Acidified>()
+        .register_type::<Oiled>();
 }
 
-#[derive(Component, Default, Clone, PartialEq, Debug, Reflect)]
-pub struct Ailments {
-    pub slowdown: f32,
-    pub min_damage: f32,
-    pub max_damage: f32,
-    pub damage_timer: Timer,
-    pub ailment_timer: Timer,
-}
-
-impl Ailments {
-    fn new(
-        slowdown: f32,
-        min_damage: f32,
-        max_damage: f32,
-        ailment_time_s: f32,
-        damage_time_s: f32,
-    ) -> Self {
-        Self {
-            slowdown,
-            min_damage,
-            max_damage,
-            ailment_timer: Timer::from_seconds(ailment_time_s, TimerMode::Once),
-            damage_timer: Timer::from_seconds(damage_time_s, TimerMode::Repeating),
+impl<T: StatusEffectTrait> StatusEffect<T> {
+    pub fn damage_multiplier(&self) -> f32 {
+        match self.strength {
+            0 => 0.,
+            1 => 0.67,
+            2 => 1.25,
+            3 => 2.0,
+            4 => 2.67,
+            _ => 4.,
         }
     }
 }
 
-pub fn get_ailment(status_effect: StatusEffect) -> Ailments {
-    match status_effect {
-        StatusEffect::Wet => (Ailments::new(0.0, 0.0, 0.0, 8., 8.)),
-        StatusEffect::Burned => Ailments::new(0.0, 0.0, 0.0, 2., 2.),
-        StatusEffect::Ignited => Ailments::new(0.0, 0.045, 0.110, 7., 1.5),
-        StatusEffect::Chilled => Ailments::new(1.0, 0., 0.05, 5., 2.),
-        StatusEffect::Frozen => Ailments::new(1.0, 0.023, 0.185, 8., 2.),
-        StatusEffect::Electrified => Ailments::new(0.0, 0.026, 0.082, 12., 1.),
-        StatusEffect::Acidic => Ailments::new(0.0, 0.100, 0.101, 9., 1.5),
-        StatusEffect::Oiled => Ailments::new(0.0, 0.0, 0.0, 15., 15.),
-        StatusEffect::Slowed => Ailments::new(0.7, 0.0, 0.0, 10., 10.),
+#[macro_export]
+macro_rules! define_status_effect {
+    ( $structname:ident, $name:expr, $color:expr , $base_duration: expr, $element: expr) => {
+        #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
+        pub struct $structname;
+
+        impl StatusEffectTrait for $structname {
+            fn name() -> &'static str {
+                $name
+            }
+
+            fn color() -> Color {
+                $color
+            }
+
+            fn base_duration() -> f32 {
+                $base_duration
+            }
+
+            fn damage_element() -> DamageType {
+                $element
+            }
+
+            fn corresponding_enum() -> StatusEnum {
+                StatusEnum::$structname
+            }
+        }
+    };
+}
+
+pub fn duration_multiplier(strength: usize) -> f32 {
+    match strength {
+        0 => 0.,
+        1 => 1.,
+        2 => 1.67,
+        3 => 2.5,
+        4 => 3.,
+        _ => 4.,
     }
 }

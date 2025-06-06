@@ -1,7 +1,4 @@
-use avian2d::{
-    math::*,
-    prelude::{NarrowPhaseSet, *},
-};
+use avian2d::{math::*, prelude::*};
 use bevy::{math::NormedVectorSpace, prelude::*};
 
 use crate::{

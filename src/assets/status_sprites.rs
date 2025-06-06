@@ -1,4 +1,3 @@
-use crate::data::StatusEffect;
 use crate::gameplay::animation::AnimationFrameQueue;
 use crate::level::components::LEVEL_SCALING;
 use bevy::prelude::*;
@@ -50,37 +49,39 @@ pub struct StatusSprites {
 impl StatusSprites {
     pub fn status_sprite(
         &self,
-        status_effect: &StatusEffect,
+        status_effect: &'static str,
     ) -> (&Handle<Image>, &Handle<TextureAtlasLayout>) {
         match status_effect {
-            StatusEffect::Wet => (&self.wet_sprite, &self.wet_layout),
-            StatusEffect::Ignited => (&self.burning_sprite, &self.burning_layout),
-            StatusEffect::Frozen => (&self.frozen_sprite, &self.frozen_layout),
-            StatusEffect::Electrified => (&self.electrified_sprite, &self.electrified_layout),
-            StatusEffect::Acidic => (&self.acidic_sprite, &self.acidic_layout),
-            StatusEffect::Oiled => (&self.oiled_sprite, &self.oiled_layout),
-            StatusEffect::Slowed => (&self.slowed_sprite, &self.slowed_layout),
-            StatusEffect::Burned => (&self.burning_sprite, &self.burning_layout),
-            StatusEffect::Chilled => (&self.frozen_sprite, &self.frozen_layout),
+            "Wet" => (&self.wet_sprite, &self.wet_layout),
+            "Ignited" => (&self.burning_sprite, &self.burning_layout),
+            "Frozen" => (&self.frozen_sprite, &self.frozen_layout),
+            "Electrified" => (&self.electrified_sprite, &self.electrified_layout),
+            "Acidic" => (&self.acidic_sprite, &self.acidic_layout),
+            "Oiled" => (&self.oiled_sprite, &self.oiled_layout),
+            "Slowed" => (&self.slowed_sprite, &self.slowed_layout),
+            "Burned" => (&self.burning_sprite, &self.burning_layout),
+            "Chilled" => (&self.frozen_sprite, &self.frozen_layout),
+            &_ => todo!(),
         }
     }
 
-    pub fn status_animation_frames(&self, status_effect: &StatusEffect) -> &'static [usize] {
+    pub fn status_animation_frames(&self, status_effect: &'static str) -> &'static [usize] {
         match status_effect {
-            StatusEffect::Wet => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Ignited => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Frozen => &[0, 1, 2, 3, 4, 5, 6, 6, 6, 6],
-            StatusEffect::Electrified => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Acidic => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Oiled => &[0, 1, 2, 3, 4, 5],
-            StatusEffect::Slowed => &[0],
-            StatusEffect::Burned => &[0, 2, 4],
-            StatusEffect::Chilled => &[0, 2, 4],
+            "Wet" => &[0, 1, 2, 3, 4, 5],
+            "Ignited" => &[0, 1, 2, 3, 4, 5],
+            "Burned" => &[0, 2, 4],
+            "Chilled" => &[0, 2, 4],
+            "Frozen" => &[0, 1, 2, 3, 4, 5, 6, 6, 6, 6],
+            "Electrified" => &[0, 1, 2, 3, 4, 5],
+            "Acidic" => &[0, 1, 2, 3, 4, 5],
+            "Oiled" => &[0, 1, 2, 3, 4, 5],
+            &_ => todo!(),
         }
     }
 
-    pub fn status_bundle(&self, status_effect: &StatusEffect) -> impl Bundle {
+    pub fn status_bundle(&self, status_effect: &'static str) -> impl Bundle {
         let (image, atlas) = self.status_sprite(status_effect);
+        let frames = self.status_animation_frames(status_effect);
 
         (
             Sprite {
@@ -89,7 +90,7 @@ impl StatusSprites {
                 texture_atlas: Some(TextureAtlas::from(atlas.clone())),
                 ..default()
             },
-            AnimationFrameQueue::new(self.status_animation_frames(status_effect)),
+            AnimationFrameQueue::new(frames),
         )
     }
 }
