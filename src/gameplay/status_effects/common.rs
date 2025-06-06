@@ -44,8 +44,8 @@ pub struct RemoveStatus<T: StatusEffectTrait> {
     _phantom: PhantomData<T>,
 }
 
-pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<ScheduleSystem> {
-    let damage_per_tick = dps / 2.;
+pub fn periodic_damage<T: StatusEffectTrait>(dps: isize) -> ScheduleConfigs<ScheduleSystem> {
+    let damage_per_tick = dps / 2;
     (move |enemies: Query<Entity, (With<EnemyHealth>, With<StatusEffect<T>>)>,
            mut cooldown: Local<Timer>,
            time: Res<Time>,
@@ -54,7 +54,7 @@ pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<Schedu
         if (*cooldown).just_finished() {
             for enemy in enemies.iter() {
                 damage_events.write(TryDamageToEnemy {
-                    damage_range: (damage_per_tick, damage_per_tick),
+                    damage: (damage_per_tick),
                     damage_type: T::damage_element(),
                     enemy: enemy,
                 });

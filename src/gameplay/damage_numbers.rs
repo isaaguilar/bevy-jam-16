@@ -39,7 +39,7 @@ pub fn show_damage_numbers(
 
         commands.spawn((
             StateScoped(Screen::Gameplay),
-            Text2d::new(((event.damage * 100.) as i32).to_string()),
+            Text2d::new((event.damage).to_string()),
             TextColor(event.damage_type.color()),
             TextFont::from_font_size(18.0).with_font(TITLE_FONT),
             DamageNumber,

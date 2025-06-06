@@ -92,7 +92,7 @@ pub fn dispatch_attack_effects(
         match effect {
             AttackEffect::Damage(damage_type) => {
                 damage_events.write(TryDamageToEnemy {
-                    damage_range: (0.05, 0.1), // TODO: Add damage details
+                    damage: 10, // TODO: Add damage details
                     damage_type: *damage_type,
                     enemy: *target,
                 });

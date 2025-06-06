@@ -161,16 +161,14 @@ impl Tower {
 #[derive(Component, Default)]
 pub struct TowerCollision {
     pub slowdown: f32,
-    pub min_damage: f32,
-    pub max_damage: f32,
+    pub damage: isize,
     pub iframe: Timer,
 }
 
 impl TowerCollision {
-    fn new(slowdown: f32, min_damage: f32, max_damage: f32, iframe_time_s: f32) -> Self {
+    fn new(slowdown: f32, damage: isize, iframe_time_s: f32) -> Self {
         Self {
-            min_damage,
-            max_damage,
+            damage,
             slowdown,
             iframe: Timer::from_seconds(iframe_time_s, TimerMode::Repeating),
         }
@@ -180,7 +178,7 @@ impl TowerCollision {
 // These towers by themselves will cause damage upon collision
 pub fn get_collision(tower: &Tower) -> Option<TowerCollision> {
     match tower {
-        Tower::SpikePit => Some(TowerCollision::new(0.0, 0.050, 0.150, 0.75)),
+        Tower::SpikePit => Some(TowerCollision::new(0.0, 15, 0.75)),
         _ => None,
     }
 }
