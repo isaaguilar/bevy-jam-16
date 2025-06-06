@@ -1,7 +1,6 @@
 use attacks::{
     ApplyAttackEffect, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
-    dispatch_attack_effects, do_tower_attacks, drop_liquids, puddle_damage, splat_droplets,
-    stop_dropping_puddles, tick_lifetimes, timeout_lifetimes,
+    dispatch_attack_effects, do_tower_attacks,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -15,6 +14,10 @@ use bevy::{
 };
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
+use liquids::{
+    drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
+    timeout_lifetimes,
+};
 use std::f32;
 
 use crate::{
@@ -33,6 +36,7 @@ use common::*;
 pub mod attacks;
 pub mod common;
 pub mod gravity_bullshit;
+pub mod liquids;
 pub mod tesla;
 
 pub(super) fn plugin(app: &mut App) {
@@ -52,7 +56,7 @@ pub(super) fn plugin(app: &mut App) {
         stop_dropping_puddles,
     ));
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
-        puddle_damage,
+        puddle_attacks,
     ));
     app.add_observer(add_observer_to_component::<Droplet, _, _, _, _>(
         splat_droplets,
