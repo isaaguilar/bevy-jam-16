@@ -21,9 +21,6 @@ pub enum AttackEffect {
     Status(StatusEnum),
 }
 
-#[derive(Component, Clone, Debug, Reflect, PartialEq, Eq)]
-pub struct Lifetime(pub Timer);
-
 #[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
 pub struct Droplet(pub LiquidType);
 

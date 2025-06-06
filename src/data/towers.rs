@@ -53,6 +53,38 @@ impl Tower {
         }
     }
 
+    pub fn description(&self) -> &'static str {
+        match self {
+            Tower::Piston => "Pushes or crushes enemies with strong mechanical force.",
+            Tower::Fan => "Slows enemies or redirects airborne effects using wind.",
+            Tower::SpikePit => "Triggers hidden spikes to damage passing enemies.",
+            Tower::Oil => "Covers the ground in oil, slowing enemies and increasing flammability.",
+            Tower::TrapDoor => "Drops enemies through the floor, removing or rerouting them.",
+            Tower::Ice => "Freezes the ground, significantly slowing movement speed.",
+            Tower::Acid => "Applies corrosive damage over time to enemies it contacts.",
+            Tower::Tesla => "Fires arcs of electricity that chain between nearby enemies.",
+            Tower::Water => "Slows enemies and can clear or interact with terrain effects.",
+            Tower::Flame => "Deals continuous fire damage to enemies in range.",
+            Tower::Portal => "Teleports enemies backward along their path.",
+        }
+    }
+
+    pub fn price(&self) -> u32 {
+        match self {
+            Tower::Piston => 100,
+            Tower::Fan => 50,
+            Tower::SpikePit => 75,
+            Tower::Oil => 150,
+            Tower::TrapDoor => 200,
+            Tower::Ice => 125,
+            Tower::Acid => 175,
+            Tower::Tesla => 300,
+            Tower::Water => 80,
+            Tower::Flame => 120,
+            Tower::Portal => 400,
+        }
+    }
+
     pub fn ui_asset_key(&self) -> &'static str {
         match self {
             Tower::Piston => "icon_piston",

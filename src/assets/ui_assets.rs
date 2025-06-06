@@ -1,8 +1,19 @@
+use crate::gameplay::animation::AnimationFrameQueue;
 use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
 pub struct UiAssets {
+    #[asset(
+        paths(
+            "audio/sound_effects/GenericButton5.wav",
+            "audio/sound_effects/GenericButton6.wav",
+            "audio/sound_effects/GenericButton7.wav",
+        ),
+        collection(typed)
+    )]
+    pub button_hover_sounds: Vec<Handle<AudioSource>>,
+
     #[asset(path = "audio/sound_effects/button_hover.ogg")]
     pub button_hover_sound: Handle<AudioSource>,
     #[asset(path = "audio/sound_effects/button_click.ogg")]
@@ -24,4 +35,23 @@ pub struct UiAssets {
         collection(mapped, typed)
     )]
     pub hotbar_icons: HashMap<AssetFileStem, Handle<Image>>,
+
+    #[asset(path = "images/intro.png")]
+    pub intro: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 128, columns = 12, rows = 1))]
+    pub intro_layout: Handle<TextureAtlasLayout>,
+}
+
+impl UiAssets {
+    pub fn intro_bundle(&self) -> impl Bundle {
+        let atlas = TextureAtlas::from(self.intro_layout.clone());
+        (
+            ImageNode {
+                image: self.intro.clone(),
+                texture_atlas: Some(atlas),
+                ..default()
+            },
+            AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+        )
+    }
 }

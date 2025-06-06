@@ -1,4 +1,4 @@
-use avian2d::prelude::{Collisions, OnCollisionStart, Sensor};
+use avian2d::prelude::{Collisions, LinearVelocity, OnCollisionStart, Sensor};
 use bevy::{
     ecs::{
         entity::Entity,
@@ -14,11 +14,14 @@ use bevy::{
     transform::components::{GlobalTransform, Transform},
 };
 use bevy_composable::app_impl::ComplexSpawnable;
+use std::cell;
 
+use super::common::{TowerFired, TowerTriggerRange};
 use crate::{
+    assets::LiquidSprites,
     data::{
         Tower,
-        projectiles::{AttackEffect, AttackType, Droplet, LiquidType},
+        projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::{animation::AnimationFrameQueue, status_effects::common::TryApplyStatus},
@@ -42,30 +45,18 @@ pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackEffect>);
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
 pub struct DropLiquid(pub Entity, pub LiquidType);
 
-use super::common::{TowerFired, TowerTriggerRange};
-
 pub fn do_tower_attacks(
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
-    mut towers: Query<(
-        &Tower,
-        &Children,
-        &GlobalTransform,
-        &CellDirection,
-        &mut AnimationFrameQueue,
-    )>,
+    towers: Query<(&Tower, &Children, &GlobalTransform)>,
     ranges: Query<(), With<TowerTriggerRange>>,
 ) {
     for event in fire_events.read() {
-        let Ok((tower, children, global_pos, cell_direction, mut animation)) =
-            towers.get_mut(event.0)
-        else {
+        let Ok((tower, children, global_pos)) = towers.get(event.0) else {
             warn!("Tower not found in dispatch_attack_effects");
             return;
         };
-
-        animation.set_override(cell_direction.attack_frames(&tower));
 
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
@@ -120,22 +111,31 @@ pub fn dispatch_attack_effects(
 
 pub fn drop_liquids(
     mut events: EventReader<DropLiquid>,
+    liquid_sprites: Res<LiquidSprites>,
     mut commands: Commands,
-    towers: Query<&GlobalTransform, With<Tower>>,
+    mut towers: Query<(
+        &Tower,
+        &GlobalTransform,
+        &CellDirection,
+        &mut AnimationFrameQueue,
+    )>,
 ) {
     for DropLiquid(e, liquid) in events.read() {
-        let Ok(global_transform) = towers.get(*e) else {
-            warn!("Tower not found in drop_liquids");
+        let Ok((tower, global_transform, cell_direction, mut animation)) = towers.get_mut(*e)
+        else {
+            warn!("Tower not found in dispatch_attack_effects");
             return;
         };
 
         let loc = global_transform.to_scale_rotation_translation().2.xy();
-        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
+        commands.compose(droplet(*liquid, &liquid_sprites) + pos(loc.x, loc.y));
+        animation.set_override(cell_direction.attack_frames(&tower));
     }
 }
 
 pub fn splat_droplets(
     trigger: Trigger<OnCollisionStart>,
+    liquid_sprites: Res<LiquidSprites>,
     sensors: Query<(), With<Sensor>>,
     droplets: Query<(&Transform, &Droplet)>,
     mut commands: Commands,
@@ -148,7 +148,7 @@ pub fn splat_droplets(
         if let Ok((transform, Droplet(liquid))) = droplets.get(droplet) {
             let loc = transform.translation;
             commands.entity(droplet).despawn();
-            commands.compose(puddle(*liquid) + pos(loc.x, loc.y));
+            commands.compose(puddle(*liquid, &liquid_sprites) + pos(loc.x, loc.y));
         }
     }
 }
@@ -172,6 +172,21 @@ pub fn attack_contact_enemies(
                     effect: effect.clone(),
                 });
             }
+        }
+    }
+}
+
+pub fn stop_dropping_puddles(
+    trigger: Trigger<OnCollisionStart>,
+    level_parts: Query<(), With<Architecture>>,
+    mut droplets: Query<&mut LinearVelocity, With<Puddle>>,
+) {
+    let puddle = trigger.target();
+    let other = trigger.collider;
+
+    if level_parts.get(other).is_ok() {
+        if let Ok(mut vel) = droplets.get_mut(puddle) {
+            vel.0 = Vec2::ZERO;
         }
     }
 }

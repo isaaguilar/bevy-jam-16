@@ -1,33 +1,18 @@
 use avian2d::prelude::{
     Collider, CollisionEventsEnabled, CollisionLayers, LinearVelocity, Mass, RigidBody, Sensor,
 };
-use bevy::{
-    color::{
-        Color,
-        palettes::css::{AQUA, BROWN, LIME},
-    },
-    math::Vec2,
-    render::view::Visibility,
-    sprite::Sprite,
-    utils::default,
-};
+use bevy::{ecs::system::Res, math::Vec2, render::view::Visibility};
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
 use super::physics::GamePhysicsLayer as GPL;
-use crate::data::projectiles::{Droplet, Lifetime, LiquidType, Puddle};
+use crate::assets::LiquidSprites;
+use crate::data::projectiles::{Droplet, LiquidType, Puddle};
+use crate::gameplay::shared_systems::Lifetime;
 
-pub fn droplet(liquid: LiquidType) -> ComponentTree {
+pub fn droplet(liquid: LiquidType, liquid_sprites: &Res<LiquidSprites>) -> ComponentTree {
     (
-        Sprite {
-            color: match liquid {
-                LiquidType::Water => AQUA,
-                LiquidType::Oil => BROWN,
-                LiquidType::Acid => LIME,
-            }
-            .into(),
-            custom_size: Some(Vec2::new(3., 3.)),
-            ..default()
-        },
+        liquid_sprites.droplet_sprite(&liquid),
+        liquid_sprites.droplet_frame_queue(&liquid),
         Visibility::Visible,
         Droplet(liquid),
         Collider::circle(1.5),
@@ -40,18 +25,10 @@ pub fn droplet(liquid: LiquidType) -> ComponentTree {
         + name("Droplet")
 }
 
-pub fn puddle(liquid: LiquidType) -> ComponentTree {
+pub fn puddle(liquid: LiquidType, liquid_sprites: &Res<LiquidSprites>) -> ComponentTree {
     (
-        Sprite {
-            color: match liquid {
-                LiquidType::Water => AQUA,
-                LiquidType::Oil => BROWN,
-                LiquidType::Acid => LIME,
-            }
-            .into(),
-            custom_size: Some(Vec2::new(7., 1.5)),
-            ..default()
-        },
+        liquid_sprites.puddle_sprite(&liquid),
+        liquid_sprites.puddle_frame_queue(&liquid),
         Visibility::Visible,
         Puddle(liquid),
         Collider::ellipse(3.5, 0.75),

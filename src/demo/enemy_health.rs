@@ -4,8 +4,10 @@ use bevy_turborand::{DelegatedRng, GlobalRng};
 
 use crate::{
     AppSystems, PausableSystems,
-    assets::game_assets::{self, HEALTH_BAR_WIDTH},
+    assets::{StatusSprites, game_assets::HEALTH_BAR_WIDTH},
     data::{Tower, TowerCollision, get_collision, projectiles::DamageType},
+    demo::enemy_movement::MovementDirection,
+    gameplay::shared_systems::Lifetime,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -71,7 +73,7 @@ impl EnemyHealth {
 }
 
 pub fn kill_at_0_health(
-    enemies: Query<(Entity, &EnemyHealth)>,
+    enemies: Query<(Entity, &EnemyHealth), Without<Lifetime>>,
     mut events: EventWriter<KillEnemy>,
 ) {
     for (entity, health) in enemies {
@@ -83,7 +85,7 @@ pub fn kill_at_0_health(
 
 pub fn do_kill_enemies(mut events: EventReader<KillEnemy>, mut commands: Commands) {
     for event in events.read() {
-        commands.entity(event.0).despawn();
+        commands.entity(event.0).insert(Lifetime::new(0.1));
     }
 }
 

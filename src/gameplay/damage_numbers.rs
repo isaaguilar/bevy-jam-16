@@ -41,7 +41,7 @@ pub fn show_damage_numbers(
             StateScoped(Screen::Gameplay),
             Text2d::new(((event.damage * 100.) as i32).to_string()),
             TextColor(event.damage_type.color()),
-            TextFont::from_font_size(18.0).with_font(BASE_FONT),
+            TextFont::from_font_size(18.0).with_font(TITLE_FONT),
             DamageNumber,
             DamageNumberLifetime {
                 timer: Timer::from_seconds(0.6, TimerMode::Once),
@@ -73,11 +73,8 @@ pub fn animate_damage_numbers(
 
         // Fade out
         let progress = lifetime.timer.elapsed_secs() / lifetime.timer.duration().as_secs_f32();
-        let alpha = 1.0 - progress.clamp(0.0, 1.0); // Clamp just in case        let alpha = 1.0 - progress;
+        let alpha = 1.0 - progress.clamp(0.0, 1.0); // Clamp just in case
         color.0.set_alpha(alpha);
-        // if let Some(section) = text.sections.get_mut(0) {
-        //     section.style.color.set_a(alpha);
-        // }
 
         // Despawn when done
         if lifetime.timer.finished() {
