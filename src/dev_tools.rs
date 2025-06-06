@@ -6,6 +6,7 @@ use bevy::{
 };
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
+use crate::data::PlayerState;
 use crate::{data::PointerInteractionState, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
@@ -19,6 +20,8 @@ pub(super) fn plugin(app: &mut App) {
         toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
     );
 
+    app.add_systems(Update, add_1k.run_if(input_just_pressed(KeyCode::KeyM)));
+
     app.add_plugins(EguiPlugin {
         enable_multipass_for_primary_context: true,
     });
@@ -29,4 +32,9 @@ const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
 
 fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
     options.toggle();
+}
+
+fn add_1k(mut player_state: ResMut<PlayerState>) {
+    player_state.money += 1000;
+    info!("Added $1000 to player state.");
 }

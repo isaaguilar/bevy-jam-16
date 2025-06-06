@@ -122,7 +122,6 @@ pub fn do_kill_enemies(
         commands.entity(event.0).insert(Lifetime::new(0.1));
         if let Ok(bounty) = bounty.get(event.0) {
             player_state.money += bounty.0;
-            println!("Enemy {:?} killed, giving {} bounty", event.0, bounty.0);
         }
     }
 }

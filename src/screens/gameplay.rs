@@ -1,8 +1,9 @@
 //! The screen state for the main gameplay.
 
-use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
-
+use crate::data::PointerInteractionState;
 use crate::{Pause, gameplay::level::spawn_level, menus::Menu, screens::Screen};
+use bevy::log::tracing_subscriber::filter::FilterExt;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_level);
@@ -15,6 +16,7 @@ pub(super) fn plugin(app: &mut App) {
             (pause, spawn_pause_overlay, open_pause_menu).run_if(
                 in_state(Screen::Gameplay)
                     .and(in_state(Menu::None))
+                    .and(in_state(PointerInteractionState::Selecting))
                     .and(input_just_pressed(KeyCode::KeyP).or(input_just_pressed(KeyCode::Escape))),
             ),
             close_menu.run_if(
