@@ -3,12 +3,13 @@ use bevy::{
     ecs::{
         entity::Entity,
         event::{Event, EventReader, EventWriter},
-        hierarchy::Children,
+        hierarchy::{ChildOf, Children},
         observer::Trigger,
         query::With,
         system::{Commands, Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
+    prelude::warn,
     reflect::Reflect,
     time::Time,
     transform::components::{GlobalTransform, Transform},
@@ -23,7 +24,11 @@ use crate::{
         },
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    level::components::{Architecture, pos},
+    gameplay::animation::AnimationFrameQueue,
+    level::{
+        components::{Architecture, Ceiling, Floor, Wall, pos},
+        resource::CellDirection,
+    },
     prefabs::attacks::{droplet, puddle},
 };
 
@@ -33,9 +38,13 @@ pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackEffect>);
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
 pub struct DropLiquid(pub Entity, pub LiquidType);
 
+#[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
+pub struct AnimateAttack(pub Entity);
+
 use super::common::{TowerFired, TowerTriggerRange};
 
 pub fn dispatch_attack_effects(
+    mut animate_attack_events: EventWriter<AnimateAttack>,
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
@@ -43,7 +52,13 @@ pub fn dispatch_attack_effects(
     ranges: Query<(), With<TowerTriggerRange>>,
 ) {
     for event in fire_events.read() {
-        let (tower, children, global_pos) = towers.get(event.0).unwrap();
+        let Ok((tower, children, global_pos)) = towers.get(event.0) else {
+            warn!("Tower not found in dispatch_attack_effects");
+            return;
+        };
+
+        animate_attack_events.write(AnimateAttack(event.0));
+
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
                 contact_events.write(AttackEnemiesInContact(
@@ -92,18 +107,48 @@ pub fn attack_contact_enemies(
     }
 }
 
+pub fn animate_attack(
+    mut events: EventReader<AnimateAttack>,
+    mut towers: Query<(&ChildOf, &mut AnimationFrameQueue, &Tower)>,
+    walls: Query<&Wall>,
+    floors: Query<(), With<Floor>>,
+    ceilings: Query<(), With<Ceiling>>,
+) {
+    for AnimateAttack(e) in events.read() {
+        let Ok((co, mut q, t)) = towers.get_mut(*e) else {
+            warn!("Tower not found in drop_liquids");
+            return;
+        };
+
+        let d = if let Ok(wall) = walls.get(co.0) {
+            match wall.0 {
+                crate::level::components::WallDirection::Left => CellDirection::Left,
+                crate::level::components::WallDirection::Right => CellDirection::Right,
+            }
+        } else if let Ok(_) = floors.get(co.0) {
+            CellDirection::Down
+        } else if let Ok(_) = ceilings.get(co.0) {
+            CellDirection::Up
+        } else {
+            CellDirection::Down
+        };
+
+        q.set_override(d.attack_frames(t));
+    }
+}
+
 pub fn drop_liquids(
     mut events: EventReader<DropLiquid>,
     mut commands: Commands,
     towers: Query<&GlobalTransform, With<Tower>>,
 ) {
     for DropLiquid(e, liquid) in events.read() {
-        let loc = towers
-            .get(*e)
-            .unwrap()
-            .to_scale_rotation_translation()
-            .2
-            .xy();
+        let Ok(global_transform) = towers.get(*e) else {
+            warn!("Tower not found in drop_liquids");
+            return;
+        };
+
+        let loc = global_transform.to_scale_rotation_translation().2.xy();
         commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
     }
 }
