@@ -19,7 +19,7 @@ pub trait StatusEffectTrait: 'static + Send + Sync + Reflect + Copy + Sized + Ty
     fn corresponding_enum() -> StatusEnum;
 }
 
-#[derive(Component, Eq, PartialEq, Debug, Reflect)]
+#[derive(Component, Eq, PartialEq, Debug, Reflect, Clone)]
 pub struct StatusEffect<T: StatusEffectTrait> {
     pub strength: usize,
     pub duration: Timer,
