@@ -74,7 +74,7 @@ pub fn periodic_damage<T: StatusEffectTrait>(dps: f32) -> ScheduleConfigs<Schedu
 
 pub fn animate_status_effect<T: StatusEffectTrait>(
     time: Res<Time>,
-    mut enemies: Query<(Entity, &mut Sprite)>,
+    mut enemies: Query<(Entity, &mut Sprite), With<StatusAnimation<T>>>,
 ) {
     for (entity, mut sprite) in enemies.iter_mut() {
         if let Some(atlas) = &mut sprite.texture_atlas {
