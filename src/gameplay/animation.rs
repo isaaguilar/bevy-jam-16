@@ -20,7 +20,7 @@ impl AnimationFrameQueue {
         Self {
             frames,
             frame_override: None,
-            current_index: frames[0],
+            current_index: 0,
             timer: Timer::from_seconds(FRAME_DURATION, TimerMode::Repeating),
         }
     }
@@ -59,7 +59,6 @@ impl AnimationFrameQueue {
                     self.current_index = 0;
                 }
             }
-
             sprite.index = active_frames[self.current_index];
         }
     }

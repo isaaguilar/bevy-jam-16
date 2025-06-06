@@ -1,6 +1,10 @@
-use bevy::prelude::*;
+use bevy::{
+    color::palettes::css::{AQUA, GREY, LIME, ORANGE, YELLOW},
+    prelude::*,
+};
+use std::sync::Arc;
 
-use super::StatusEffect;
+use super::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum};
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
 pub enum AttackType {
@@ -14,7 +18,7 @@ pub enum AttackType {
 pub enum AttackEffect {
     Damage(DamageType),
     Push,
-    Status(StatusEffect),
+    Status(StatusEnum),
 }
 
 #[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
@@ -40,13 +44,26 @@ pub enum DamageType {
 }
 
 impl DamageType {
-    pub fn status_effect(&self) -> StatusEffect {
+    pub fn color(&self) -> Color {
         match self {
-            DamageType::Physical => StatusEffect::Slowed,
-            DamageType::Burning => StatusEffect::Burned,
-            DamageType::Cold => StatusEffect::Frozen,
-            DamageType::Lightning => StatusEffect::Electrified,
-            DamageType::Chemical => StatusEffect::Acidic,
+            DamageType::Physical => GREY.into(),
+            DamageType::Burning => ORANGE.into(),
+            DamageType::Cold => AQUA.into(),
+            DamageType::Lightning => YELLOW.into(),
+            DamageType::Chemical => LIME.into(),
+        }
+    }
+}
+
+impl LiquidType {
+    pub fn contact_effects(&self) -> Vec<AttackEffect> {
+        match self {
+            LiquidType::Water => vec![AttackEffect::Status(StatusEnum::Wet)],
+            LiquidType::Oil => vec![AttackEffect::Status(StatusEnum::Oiled)],
+            LiquidType::Acid => vec![
+                AttackEffect::Damage(DamageType::Chemical),
+                AttackEffect::Status(StatusEnum::Acidified),
+            ],
         }
     }
 }

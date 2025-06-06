@@ -1,6 +1,6 @@
 use attacks::{
-    AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
-    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles,
+    ApplyAttackEffect, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
+    dispatch_attack_effects, do_tower_attacks,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -14,14 +14,21 @@ use bevy::{
 };
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
+use liquids::{
+    drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
+    timeout_lifetimes,
+};
 use std::f32;
 
+use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
 use crate::{
     PausableSystems,
     assets::TowerSprites,
     data::{
         Tower,
         projectiles::{Droplet, Puddle},
+        stats::MoveSpeed,
+        status_effects::Frozen,
     },
     level::{components::pos, resource::CellDirection},
     prefabs::{towers::tower, wizardry::add_observer_to_component},
@@ -32,6 +39,7 @@ use common::*;
 pub mod attacks;
 pub mod common;
 pub mod gravity_bullshit;
+pub mod liquids;
 pub mod tesla;
 
 pub(super) fn plugin(app: &mut App) {
@@ -44,13 +52,14 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_event::<DropLiquid>()
         .add_event::<TowerFired>()
+        .add_event::<ApplyAttackEffect>()
         .add_event::<AttackEnemiesInContact>();
 
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
         stop_dropping_puddles,
     ));
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
-        puddle_damage,
+        puddle_attacks,
     ));
     app.add_observer(add_observer_to_component::<Droplet, _, _, _, _>(
         splat_droplets,
@@ -59,11 +68,14 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
+            (status_debuff_multiplier::<Frozen, MoveSpeed>(0.)).in_set(StatSet::Modify),
+            (tick_lifetimes, timeout_lifetimes).chain(),
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,
-                dispatch_attack_effects,
+                do_tower_attacks,
                 (attack_contact_enemies, drop_liquids),
+                dispatch_attack_effects,
             )
                 .chain(),
         )

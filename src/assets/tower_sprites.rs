@@ -185,14 +185,14 @@ impl CellDirection {
             Tower::Flame => match self {
                 CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
                 CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
-                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
-                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
+                CellDirection::Left => &[33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
+                CellDirection::Right => &[33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
             },
             Tower::Oil => match self {
                 CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
-                CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
-                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
-                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+                CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
+                CellDirection::Left => &[33, 34, 35, 36],
+                CellDirection::Right => &[33, 34, 35, 36],
             },
             Tower::Fan => match self {
                 CellDirection::Down => &[1, 2, 3],
@@ -202,9 +202,9 @@ impl CellDirection {
             },
             Tower::Acid => match self {
                 CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
-                CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
-                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
-                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+                CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
+                CellDirection::Left => &[33, 34, 35, 36, 33],
+                CellDirection::Right => &[33, 34, 35, 36, 33],
             },
             _ => todo!(),
         }

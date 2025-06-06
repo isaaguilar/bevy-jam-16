@@ -45,11 +45,11 @@ pub fn spawn_rangedroppers(
 
 pub fn drop_ranges(
     droppers: Query<(Entity, &RayHits, &RangeDropper)>,
-    mut ranges: Query<(&GlobalTransform, &mut Transform)>,
+    mut ranges: Query<&mut Transform>,
     mut commands: Commands,
 ) {
     for (dropper, hits, RangeDropper(target_entity)) in droppers.iter() {
-        if let Ok((center_pos, mut pos)) = ranges.get_mut(*target_entity) {
+        if let Ok(mut pos) = ranges.get_mut(*target_entity) {
             let mut ray_iter = hits.iter_sorted();
             ray_iter.next();
             let floor = ray_iter.next();

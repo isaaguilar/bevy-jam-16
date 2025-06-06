@@ -1,9 +1,9 @@
-use crate::level::resource::CellDirection;
 use bevy::prelude::*;
 
 use super::{
     StatusEffect,
     projectiles::{AttackEffect, AttackType, DamageType, LiquidType},
+    status_effects::StatusEnum,
 };
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
@@ -129,7 +129,7 @@ impl Tower {
             Tower::TrapDoor => AttackType::ModifiesSelf,
             Tower::Ice => AttackType::EntireCell(vec![
                 AttackEffect::Damage(DamageType::Cold),
-                AttackEffect::Status(StatusEffect::Chilled),
+                AttackEffect::Status(StatusEnum::Chilled),
             ]),
             Tower::Acid => AttackType::DropsLiquid(LiquidType::Acid),
             Tower::Tesla => {

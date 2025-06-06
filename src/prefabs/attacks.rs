@@ -1,34 +1,18 @@
 use avian2d::prelude::{
     Collider, CollisionEventsEnabled, CollisionLayers, LinearVelocity, Mass, RigidBody, Sensor,
 };
-use bevy::{
-    color::{
-        Color,
-        palettes::css::{AQUA, BROWN, LIME},
-    },
-    math::Vec2,
-    render::view::Visibility,
-    sprite::Sprite,
-    utils::default,
-};
+use bevy::{ecs::system::Res, math::Vec2, render::view::Visibility};
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
 use super::physics::GamePhysicsLayer as GPL;
+use super::utils::{DropletSprite, PuddleSprite};
+use crate::assets::LiquidSprites;
 use crate::data::projectiles::{Droplet, LiquidType, Puddle};
 use crate::gameplay::shared_systems::Lifetime;
 
 pub fn droplet(liquid: LiquidType) -> ComponentTree {
     (
-        Sprite {
-            color: match liquid {
-                LiquidType::Water => AQUA,
-                LiquidType::Oil => BROWN,
-                LiquidType::Acid => LIME,
-            }
-            .into(),
-            custom_size: Some(Vec2::new(3., 3.)),
-            ..default()
-        },
+        DropletSprite(liquid),
         Visibility::Visible,
         Droplet(liquid),
         Collider::circle(1.5),
@@ -43,16 +27,7 @@ pub fn droplet(liquid: LiquidType) -> ComponentTree {
 
 pub fn puddle(liquid: LiquidType) -> ComponentTree {
     (
-        Sprite {
-            color: match liquid {
-                LiquidType::Water => AQUA,
-                LiquidType::Oil => BROWN,
-                LiquidType::Acid => LIME,
-            }
-            .into(),
-            custom_size: Some(Vec2::new(7., 1.5)),
-            ..default()
-        },
+        PuddleSprite(liquid),
         Visibility::Visible,
         Puddle(liquid),
         Collider::ellipse(3.5, 0.75),

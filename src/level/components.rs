@@ -90,7 +90,7 @@ impl LevelParent {
             ) + StartNode.store());
         let mut path_iter = path_iter.rev();
         let last_node = path_iter.next().unwrap();
-        let mut path_iter = path_iter.rev();
+        let path_iter = path_iter.rev();
 
         level = level
             << (node(

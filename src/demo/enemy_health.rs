@@ -1,29 +1,23 @@
-use crate::data::PlayerState;
-use crate::demo::enemy_movement::MovementDirection;
-use crate::gameplay::shared_systems::Lifetime;
-use crate::{
-    AppSystems, PausableSystems,
-    assets::{
-        StatusSprites,
-        game_assets::{self, HEALTH_BAR_WIDTH},
-    },
-    data::{
-        Ailments, StatusEffect, Tower, TowerCollision, get_ailment, get_collision,
-        projectiles::DamageType,
-    },
-};
 use avian2d::prelude::{OnCollisionEnd, OnCollisionStart};
 use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng};
+
+use crate::{
+    AppSystems, PausableSystems,
+    assets::{StatusSprites, game_assets::HEALTH_BAR_WIDTH},
+    data::{
+        PlayerState, StatusEffect, Tower, TowerCollision, get_collision, projectiles::DamageType,
+    },
+    demo::enemy_movement::MovementDirection,
+    gameplay::shared_systems::Lifetime,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
             active_tower_collision,
-            status_effect_ailments,
             update_health_bars,
-            animate_status_effects,
             (kill_at_0_health, do_kill_enemies).chain(),
             (try_enemy_damage, do_enemy_damage).chain(),
         )
@@ -35,10 +29,6 @@ pub(super) fn plugin(app: &mut App) {
         .add_event::<TryDamageToEnemy>();
     app.add_observer(start_collision_damage_event);
     app.add_observer(stop_collision_damage_event);
-    app.add_observer(display_status);
-    // Debug picker helpers
-    //app.add_observer(pick_enemy_to_do_damage_example);
-    // app.add_observer(pick_enemy_to_add_status_example);
 }
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
@@ -82,19 +72,6 @@ pub struct RecordDamage {
     max: f32,
 }
 
-#[derive(Event, Debug)]
-pub struct DisplayStatusEvent {
-    status_effect: StatusEffect,
-    timer: StatusAnimationTimer,
-    ttl: StatusAnimationTtl,
-}
-
-#[derive(Component, Clone, Debug)]
-pub struct StatusAnimationTimer(Timer);
-
-#[derive(Component, Clone, Debug)]
-pub struct StatusAnimationTtl(Timer);
-
 impl EnemyHealth {
     pub fn new() -> Self {
         Self(1.0)
@@ -122,36 +99,6 @@ pub fn do_kill_enemies(
         commands.entity(event.0).insert(Lifetime::new(0.1));
         if let Ok(bounty) = bounty.get(event.0) {
             player_state.money += bounty.0;
-        }
-    }
-}
-
-pub fn animate_status_effects(
-    time: Res<Time>,
-    mut statuses: Query<(
-        Entity,
-        &mut Sprite,
-        &mut StatusAnimationTimer,
-        &mut StatusAnimationTtl,
-    )>,
-    mut commands: Commands,
-) {
-    for (entity, mut sprite, mut timer, mut ttl) in statuses.iter_mut() {
-        ttl.0.tick(time.delta());
-        if ttl.0.just_finished() || ttl.0.finished() {
-            commands.entity(entity).despawn();
-            continue;
-        }
-        timer.0.tick(time.delta());
-        if timer.0.just_finished() {
-            let Some(atlas) = &mut sprite.texture_atlas else {
-                continue;
-            };
-            if atlas.index >= 5 {
-                atlas.index = 0
-            } else {
-                atlas.index += 1
-            }
         }
     }
 }
@@ -226,33 +173,6 @@ fn active_tower_collision(
     }
 }
 
-// This is the timer function that deals damage when an ailment is present
-fn status_effect_ailments(
-    time: Res<Time>,
-    mut enemies: Query<(Entity, &mut Ailments)>,
-    mut commands: Commands,
-) {
-    for (entity, mut ailments) in enemies.iter_mut() {
-        ailments.damage_timer.tick(time.delta());
-        if ailments.damage_timer.just_finished() {
-            commands.trigger_targets(
-                RecordDamage {
-                    min: ailments.min_damage,
-                    max: ailments.max_damage,
-                },
-                entity,
-            );
-        }
-
-        if !ailments.ailment_timer.finished() {
-            ailments.ailment_timer.tick(time.delta());
-        } else {
-            commands.entity(entity).remove::<StatusEffect>();
-            commands.entity(entity).remove::<Ailments>();
-        }
-    }
-}
-
 // An ailment is triggered on a timer
 pub fn try_enemy_damage(
     mut attempts: EventReader<TryDamageToEnemy>,
@@ -287,31 +207,4 @@ pub fn do_enemy_damage(
             return;
         };
     }
-}
-
-pub fn display_status(
-    trigger: Trigger<DisplayStatusEvent>,
-    statuses: Query<(Entity, &ChildOf), With<StatusAnimationTtl>>,
-
-    sprites: Option<Res<StatusSprites>>,
-    mut commands: Commands,
-) {
-    let sprites = sprites.expect("GameAssets should be available");
-    let e = trigger.target();
-    for (entity, parent) in statuses.iter() {
-        if parent.0 == e {
-            commands.entity(entity).despawn();
-        }
-    }
-
-    let status_sprite_bundle = sprites.status_bundle(&trigger.status_effect);
-
-    commands.entity(e).with_children(|p| {
-        p.spawn((
-            trigger.timer.clone(),
-            trigger.ttl.clone(),
-            status_sprite_bundle,
-            Transform::from_translation(Vec3::new(15.0, 12.0, 1.0)),
-        ));
-    });
 }
