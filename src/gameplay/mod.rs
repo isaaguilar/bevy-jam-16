@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod animation;
+mod damage_numbers;
 pub mod hotbar;
 pub mod hud;
 pub mod level;

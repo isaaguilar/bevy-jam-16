@@ -142,7 +142,7 @@ fn spawn_camera(mut commands: Commands) {
 fn cameraman(
     mut camera: Query<&mut Transform, With<Camera2d>>,
     mut mouse_wheel_events: EventReader<MouseWheel>,
-
+    keys: Res<ButtonInput<KeyCode>>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
 ) {
@@ -150,22 +150,41 @@ fn cameraman(
         return;
     };
 
-    if mouse_button_input.pressed(MouseButton::Right) {
+    if mouse_button_input.any_pressed([MouseButton::Right, MouseButton::Middle]) {
         let delta = accumulated_mouse_motion.delta;
-        camera_transform.translation += Vec2::new(-delta.x / 100., delta.y / 100.).extend(0.0);
+        camera_transform.translation += Vec2::new(-delta.x / 50., delta.y / 50.).extend(0.0);
     }
 
     for mouse_wheel_event in mouse_wheel_events.read() {
-        let dy = match mouse_wheel_event.unit {
-            MouseScrollUnit::Line => mouse_wheel_event.y,
-            MouseScrollUnit::Pixel => mouse_wheel_event.y,
-        };
+        match mouse_wheel_event.unit {
+            MouseScrollUnit::Line => {
+                // Case 1: Use is using a scroll wheel
+                let dy = mouse_wheel_event.y;
+                camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
+                if camera_transform.scale.x > 2.5 {
+                    camera_transform.scale = Vec2::splat(2.5).extend(1.);
+                } else if camera_transform.scale.x < 0.5 {
+                    camera_transform.scale = Vec2::splat(0.5).extend(1.);
+                }
+            }
+            MouseScrollUnit::Pixel => {
+                // This is trackpad-like behavior. Use shift to zoom, else follow
+                // trackpad as camera translation
+                let dy = mouse_wheel_event.y;
+                let dx = mouse_wheel_event.x;
 
-        camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
-        if camera_transform.scale.x > 2.5 {
-            camera_transform.scale = Vec2::splat(2.5).extend(1.);
-        } else if camera_transform.scale.x < 0.5 {
-            camera_transform.scale = Vec2::splat(0.5).extend(1.);
+                if keys.pressed(KeyCode::ShiftLeft) {
+                    camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
+                    if camera_transform.scale.x > 2.5 {
+                        camera_transform.scale = Vec2::splat(2.5).extend(1.);
+                    } else if camera_transform.scale.x < 0.5 {
+                        camera_transform.scale = Vec2::splat(0.5).extend(1.);
+                    }
+                    // Space was pressed
+                } else {
+                    camera_transform.translation += Vec2::new(-dx / 50., dy / 50.).extend(0.0);
+                }
+            }
         }
     }
 }

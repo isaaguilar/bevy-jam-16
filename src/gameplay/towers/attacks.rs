@@ -1,23 +1,31 @@
-use avian2d::prelude::Collisions;
+use avian2d::prelude::{Collisions, OnCollisionStart, Sensor};
 use bevy::{
     ecs::{
         entity::Entity,
         event::{Event, EventReader, EventWriter},
         hierarchy::Children,
+        observer::Trigger,
         query::With,
-        system::Query,
+        system::{Commands, Query},
     },
+    math::{Vec2, Vec3Swizzles},
+    prelude::warn,
     reflect::Reflect,
-    transform::components::GlobalTransform,
+    transform::components::{GlobalTransform, Transform},
 };
 
 use crate::{
     data::{
         Tower,
-        projectiles::{AttackEffect, AttackType, LiquidType},
+        projectiles::{AttackEffect, AttackType, Droplet, LiquidType},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    gameplay::status_effects::common::TryApplyStatus,
+    gameplay::{animation::AnimationFrameQueue, status_effects::common::TryApplyStatus},
+    level::{
+        components::{Architecture, pos},
+        resource::CellDirection,
+    },
+    prefabs::attacks::{droplet, puddle},
 };
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
@@ -39,11 +47,25 @@ pub fn do_tower_attacks(
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
-    towers: Query<(&Tower, &Children, &GlobalTransform)>,
+    mut towers: Query<(
+        &Tower,
+        &Children,
+        &GlobalTransform,
+        &CellDirection,
+        &mut AnimationFrameQueue,
+    )>,
     ranges: Query<(), With<TowerTriggerRange>>,
 ) {
     for event in fire_events.read() {
-        let (tower, children, global_pos) = towers.get(event.0).unwrap();
+        let Ok((tower, children, global_pos, cell_direction, mut animation)) =
+            towers.get_mut(event.0)
+        else {
+            warn!("Tower not found in dispatch_attack_effects");
+            return;
+        };
+
+        animation.set_override(cell_direction.attack_frames(&tower));
+
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
                 contact_events.write(AttackEnemiesInContact(
@@ -91,6 +113,41 @@ pub fn dispatch_attack_effects(
                     strength: 1, // TODO: Update with strength system
                 });
             }
+        }
+    }
+}
+
+pub fn drop_liquids(
+    mut events: EventReader<DropLiquid>,
+    mut commands: Commands,
+    towers: Query<&GlobalTransform, With<Tower>>,
+) {
+    for DropLiquid(e, liquid) in events.read() {
+        let Ok(global_transform) = towers.get(*e) else {
+            warn!("Tower not found in drop_liquids");
+            return;
+        };
+
+        let loc = global_transform.to_scale_rotation_translation().2.xy();
+        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
+    }
+}
+
+pub fn splat_droplets(
+    trigger: Trigger<OnCollisionStart>,
+    sensors: Query<(), With<Sensor>>,
+    droplets: Query<(&Transform, &Droplet)>,
+    mut commands: Commands,
+) {
+    let droplet = trigger.target();
+    let other = trigger.collider;
+
+    // We don't want droplets to do things when they hit sensors
+    if sensors.get(other).is_err() {
+        if let Ok((transform, Droplet(liquid))) = droplets.get(droplet) {
+            let loc = transform.translation;
+            commands.entity(droplet).despawn();
+            commands.compose(puddle(*liquid) + pos(loc.x, loc.y));
         }
     }
 }
