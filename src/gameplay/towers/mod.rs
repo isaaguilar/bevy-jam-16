@@ -1,7 +1,7 @@
 use attacks::{
-    AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
-    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles, tick_lifetimes,
-    timeout_lifetimes,
+    ApplyAttackEffect, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
+    dispatch_attack_effects, do_tower_attacks, drop_liquids, puddle_damage, splat_droplets,
+    stop_dropping_puddles, tick_lifetimes, timeout_lifetimes,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -45,6 +45,7 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_event::<DropLiquid>()
         .add_event::<TowerFired>()
+        .add_event::<ApplyAttackEffect>()
         .add_event::<AttackEnemiesInContact>();
 
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
@@ -64,8 +65,9 @@ pub(super) fn plugin(app: &mut App) {
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,
-                dispatch_attack_effects,
+                do_tower_attacks,
                 (attack_contact_enemies, drop_liquids),
+                dispatch_attack_effects,
             )
                 .chain(),
         )

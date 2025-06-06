@@ -29,6 +29,13 @@ use crate::{
 };
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
+pub struct ApplyAttackEffect {
+    pub target: Entity,
+    pub source: Entity,
+    pub effect: AttackEffect,
+}
+
+#[derive(Event, Reflect, Debug, PartialEq, Clone)]
 pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackEffect>);
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
@@ -36,7 +43,7 @@ pub struct DropLiquid(pub Entity, pub LiquidType);
 
 use super::common::{TowerFired, TowerTriggerRange};
 
-pub fn dispatch_attack_effects(
+pub fn do_tower_attacks(
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
@@ -65,10 +72,40 @@ pub fn dispatch_attack_effects(
     }
 }
 
-pub fn attack_contact_enemies(
-    mut events: EventReader<AttackEnemiesInContact>,
+pub fn dispatch_attack_effects(
+    mut attackeffect_events: EventReader<ApplyAttackEffect>,
     mut damage_events: EventWriter<TryDamageToEnemy>,
     mut status_events: EventWriter<TryApplyStatus>,
+) {
+    for (ApplyAttackEffect {
+        target,
+        source,
+        effect,
+    }) in attackeffect_events.read()
+    {
+        match effect {
+            AttackEffect::Damage(damage_type) => {
+                damage_events.write(TryDamageToEnemy {
+                    damage_range: (0.05, 0.1), // TODO: Add damage details
+                    damage_type: *damage_type,
+                    enemy: *target,
+                });
+            }
+            AttackEffect::Push => todo!(),
+            AttackEffect::Status(status_effect) => {
+                status_events.write(TryApplyStatus {
+                    status: *status_effect,
+                    enemy: *target,
+                    strength: 1, // TODO: Update with strength system
+                });
+            }
+        }
+    }
+}
+
+pub fn attack_contact_enemies(
+    mut events: EventReader<AttackEnemiesInContact>,
+    mut attack_events: EventWriter<ApplyAttackEffect>,
     collisions: Collisions,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
@@ -78,26 +115,12 @@ pub fn attack_contact_enemies(
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
         for effect in damage_def {
-            match effect {
-                AttackEffect::Damage(damage_type) => {
-                    for enemy in &enemies {
-                        damage_events.write(TryDamageToEnemy {
-                            damage_range: (0.05, 0.1), // TODO: Add damage details
-                            damage_type: *damage_type,
-                            enemy: *enemy,
-                        });
-                    }
-                }
-                AttackEffect::Push => todo!(),
-                AttackEffect::Status(status_effect) => {
-                    for enemy in &enemies {
-                        status_events.write(TryApplyStatus {
-                            status: *status_effect,
-                            enemy: *enemy,
-                            strength: 1, // TODO: Update with strength system
-                        });
-                    }
-                }
+            for enemy in &enemies {
+                attack_events.write(ApplyAttackEffect {
+                    target: *enemy,
+                    source: sensor_entity,
+                    effect: effect.clone(),
+                });
             }
         }
     }
