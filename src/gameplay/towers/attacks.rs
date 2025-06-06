@@ -23,6 +23,7 @@ use crate::{
         },
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
+    gameplay::status_effects::common::TryApplyStatus,
     level::components::{Architecture, pos},
     prefabs::attacks::{droplet, puddle},
 };
@@ -67,26 +68,36 @@ pub fn dispatch_attack_effects(
 pub fn attack_contact_enemies(
     mut events: EventReader<AttackEnemiesInContact>,
     mut damage_events: EventWriter<TryDamageToEnemy>,
+    mut status_events: EventWriter<TryApplyStatus>,
     collisions: Collisions,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
     for &AttackEnemiesInContact(sensor_entity, ref damage_def) in events.read() {
+        let enemies: Vec<_> = collisions
+            .entities_colliding_with(sensor_entity)
+            .filter(|w| enemies.get(*w).is_ok())
+            .collect();
         for effect in damage_def {
             match effect {
                 AttackEffect::Damage(damage_type) => {
-                    let enemies = collisions
-                        .entities_colliding_with(sensor_entity)
-                        .filter(|w| enemies.get(*w).is_ok());
-                    for enemy in enemies {
+                    for enemy in &enemies {
                         damage_events.write(TryDamageToEnemy {
                             damage_range: (0.05, 0.1), // TODO: Add damage details
                             damage_type: *damage_type,
-                            enemy: enemy,
+                            enemy: *enemy,
                         });
                     }
                 }
                 AttackEffect::Push => todo!(),
-                AttackEffect::Status(status_effect) => todo!(),
+                AttackEffect::Status(status_effect) => {
+                    for enemy in &enemies {
+                        status_events.write(TryApplyStatus {
+                            status: *status_effect,
+                            enemy: *enemy,
+                            strength: 1, // TODO: Update with strength system
+                        });
+                    }
+                }
             }
         }
     }
