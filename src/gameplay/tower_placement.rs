@@ -131,6 +131,8 @@ fn click_tower(
     mut place_events: EventWriter<PlaceTower>,
     input: Res<ButtonInput<KeyCode>>,
     mut player_state: ResMut<PlayerState>,
+    relationships: Query<&Children>,
+    towers: Query<(), With<Tower>>,
 ) {
     match **pointer_input_state {
         PointerInteractionState::Selecting => {
@@ -151,6 +153,15 @@ fn click_tower(
             if tower.price() > player_state.money {
                 info!("Not enough money to place tower!");
                 return;
+            }
+
+            if let Ok(children) = relationships.get(entity) {
+                for child in children {
+                    if let Ok(_) = towers.get(*child) {
+                        info!("Cannot place another tower here!");
+                        return;
+                    }
+                }
             }
 
             player_state.money -= tower.price();
