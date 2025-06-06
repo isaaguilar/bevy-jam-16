@@ -19,9 +19,7 @@ use bevy_composable::app_impl::ComplexSpawnable;
 use crate::{
     data::{
         Tower,
-        projectiles::{
-            AttackEffect, AttackType, DamageType, Droplet, Lifetime, LiquidType, Puddle,
-        },
+        projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::animation::AnimationFrameQueue,
@@ -177,20 +175,6 @@ pub fn stop_dropping_puddles(
     if level_parts.get(other).is_ok() {
         if let Ok(mut vel) = droplets.get_mut(puddle) {
             vel.0 = Vec2::ZERO;
-        }
-    }
-}
-
-pub fn tick_lifetimes(mut lifetimes: Query<&mut Lifetime>, time: Res<Time>) {
-    for mut lifetime in lifetimes.iter_mut() {
-        lifetime.0.tick(time.delta());
-    }
-}
-
-pub fn timeout_lifetimes(mut commands: Commands, lifetimes: Query<(Entity, &Lifetime)>) {
-    for (e, lifetime) in lifetimes.iter() {
-        if lifetime.0.finished() {
-            commands.entity(e).despawn();
         }
     }
 }

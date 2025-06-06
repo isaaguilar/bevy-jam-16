@@ -1,7 +1,6 @@
 use attacks::{
     AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
-    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles, tick_lifetimes,
-    timeout_lifetimes,
+    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -22,7 +21,7 @@ use crate::{
     assets::TowerSprites,
     data::{
         Tower,
-        projectiles::{Droplet, Lifetime, Puddle},
+        projectiles::{Droplet, Puddle},
     },
     level::{components::pos, resource::CellDirection},
     prefabs::{towers::tower, wizardry::add_observer_to_component},
@@ -60,7 +59,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            (tick_lifetimes, timeout_lifetimes).chain(),
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,

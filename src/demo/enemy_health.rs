@@ -1,12 +1,9 @@
-use avian2d::prelude::{OnCollisionEnd, OnCollisionStart};
-use bevy::prelude::*;
-use bevy_turborand::{DelegatedRng, GlobalRng};
-use rand::Rng;
-
+use crate::demo::enemy_movement::MovementDirection;
+use crate::gameplay::shared_systems::Lifetime;
 use crate::{
     AppSystems, PausableSystems,
     assets::{
-        GameAssets, StatusSprites,
+        StatusSprites,
         game_assets::{self, HEALTH_BAR_WIDTH},
     },
     data::{
@@ -14,6 +11,9 @@ use crate::{
         projectiles::DamageType,
     },
 };
+use avian2d::prelude::{OnCollisionEnd, OnCollisionStart};
+use bevy::prelude::*;
+use bevy_turborand::{DelegatedRng, GlobalRng};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -97,7 +97,7 @@ impl EnemyHealth {
 }
 
 pub fn kill_at_0_health(
-    enemies: Query<(Entity, &EnemyHealth)>,
+    enemies: Query<(Entity, &EnemyHealth), Without<Lifetime>>,
     mut events: EventWriter<KillEnemy>,
 ) {
     for (entity, health) in enemies {
@@ -109,7 +109,7 @@ pub fn kill_at_0_health(
 
 pub fn do_kill_enemies(mut events: EventReader<KillEnemy>, mut commands: Commands) {
     for event in events.read() {
-        commands.entity(event.0).despawn();
+        commands.entity(event.0).insert(Lifetime::new(0.1));
     }
 }
 
