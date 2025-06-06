@@ -28,9 +28,7 @@ pub fn tick_lifetimes(mut lifetimes: Query<&mut Lifetime>, time: Res<Time>) {
 
 pub fn timeout_lifetimes(mut commands: Commands, lifetimes: Query<(Entity, &Lifetime)>) {
     for (e, lifetime) in lifetimes.iter() {
-        println!("checking lifetime: {:?}", lifetime.0.remaining());
         if lifetime.0.finished() {
-            println!("Despawn Entity: {:?}", e);
             commands.entity(e).despawn();
         }
     }
