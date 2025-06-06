@@ -13,6 +13,7 @@ use bevy::{
     reflect::Reflect,
     transform::components::{GlobalTransform, Transform},
 };
+use bevy_composable::app_impl::ComplexSpawnable;
 
 use crate::{
     data::{
