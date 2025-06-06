@@ -33,9 +33,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
         (
-            periodic_damage::<Ignited>(0.2),
-            periodic_damage::<Burned>(0.1),
-            periodic_damage::<Acidified>(0.1),
+            periodic_damage::<Ignited>(20),
+            periodic_damage::<Burned>(10),
+            periodic_damage::<Acidified>(10),
+            periodic_damage::<Chilled>(6),
         ),
     );
 

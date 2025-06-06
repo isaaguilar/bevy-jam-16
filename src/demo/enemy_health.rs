@@ -32,7 +32,10 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
-pub struct EnemyHealth(pub f32);
+pub struct EnemyHealth {
+    max: isize,
+    current: isize,
+}
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 /// Gives money when the entity is killed
@@ -51,14 +54,14 @@ pub struct RecordInitCollisionDamage {
 
 #[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
 pub struct TryDamageToEnemy {
-    pub damage_range: (f32, f32),
+    pub damage: isize,
     pub damage_type: DamageType,
     pub enemy: Entity,
 }
 
 #[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
 pub struct DoDamageToEnemy {
-    pub damage: f32,
+    pub damage: isize,
     pub damage_type: DamageType,
     pub enemy: Entity,
 }
@@ -66,24 +69,14 @@ pub struct DoDamageToEnemy {
 #[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
 pub struct KillEnemy(pub Entity);
 
-#[derive(Event, Debug)]
-pub struct RecordDamage {
-    min: f32,
-    max: f32,
-}
-
-impl EnemyHealth {
-    pub fn new() -> Self {
-        Self(1.0)
-    }
-}
+pub const DAMAGE_VARIANCE: f32 = 0.15;
 
 pub fn kill_at_0_health(
     enemies: Query<(Entity, &EnemyHealth), Without<Lifetime>>,
     mut events: EventWriter<KillEnemy>,
 ) {
     for (entity, health) in enemies {
-        if health.0 <= 0.0 {
+        if health.current <= 0 {
             events.write(KillEnemy(entity));
         }
     }
@@ -119,8 +112,9 @@ pub fn update_health_bars(
             continue;
         };
 
-        transform.scale.x = enemy.0;
-        transform.translation.x = -(HEALTH_BAR_WIDTH * (1.0 - enemy.0)) / 2.0;
+        transform.scale.x = (enemy.current as f32) / (enemy.current as f32);
+        transform.translation.x =
+            -(HEALTH_BAR_WIDTH * ((enemy.max - enemy.current) as f32 / (enemy.max as f32))) / 2.0;
     }
 }
 
@@ -138,7 +132,7 @@ fn start_collision_damage_event(
         if let Some(collision) = tower_collision {
             // Perform a immediate damage hit
             damage_events.write(TryDamageToEnemy {
-                damage_range: (collision.min_damage, collision.max_damage),
+                damage: collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: enemy_target,
             });
@@ -165,7 +159,7 @@ fn active_tower_collision(
         tower_collision.iframe.tick(time.delta());
         if tower_collision.iframe.just_finished() {
             damage_events.write(TryDamageToEnemy {
-                damage_range: (tower_collision.min_damage, tower_collision.max_damage),
+                damage: tower_collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: entity,
             });
@@ -180,8 +174,9 @@ pub fn try_enemy_damage(
     mut rng: ResMut<GlobalRng>,
 ) {
     for event in attempts.read() {
-        let damage =
-            rng.f32() * (event.damage_range.1 - event.damage_range.0) + event.damage_range.0;
+        let damage: isize = (rng.f32_normalized() * (event.damage as f32) * DAMAGE_VARIANCE)
+            as isize
+            + event.damage;
         // TODO: I-Frame logic, which is how damage can fail
         // TODO: Elemental resistances and weaknesses from current status effects
         successes.write(DoDamageToEnemy {
@@ -198,13 +193,22 @@ pub fn do_enemy_damage(
 ) {
     for event in events.read() {
         if let Ok(mut health) = enemies.get_mut(event.enemy) {
-            health.0 -= event.damage;
-            health.0 = health.0.clamp(0.0, 1.0);
+            health.current -= event.damage;
+            health.current = health.current.clamp(0, 1000);
 
-            debug!("Enemy {:?} has {} health", event.enemy, health.0);
+            debug!("Enemy {:?} has {} health", event.enemy, health.current);
         } else {
             warn!(target=?event.enemy, "Enemy target not found");
             return;
         };
+    }
+}
+
+impl EnemyHealth {
+    pub fn new(health: isize) -> Self {
+        Self {
+            max: health,
+            current: health,
+        }
     }
 }

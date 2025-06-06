@@ -74,7 +74,7 @@ pub fn enemy_requirements(size: Vec2, speed: f32, bounty: i32) -> ComponentTree 
     (
         StateScoped(Screen::Gameplay),
         Bounty(bounty),
-        EnemyHealth::new(),
+        EnemyHealth::new(100),
         MovementDirection::default(),
         RigidBody::Dynamic,
         Visibility::Hidden,
