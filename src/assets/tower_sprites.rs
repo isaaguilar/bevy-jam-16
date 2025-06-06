@@ -12,9 +12,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 1))]
     piston_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/fan.png")]
+    #[asset(path = "images/towers/fan2.png")]
     fan_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 2, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 2))]
     fan_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/spikes.png")]
@@ -22,9 +22,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
     spike_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/oil.png")]
+    #[asset(path = "images/towers/oil2.png")]
     oil_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 2, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6))]
     oil_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/tesla.png")]
@@ -37,14 +37,14 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 6))]
     water_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/acid.png")]
+    #[asset(path = "images/towers/acid2.png")]
     acid_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 3, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6))]
     acid_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/fire.png")]
+    #[asset(path = "images/towers/fire2.png")]
     flame_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 3, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6))]
     flame_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/portal.png")]
@@ -52,9 +52,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
     portal_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/ice.png")]
+    #[asset(path = "images/towers/freeze.png")]
     ice_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6))]
     ice_layout: Handle<TextureAtlasLayout>,
 }
 
@@ -81,7 +81,17 @@ impl TowerSprites {
         let idle_frames = direction.idle_frames(tower);
         let mut animation_controller = AnimationFrameQueue::new(idle_frames);
 
-        if tower == &Tower::Tesla || tower == &Tower::Water {
+        if [
+            Tower::Tesla,
+            Tower::Water,
+            Tower::Flame,
+            Tower::Acid,
+            Tower::Ice,
+            Tower::Oil,
+            Tower::Fan,
+        ]
+        .contains(tower)
+        {
             animation_controller.set_override(direction.attack_frames(tower));
         }
 
@@ -104,9 +114,19 @@ impl CellDirection {
     pub fn idle_frames(&self, tower: &Tower) -> &'static [usize] {
         match tower {
             Tower::Piston => &[0, 1, 2, 3, 4, 5, 5, 5],
-            Tower::Fan => &[0, 1],
+            Tower::Fan => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[4],
+                CellDirection::Left => &[8],
+                CellDirection::Right => &[8],
+            },
             Tower::SpikePit => &[0],
-            Tower::Oil => &[0, 1],
+            Tower::Oil => match self {
+                CellDirection::Down => &[0, 1, 2, 3, 4, 5, 6],
+                CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
+                CellDirection::Left => &[33],
+                CellDirection::Right => &[33],
+            },
             Tower::TrapDoor => &[0],
             Tower::Tesla => match self {
                 CellDirection::Down => &[0, 1, 2, 3, 4],
@@ -120,10 +140,25 @@ impl CellDirection {
                 CellDirection::Left => &[24],
                 CellDirection::Right => &[24],
             },
-            Tower::Acid => &[0, 1, 2],
-            Tower::Flame => &[0, 1, 2],
+            Tower::Acid => match self {
+                CellDirection::Down => &[0, 1, 2, 3, 4, 5, 6],
+                CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
+                CellDirection::Left => &[33],
+                CellDirection::Right => &[33],
+            },
+            Tower::Flame => match self {
+                CellDirection::Down => &[0, 1, 2, 3, 4, 5, 6],
+                CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
+                CellDirection::Left => &[33],
+                CellDirection::Right => &[33],
+            },
             Tower::Portal => &[0],
-            Tower::Ice => &[0],
+            Tower::Ice => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[7],
+                CellDirection::Left => &[14],
+                CellDirection::Right => &[14],
+            },
         }
     }
 
@@ -140,6 +175,36 @@ impl CellDirection {
                 CellDirection::Up => &[18, 19, 20, 21, 22],
                 CellDirection::Left => &[30, 31, 32, 33, 34],
                 CellDirection::Right => &[30, 31, 32, 33, 34],
+            },
+            Tower::Ice => match self {
+                CellDirection::Down => &[1, 2, 3, 4, 5, 6],
+                CellDirection::Up => &[8, 9, 10, 11, 12, 13],
+                CellDirection::Left => &[15, 16, 17, 18, 19, 20],
+                CellDirection::Right => &[15, 16, 17, 18, 19, 20],
+            },
+            Tower::Flame => match self {
+                CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
+                CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
+                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44],
+            },
+            Tower::Oil => match self {
+                CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
+                CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+            },
+            Tower::Fan => match self {
+                CellDirection::Down => &[1, 2, 3],
+                CellDirection::Up => &[5, 6, 7],
+                CellDirection::Left => &[9, 10, 11],
+                CellDirection::Right => &[9, 10, 11],
+            },
+            Tower::Acid => match self {
+                CellDirection::Down => &[7, 8, 9, 10, 11, 12, 13],
+                CellDirection::Up => &[23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+                CellDirection::Left => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+                CellDirection::Right => &[34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
             },
             _ => todo!(),
         }
