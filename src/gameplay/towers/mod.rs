@@ -1,7 +1,7 @@
 use attacks::{
-    AnimateAttack, AttackEnemiesInContact, DropLiquid, animate_attack, attack_contact_enemies,
-    dispatch_attack_effects, drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles,
-    tick_lifetimes, timeout_lifetimes,
+    AttackEnemiesInContact, DropLiquid, attack_contact_enemies, dispatch_attack_effects,
+    drop_liquids, puddle_damage, splat_droplets, stop_dropping_puddles, tick_lifetimes,
+    timeout_lifetimes,
 };
 use bevy::{
     app::{App, FixedUpdate, Update},
@@ -44,7 +44,6 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<RangeDropper>();
 
     app.add_event::<DropLiquid>()
-        .add_event::<AnimateAttack>()
         .add_event::<TowerFired>()
         .add_event::<AttackEnemiesInContact>();
 
@@ -66,7 +65,7 @@ pub(super) fn plugin(app: &mut App) {
             (
                 towers_fire,
                 dispatch_attack_effects,
-                (attack_contact_enemies, drop_liquids, animate_attack),
+                (attack_contact_enemies, drop_liquids),
             )
                 .chain(),
         )
