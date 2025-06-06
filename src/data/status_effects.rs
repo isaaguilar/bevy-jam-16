@@ -5,7 +5,7 @@ use bevy::{color::palettes::css::*, prelude::*};
 
 use super::projectiles::DamageType;
 
-pub trait StatusEffectTrait: 'static + Send + Sync + Reflect + Copy + Sized {
+pub trait StatusEffectTrait: 'static + Send + Sync + Reflect + Copy + Sized + TypePath {
     fn name() -> &'static str;
     fn color() -> Color;
     fn ui_text() -> impl Bundle {
