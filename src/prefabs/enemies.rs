@@ -1,59 +1,51 @@
-use avian2d::prelude::{
-    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
-    ShapeCaster,
-};
-use bevy::{
-    color::palettes::basic::*,
-    math::{Vec2, Vec3},
-    prelude::*,
-    render::view::Visibility,
-    state::state_scoped::StateScoped,
-    transform::components::Transform,
-};
-
-use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
-use std::default::Default;
-
 use super::{
     physics::GamePhysicsLayer as GPL,
     utils::{color, image, layout, mesh},
 };
+use crate::demo::enemy_health::Bounty;
 use crate::{
-    assets::{GameAssets, game_assets},
+    assets::GameAssets,
     demo::{
-        enemy_health::{self, EnemyHealth, EnemyHealthBar},
-        enemy_movement::{MovementAcceleration, MovementBundle, MovementDirection},
+        enemy_health::{EnemyHealth, EnemyHealthBar},
+        enemy_movement::{MovementAcceleration, MovementDirection},
     },
     gameplay::animation::AnimationFrameQueue,
-    level::components::pos,
     screens::Screen,
 };
+use avian2d::prelude::{
+    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
+};
+use bevy::prelude::*;
+use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
+use std::default::Default;
 
 pub fn basic_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[8, 9, 10, 11, 12, 13, 14]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35.)
+    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35., 10)
         << (Transform::from_scale(Vec3::splat(0.11)).store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
+            + Bounty(10).store()
             + Pickable::default().store()
             << health_bar(24.))
 }
 
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
-    name("Major Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25.)
+    name("Major Trooper") + enemy_requirements(Vec2::new(4., 5.0), 25., 20)
         << (Transform::from_scale(Vec3::splat(0.16)).store()
             + animation.store()
             + image(GameAssets::troopers)
             + layout(GameAssets::troopers_layout)
             + Pickable::default().store()
+            + Bounty(20).store()
             << health_bar(24.))
 }
 
 pub fn turbo_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7]);
-    name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45.)
+    name("Turbo Trooper") + enemy_requirements(Vec2::new(2., 3.), 45., 15)
         << (Transform::from_scale(Vec3::splat(0.10)).store()
             + animation.store()
             + image(GameAssets::troopers)
@@ -62,10 +54,11 @@ pub fn turbo_trooper() -> ComponentTree {
             << health_bar(24.))
 }
 
-pub fn enemy_requirements(size: Vec2, speed: f32) -> ComponentTree {
+pub fn enemy_requirements(size: Vec2, speed: f32, bounty: i32) -> ComponentTree {
     (
         // Transform::from_scale(Vec3::splat(scale)),
         StateScoped(Screen::Gameplay),
+        Bounty(bounty),
         EnemyHealth::new(),
         MovementDirection::default(),
         RigidBody::Dynamic,

@@ -179,6 +179,7 @@ fn on_press_hotbar(
     current_pointer_input_state: Res<State<PointerInteractionState>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
     mut tile_query: Query<(&Interaction, &Tower), With<HotbarItem>>,
+    player_state: Res<PlayerState>,
 ) {
     for (interaction, tower) in &mut tile_query {
         match interaction {
@@ -187,6 +188,9 @@ fn on_press_hotbar(
                     if &t == tower {
                         continue;
                     }
+                }
+                if tower.price() > player_state.money {
+                    return;
                 }
                 pointer_input_state.set(PointerInteractionState::Placing(*tower));
             }

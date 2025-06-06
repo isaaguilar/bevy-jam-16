@@ -1,3 +1,4 @@
+use crate::data::PlayerState;
 use crate::demo::enemy_movement::MovementDirection;
 use crate::gameplay::shared_systems::Lifetime;
 use crate::{
@@ -42,6 +43,10 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 pub struct EnemyHealth(pub f32);
+
+#[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
+/// Gives money when the entity is killed
+pub struct Bounty(pub i32);
 
 #[derive(Component, Default, Clone, Copy, PartialEq, Reflect)]
 pub struct EnemyChild;
@@ -107,9 +112,18 @@ pub fn kill_at_0_health(
     }
 }
 
-pub fn do_kill_enemies(mut events: EventReader<KillEnemy>, mut commands: Commands) {
+pub fn do_kill_enemies(
+    mut events: EventReader<KillEnemy>,
+    bounty: Query<&Bounty>,
+    mut commands: Commands,
+    mut player_state: ResMut<PlayerState>,
+) {
     for event in events.read() {
         commands.entity(event.0).insert(Lifetime::new(0.1));
+        if let Ok(bounty) = bounty.get(event.0) {
+            player_state.money += bounty.0;
+            println!("Enemy {:?} killed, giving {} bounty", event.0, bounty.0);
+        }
     }
 }
 
