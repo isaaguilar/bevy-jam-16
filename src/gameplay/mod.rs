@@ -5,6 +5,7 @@ mod damage_numbers;
 pub mod hotbar;
 pub mod hud;
 pub mod level;
+pub mod shared_systems;
 pub mod tower_placement;
 pub mod towers;
 pub mod wave_manager;
@@ -19,5 +20,6 @@ pub(super) fn plugin(app: &mut App) {
         animation::plugin,
         hud::plugin,
         damage_numbers::plugin,
+        shared_systems::plugin,
     ));
 }

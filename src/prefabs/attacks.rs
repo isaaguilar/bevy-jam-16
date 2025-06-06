@@ -14,7 +14,8 @@ use bevy::{
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
 use super::physics::GamePhysicsLayer as GPL;
-use crate::data::projectiles::{Droplet, Lifetime, LiquidType, Puddle};
+use crate::data::projectiles::{Droplet, LiquidType, Puddle};
+use crate::gameplay::shared_systems::Lifetime;
 
 pub fn droplet(liquid: LiquidType) -> ComponentTree {
     (

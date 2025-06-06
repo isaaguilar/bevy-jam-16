@@ -5,7 +5,6 @@ use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng};
 
 pub(super) fn plugin(app: &mut App) {
-    // app.add_systems(OnEnter(Screen::Gameplay), spawn_damage_container);
     app.add_systems(
         Update,
         (show_damage_numbers, animate_damage_numbers).run_if(in_state(Screen::Gameplay)),
@@ -21,14 +20,9 @@ struct DamageNumberLifetime {
     velocity: Vec3,
 }
 
-// pub fn spawn_damage_container(mut commands: Commands) {
-//     commands.spawn((StateScoped(Screen::Gameplay), DamageNumberContainer));
-// }
-
 pub fn show_damage_numbers(
     mut events: EventReader<DoDamageToEnemy>,
     enemies: Query<&Transform, With<EnemyHealth>>,
-    // tag_parent: Single<Entity, With<DamageNumberContainer>>,
     mut rng: ResMut<GlobalRng>,
 
     mut commands: Commands,
@@ -53,8 +47,6 @@ pub fn show_damage_numbers(
             },
             Transform::from_translation(translation).with_scale(Vec3::splat(0.1)),
         ));
-
-        // println!("Damage numbers {:?}", transform.translation);
     }
 }
 
@@ -79,11 +71,8 @@ pub fn animate_damage_numbers(
 
         // Fade out
         let progress = lifetime.timer.elapsed_secs() / lifetime.timer.duration().as_secs_f32();
-        let alpha = 1.0 - progress.clamp(0.0, 1.0); // Clamp just in case        let alpha = 1.0 - progress;
+        let alpha = 1.0 - progress.clamp(0.0, 1.0); // Clamp just in case
         color.0.set_alpha(alpha);
-        // if let Some(section) = text.sections.get_mut(0) {
-        //     section.style.color.set_a(alpha);
-        // }
 
         // Despawn when done
         if lifetime.timer.finished() {
