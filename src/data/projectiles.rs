@@ -55,12 +55,6 @@ impl DamageType {
     }
 }
 
-impl Lifetime {
-    pub fn new(duration: f32) -> Self {
-        Lifetime(Timer::from_seconds(duration, bevy::time::TimerMode::Once))
-    }
-}
-
 impl LiquidType {
     pub fn contact_effects(&self) -> Vec<AttackEffect> {
         match self {

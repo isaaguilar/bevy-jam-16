@@ -111,7 +111,6 @@ pub fn dispatch_attack_effects(
 
 pub fn drop_liquids(
     mut events: EventReader<DropLiquid>,
-    liquid_sprites: Res<LiquidSprites>,
     mut commands: Commands,
     mut towers: Query<(
         &Tower,
@@ -128,14 +127,13 @@ pub fn drop_liquids(
         };
 
         let loc = global_transform.to_scale_rotation_translation().2.xy();
-        commands.compose(droplet(*liquid, &liquid_sprites) + pos(loc.x, loc.y));
+        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
         animation.set_override(cell_direction.attack_frames(&tower));
     }
 }
 
 pub fn splat_droplets(
     trigger: Trigger<OnCollisionStart>,
-    liquid_sprites: Res<LiquidSprites>,
     sensors: Query<(), With<Sensor>>,
     droplets: Query<(&Transform, &Droplet)>,
     mut commands: Commands,
@@ -148,7 +146,7 @@ pub fn splat_droplets(
         if let Ok((transform, Droplet(liquid))) = droplets.get(droplet) {
             let loc = transform.translation;
             commands.entity(droplet).despawn();
-            commands.compose(puddle(*liquid, &liquid_sprites) + pos(loc.x, loc.y));
+            commands.compose(puddle(*liquid) + pos(loc.x, loc.y));
         }
     }
 }

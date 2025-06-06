@@ -17,9 +17,10 @@ use super::attacks::{ApplyAttackEffect, DropLiquid};
 use crate::{
     data::{
         Tower,
-        projectiles::{DamageType, Droplet, Lifetime, Puddle},
+        projectiles::{DamageType, Droplet, Puddle},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
+    gameplay::shared_systems::Lifetime,
     level::components::{Architecture, pos},
     prefabs::attacks::{droplet, puddle},
 };

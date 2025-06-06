@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle};
-use status_effects::{StatusEffect, StatusEffectTrait};
 
 use crate::prelude::*;
+use projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle};
+pub use status_effects::{StatusEffect, StatusEffectTrait};
 
 mod input_state;
 pub mod projectiles;

@@ -27,6 +27,8 @@ use crate::{
     data::{
         Tower,
         projectiles::{Droplet, Puddle},
+        stats::MoveSpeed,
+        status_effects::Frozen,
     },
     level::{components::pos, resource::CellDirection},
     prefabs::{towers::tower, wizardry::add_observer_to_component},

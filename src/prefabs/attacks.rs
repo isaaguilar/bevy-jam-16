@@ -5,14 +5,14 @@ use bevy::{ecs::system::Res, math::Vec2, render::view::Visibility};
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
 use super::physics::GamePhysicsLayer as GPL;
+use super::utils::{DropletSprite, PuddleSprite};
 use crate::assets::LiquidSprites;
 use crate::data::projectiles::{Droplet, LiquidType, Puddle};
 use crate::gameplay::shared_systems::Lifetime;
 
-pub fn droplet(liquid: LiquidType, liquid_sprites: &Res<LiquidSprites>) -> ComponentTree {
+pub fn droplet(liquid: LiquidType) -> ComponentTree {
     (
-        liquid_sprites.droplet_sprite(&liquid),
-        liquid_sprites.droplet_frame_queue(&liquid),
+        DropletSprite(liquid),
         Visibility::Visible,
         Droplet(liquid),
         Collider::circle(1.5),
@@ -25,10 +25,9 @@ pub fn droplet(liquid: LiquidType, liquid_sprites: &Res<LiquidSprites>) -> Compo
         + name("Droplet")
 }
 
-pub fn puddle(liquid: LiquidType, liquid_sprites: &Res<LiquidSprites>) -> ComponentTree {
+pub fn puddle(liquid: LiquidType) -> ComponentTree {
     (
-        liquid_sprites.puddle_sprite(&liquid),
-        liquid_sprites.puddle_frame_queue(&liquid),
+        PuddleSprite(liquid),
         Visibility::Visible,
         Puddle(liquid),
         Collider::ellipse(3.5, 0.75),

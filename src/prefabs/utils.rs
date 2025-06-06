@@ -18,8 +18,8 @@ use std::sync::Arc;
 
 use super::{enemies::ShowDelay, wizardry::GimmieFn};
 use crate::{
-    assets::{GameAssets, TowerSprites},
-    data::Tower,
+    assets::{GameAssets, LiquidSprites, TowerSprites},
+    data::{Tower, projectiles::LiquidType},
     level::resource::CellDirection,
 };
 
@@ -37,6 +37,12 @@ pub struct GiveMeColor(pub Arc<dyn GimmieFn<ColorMaterial, GameAssets>>);
 
 #[derive(Component, Clone, Debug, Reflect)]
 pub struct TowerSprite(pub Tower, pub CellDirection);
+
+#[derive(Component, Clone, Debug, Reflect)]
+pub struct DropletSprite(pub LiquidType);
+
+#[derive(Component, Clone, Debug, Reflect)]
+pub struct PuddleSprite(pub LiquidType);
 
 pub fn image(image: impl GimmieFn<Image, GameAssets>) -> ComponentTree {
     GiveMeImage(Arc::new(image)).store()
@@ -60,6 +66,8 @@ pub fn plugin(app: &mut bevy::prelude::App) {
     app.add_observer(give_meshes);
     app.add_observer(give_colors);
     app.add_observer(give_tower_sprite);
+    app.add_observer(give_droplet_sprite);
+    app.add_observer(give_puddle_sprite);
     app.add_systems(Update, show_delay);
 }
 
@@ -145,5 +153,37 @@ pub fn give_tower_sprite(
         .get_entity(entity)
         .unwrap()
         .insert(sprites.tower_bundle(&tower.0, &tower.1.into()))
+        .remove::<TowerSprite>();
+}
+
+pub fn give_droplet_sprite(
+    trigger: Trigger<OnAdd, DropletSprite>,
+    sprites: Res<LiquidSprites>,
+    requests: Query<&DropletSprite>,
+    mut commands: Commands,
+) {
+    let entity = trigger.target();
+    let tower = requests.get(entity).unwrap();
+    commands
+        .get_entity(entity)
+        .unwrap()
+        .insert(sprites.droplet_sprite(&tower.0))
+        .insert(sprites.droplet_frame_queue(&tower.0))
+        .remove::<TowerSprite>();
+}
+
+pub fn give_puddle_sprite(
+    trigger: Trigger<OnAdd, PuddleSprite>,
+    sprites: Res<LiquidSprites>,
+    requests: Query<&PuddleSprite>,
+    mut commands: Commands,
+) {
+    let entity = trigger.target();
+    let liquid = requests.get(entity).unwrap();
+    commands
+        .get_entity(entity)
+        .unwrap()
+        .insert(sprites.puddle_sprite(&liquid.0))
+        .insert(sprites.puddle_frame_queue(&liquid.0))
         .remove::<TowerSprite>();
 }
