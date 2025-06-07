@@ -1,6 +1,4 @@
-use crate::prefabs::utils::GiveMeMesh;
 use crate::{
-    PausableSystems,
     assets::TowerSprites,
     data::*,
     gameplay::messages::DisplayFlashMessage,
@@ -8,8 +6,7 @@ use crate::{
         components::{Ceiling, Floor, Wall, WallDirection},
         resource::CellDirection,
     },
-    prefabs::{towers::tower, wizardry::add_observer_to_component},
-    screens::Screen,
+    prelude::*,
     utils::destroy_entity,
 };
 use bevy::prelude::*;
@@ -23,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        tower_placement_change.run_if(on_event::<TowerPlacementEvent>),
+        place_tower_preview.run_if(on_event::<TowerPlacementEvent>),
     );
     app.add_systems(
         OnEnter(PointerInteractionState::Selecting),
@@ -50,11 +47,13 @@ struct TowerPreview(Tower, Entity, CellDirection);
 #[derive(Event, Debug, Clone, Copy, Reflect)]
 struct SelectTower(pub Entity);
 
-fn tower_placement_change(
+fn place_tower_preview(
     mut tower_placement_events: EventReader<TowerPlacementEvent>,
     previews: Query<Entity, With<TowerPreview>>,
     sprites: Option<Res<TowerSprites>>,
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let Some(TowerPlacementEvent::Requested(tower, parent, placement)) =
         tower_placement_events.read().last()
@@ -67,14 +66,12 @@ fn tower_placement_change(
     for entity in previews {
         commands.entity(entity).despawn()
     }
-
     commands.entity(*parent).with_children(|builder| {
         builder
             .spawn((
                 sprites.tower_bundle(tower, placement),
                 placement.sprite_offset(),
                 TowerPreview(*tower, *parent, *placement),
-                // TODO - give mesh so entire area is clickable
                 Pickable::default(),
             ))
             .observe(observe_placeholder);
