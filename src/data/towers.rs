@@ -147,7 +147,7 @@ impl Tower {
             Tower::Fan => 0.,
             Tower::SpikePit => 0.32,
             Tower::Oil => 2.0,
-            Tower::TrapDoor => 3.0,
+            Tower::TrapDoor => 0.5,
             Tower::Ice => 0.67,
             Tower::Acid => 2.0,
             Tower::Tesla => 0.67,
