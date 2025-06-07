@@ -1,3 +1,4 @@
+use crate::prefabs::utils::GiveMeMesh;
 use crate::{
     PausableSystems,
     assets::TowerSprites,
@@ -73,6 +74,7 @@ fn tower_placement_change(
                 sprites.tower_bundle(tower, placement),
                 placement.sprite_offset(),
                 TowerPreview(*tower, *parent, *placement),
+                // TODO - give mesh so entire area is clickable
                 Pickable::default(),
             ))
             .observe(observe_placeholder);
