@@ -21,7 +21,7 @@ use crate::{
     assets::LiquidSprites,
     data::{
         Tower,
-        projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle},
+        projectiles::{AttackEffect, DamageType, Droplet, LiquidType, Puddle, TowerAttackType},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::{animation::AnimationFrameQueue, status_effects::common::TryApplyStatus},
@@ -59,7 +59,7 @@ pub fn do_tower_attacks(
         };
 
         match tower.attack_def() {
-            AttackType::EntireCell(attack_effects) => {
+            TowerAttackType::EntireCell(attack_effects) => {
                 contact_events.write(AttackEnemiesInContact(
                     *children
                         .iter()
@@ -69,11 +69,11 @@ pub fn do_tower_attacks(
                     attack_effects,
                 ));
             }
-            AttackType::Contact(attack_effects) => todo!(),
-            AttackType::DropsLiquid(liquid_type) => {
+            TowerAttackType::Contact(attack_effects) => todo!(),
+            TowerAttackType::DropsLiquid(liquid_type) => {
                 drop_events.write(DropLiquid(event.0, liquid_type));
             }
-            AttackType::ModifiesSelf => todo!(),
+            TowerAttackType::ModifiesSelf => todo!(),
         }
     }
 }
@@ -97,7 +97,7 @@ pub fn dispatch_attack_effects(
                     enemy: *target,
                 });
             }
-            AttackEffect::Push => todo!(),
+            AttackEffect::Push(direction) => todo!(),
             AttackEffect::Status(status_effect) => {
                 status_events.write(TryApplyStatus {
                     status: *status_effect,

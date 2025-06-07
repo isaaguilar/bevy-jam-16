@@ -38,9 +38,10 @@ use common::*;
 
 pub mod attacks;
 pub mod common;
+pub mod fan;
 pub mod gravity_bullshit;
 pub mod liquids;
-pub mod tesla;
+pub mod piston;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TowerTriggerRange>()

@@ -72,19 +72,6 @@ pub enum StatusEnum {
     Oiled,
 }
 
-impl<T: StatusEffectTrait> StatusEffect<T> {
-    pub fn damage_multiplier(&self) -> f32 {
-        match self.strength {
-            0 => 0.,
-            1 => 0.67,
-            2 => 1.25,
-            3 => 2.0,
-            4 => 2.67,
-            _ => 4.,
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! define_status_effect {
     ( $structname:ident, $name:expr, $color:expr , $base_duration: expr, $element: expr) => {
@@ -122,6 +109,17 @@ pub fn duration_multiplier(strength: usize) -> f32 {
         2 => 1.67,
         3 => 2.5,
         4 => 3.,
+        _ => 4.,
+    }
+}
+
+pub fn damage_multiplier(strength: usize) -> f32 {
+    match strength {
+        0 => 0.,
+        1 => 0.67,
+        2 => 1.25,
+        3 => 2.0,
+        4 => 2.67,
         _ => 4.,
     }
 }

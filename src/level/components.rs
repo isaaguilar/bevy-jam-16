@@ -36,7 +36,10 @@ pub struct Floor;
 pub struct Ceiling;
 
 #[derive(Copy, Clone, Debug, PartialEq, Component, Reflect)]
-pub struct PathNode(pub CellDirection);
+pub struct PathNode {
+    pub direction: CellDirection,
+    pub prev_direction: CellDirection,
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
 pub struct StartNode;
@@ -82,11 +85,13 @@ impl LevelParent {
         }
         let mut path_iter = level_data.path.iter();
         let start_node = path_iter.next().unwrap();
+        let mut last_direction = start_node.1;
         level = level
             << (node(
                 start_node.0.x * LEVEL_SCALING,
                 start_node.0.y * LEVEL_SCALING,
                 start_node.1,
+                last_direction,
             ) + StartNode.store());
         let mut path_iter = path_iter.rev();
         let last_node = path_iter.next().unwrap();
@@ -97,11 +102,19 @@ impl LevelParent {
                 last_node.0.x * LEVEL_SCALING,
                 last_node.0.y * LEVEL_SCALING,
                 last_node.1,
+                last_node.1,
             ) + EndNode.store());
 
         for node_i in path_iter {
             let (pos, direction) = node_i;
-            level = level << node(pos.x * LEVEL_SCALING, pos.y * LEVEL_SCALING, *direction);
+            level = level
+                << node(
+                    pos.x * LEVEL_SCALING,
+                    pos.y * LEVEL_SCALING,
+                    *direction,
+                    last_direction,
+                );
+            last_direction = *direction;
         }
 
         level
@@ -184,10 +197,24 @@ pub fn rect_sprite(x: f32, y: f32, h: f32, w: f32, color: Color) -> ComponentTre
         + pos(x, y)
 }
 
-pub fn node(x: f32, y: f32, direction: CellDirection) -> ComponentTree {
-    (PathNode(direction)).store() + pos(x, y)
+pub fn node(
+    x: f32,
+    y: f32,
+    direction: CellDirection,
+    prev_direction: CellDirection,
+) -> ComponentTree {
+    (PathNode::new(direction, prev_direction)).store() + pos(x, y)
 }
 
 pub fn pos(x: f32, y: f32) -> ComponentTree {
     Transform::from_xyz(x, y, 0.).store()
+}
+
+impl PathNode {
+    pub fn new(direction: CellDirection, prev_direction: CellDirection) -> Self {
+        Self {
+            direction,
+            prev_direction,
+        }
+    }
 }

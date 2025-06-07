@@ -4,10 +4,12 @@ use bevy::{
 };
 use std::sync::Arc;
 
+use crate::level::resource::CellDirection;
+
 use super::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum};
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackType {
+pub enum TowerAttackType {
     EntireCell(Vec<AttackEffect>),
     Contact(Vec<AttackEffect>),
     DropsLiquid(LiquidType),
@@ -15,7 +17,14 @@ pub enum AttackType {
 }
 
 #[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackEffect {
+pub enum AttackData {
+    Damage(DamageType, usize, isize),
+    Push(CellDirection, usize, f32),
+    Status(StatusEnum, usize),
+}
+
+#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
+pub enum AttackType {
     Damage(DamageType),
     Push,
     Status(StatusEnum),
