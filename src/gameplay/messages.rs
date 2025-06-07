@@ -4,13 +4,13 @@ use bevy::color::palettes::tailwind;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<DisplayFlashMessage>();
+    app.add_event::<DisplayFlashMessage<&str>>();
     app.add_observer(show_message);
     app.add_systems(Update, fade_message);
 }
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct DisplayFlashMessage(pub String);
+pub struct DisplayFlashMessage<I: Into<String>>(pub I);
 
 #[derive(Component)]
 pub struct FlashMessage {
@@ -18,11 +18,11 @@ pub struct FlashMessage {
 }
 
 fn show_message(
-    trigger: Trigger<DisplayFlashMessage>,
+    trigger: Trigger<DisplayFlashMessage<&str>>,
     flash_message: Query<&ChildOf, With<FlashMessage>>,
     mut commands: Commands,
 ) {
-    let message = &trigger.0;
+    let message = trigger.0;
     info!(message);
 
     if let Ok(entity) = flash_message.single() {
