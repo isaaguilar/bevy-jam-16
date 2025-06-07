@@ -217,7 +217,7 @@ impl CellDirection {
                 CellDirection::Right => &[33, 34, 35, 36, 33],
             },
             Tower::TrapDoor => match self {
-                CellDirection::Down => &[1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1],
+                CellDirection::Down => &[1, 2, 3, 4, 4, 3, 2, 1],
                 CellDirection::Up => &[5],
                 CellDirection::Left => &[5],
                 CellDirection::Right => &[5],
