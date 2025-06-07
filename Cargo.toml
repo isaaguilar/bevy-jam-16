@@ -1,5 +1,5 @@
 [package]
-name = "chain_reaction_towers"
+name = "tower_combinator"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"

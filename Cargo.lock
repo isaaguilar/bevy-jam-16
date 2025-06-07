@@ -1857,22 +1857,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "chain_reaction_towers"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy-inspector-egui",
- "bevy_asset_loader",
- "bevy_composable",
- "bevy_turborand",
- "getrandom 0.3.3",
- "log",
- "rand 0.9.1",
- "tracing",
-]
-
-[[package]]
 name = "clang-sys"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5277,6 +5261,22 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "winnow",
+]
+
+[[package]]
+name = "tower_combinator"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_asset_loader",
+ "bevy_composable",
+ "bevy_turborand",
+ "getrandom 0.3.3",
+ "log",
+ "rand 0.9.1",
+ "tracing",
 ]
 
 [[package]]
