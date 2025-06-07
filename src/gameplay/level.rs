@@ -5,6 +5,7 @@ use bevy_composable::{
     app_impl::{ComplexSpawnable, ComponentTreeable},
     wrappers::name,
 };
+use bevy_turborand::GlobalRng;
 
 use crate::{
     data::PlayerState,
@@ -42,12 +43,17 @@ fn unpause_physics(mut commands: Commands, colliders: Query<Entity, With<Collide
 }
 
 /// A system that spawns the main level.
-pub fn spawn_level(mut commands: Commands, mut level: ResMut<Level>, game_assets: Res<GameAssets>) {
+pub fn spawn_level(
+    mut commands: Commands,
+    mut level: ResMut<Level>,
+    game_assets: Res<GameAssets>,
+    mut rng: ResMut<GlobalRng>,
+) {
     commands.insert_resource(ClearColor(tailwind::SLATE_700.into()));
 
     *level = Level::from_str(MAP_TEXT);
     commands.compose(
-        LevelParent::from_data(&level, &game_assets)
+        LevelParent::from_data(&level, &game_assets, rng)
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );
