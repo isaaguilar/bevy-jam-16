@@ -10,7 +10,7 @@ use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers
 use bevy_turborand::DelegatedRng;
 use bevy_turborand::GlobalRng;
 
-use crate::assets::{GameAssets, game_assets};
+use crate::assets::{GameAssets, LevelAssets, game_assets};
 use crate::prefabs::physics::GamePhysicsLayer as GPL;
 
 use super::resource::{CellDirection, Level};
@@ -52,7 +52,7 @@ pub struct EndNode;
 impl LevelParent {
     pub fn from_data(
         level_data: &Level,
-        game_assets: &Res<GameAssets>,
+        level_assets: &Res<LevelAssets>,
         mut rng: ResMut<GlobalRng>,
     ) -> ComponentTree {
         let mut level = (LevelParent, Transform::default(), Visibility::default()).store();
@@ -62,11 +62,11 @@ impl LevelParent {
                 level = level
                     << (
                         Sprite {
-                            image: game_assets.floortiles.clone(),
+                            image: level_assets.floortiles.clone(),
                             custom_size: Some(Vec2::new(1.0 * LEVEL_SCALING, 1.0 * LEVEL_SCALING)),
                             texture_atlas: Some(TextureAtlas {
-                                layout: game_assets.floortiles_layout.clone(),
-                                index: rng.usize(0..=8),
+                                layout: level_assets.floortiles_layout.clone(),
+                                index: rng.usize(0..8),
                             }),
                             ..default()
                         },

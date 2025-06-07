@@ -50,11 +50,6 @@ pub struct GameAssets {
         offset_y = 0
     ))]
     pub troopers_layout: Handle<TextureAtlasLayout>,
-    #[asset(path = "images/floortiles.png")]
-    #[asset(image(sampler(filter = nearest)))]
-    pub floortiles: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 64, tile_size_y = 64, columns = 8, rows = 8))]
-    pub floortiles_layout: Handle<TextureAtlasLayout>,
     health_bar_rect: Handle<Mesh>,
     health_bar_color: Handle<ColorMaterial>,
 }

@@ -8,6 +8,7 @@ use bevy_composable::{
 use bevy_turborand::GlobalRng;
 
 use crate::{
+    assets::LevelAssets,
     data::PlayerState,
     demo::enemy_health::EnemyHealth,
     level::{
@@ -46,14 +47,14 @@ fn unpause_physics(mut commands: Commands, colliders: Query<Entity, With<Collide
 pub fn spawn_level(
     mut commands: Commands,
     mut level: ResMut<Level>,
-    game_assets: Res<GameAssets>,
+    level_assets: Res<LevelAssets>,
     mut rng: ResMut<GlobalRng>,
 ) {
     commands.insert_resource(ClearColor(tailwind::SLATE_700.into()));
 
     *level = Level::from_str(MAP_TEXT);
     commands.compose(
-        LevelParent::from_data(&level, &game_assets, rng)
+        LevelParent::from_data(&level, &level_assets, rng)
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );
