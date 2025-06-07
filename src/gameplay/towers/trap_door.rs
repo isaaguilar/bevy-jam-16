@@ -1,7 +1,7 @@
 use crate::{
     data::Tower,
     gameplay::animation::AnimationFrameQueue,
-    level::{components::AdjacentId, resource::CellDirection},
+    level::{components::Adjacent, resource::CellDirection},
     prefabs::physics::GamePhysicsLayer as GPL,
 };
 use avian2d::prelude::CollisionLayers;
@@ -22,7 +22,7 @@ use bevy_turborand::{DelegatedRng, GlobalRng};
 pub struct DetectTrapDoor(pub Entity);
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
-pub struct OpenTrapDoor(pub AdjacentId);
+pub struct OpenTrapDoor(pub Adjacent);
 
 #[derive(Component, Reflect, Debug, PartialEq, Clone)]
 pub struct TrapDoor {
@@ -33,7 +33,7 @@ pub fn detect_trap_door(
     mut open_trap_door_writer: EventWriter<OpenTrapDoor>,
     mut events: EventReader<DetectTrapDoor>,
     mut towers: Query<(&Tower, &ChildOf, &mut AnimationFrameQueue)>,
-    colliders: Query<&AdjacentId>,
+    colliders: Query<&Adjacent>,
     mut rng: ResMut<GlobalRng>,
 ) {
     for DetectTrapDoor(e) in events.read() {
@@ -56,12 +56,12 @@ pub fn detect_trap_door(
 
 pub fn open_trap_door(
     mut events: EventReader<OpenTrapDoor>,
-    mut colliders: Query<(Entity, &AdjacentId, &mut CollisionLayers)>,
+    mut colliders: Query<(Entity, &Adjacent, &mut CollisionLayers)>,
     mut commands: Commands,
 ) {
-    for OpenTrapDoor(id) in events.read() {
-        for (entity, adjacent_id, mut collisions_layer) in colliders.iter_mut() {
-            if adjacent_id == id {
+    for OpenTrapDoor(floor_entity) in events.read() {
+        for (entity, adjacent, mut collisions_layer) in colliders.iter_mut() {
+            if adjacent.id == floor_entity.id {
                 collisions_layer.filters = [GPL::Level, GPL::Default, GPL::Projectiles].into();
                 commands.entity(entity).insert(TrapDoor {
                     close_timer: Timer::from_seconds(1.0, TimerMode::Once),
