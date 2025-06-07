@@ -12,6 +12,12 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
 pub struct DisplayFlashMessage(pub String);
 
+impl DisplayFlashMessage {
+    pub fn new<I: Into<String>>(input: I) -> Self {
+        Self(input.into())
+    }
+}
+
 #[derive(Component)]
 pub struct FlashMessage {
     ttl: Timer,

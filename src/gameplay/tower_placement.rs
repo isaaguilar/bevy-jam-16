@@ -153,9 +153,7 @@ fn click_tower(
             .unwrap();
 
             if tower.price() > player_state.money {
-                commands.trigger(DisplayFlashMessage(String::from(
-                    "Not enough money to place tower",
-                )));
+                commands.trigger(DisplayFlashMessage::new("Not enough money to place tower"));
                 info!("Not enough money to place tower!");
                 return;
             }
@@ -163,9 +161,8 @@ fn click_tower(
             if let Ok(children) = relationships.get(entity) {
                 for child in children {
                     if let Ok(_) = towers.get(*child) {
-                        commands.trigger(DisplayFlashMessage(String::from(
-                            "Cannot place another tower here",
-                        )));
+                        commands
+                            .trigger(DisplayFlashMessage::new("Cannot place another tower here"));
                         info!("Cannot place another tower here!");
                         return;
                     }
