@@ -5,12 +5,14 @@ use bevy_composable::{
     app_impl::{ComplexSpawnable, ComponentTreeable},
     wrappers::name,
 };
+use bevy_turborand::GlobalRng;
 
 use crate::{
+    assets::LevelAssets,
     data::PlayerState,
     demo::enemy_health::EnemyHealth,
     level::{
-        components::{EndNode, LevelParent},
+        components::{EndNode, LEVEL_SCALING, LevelParent},
         resource::{Level, MAP_TEXT},
     },
     menus::Menu,
@@ -42,12 +44,17 @@ fn unpause_physics(mut commands: Commands, colliders: Query<Entity, With<Collide
 }
 
 /// A system that spawns the main level.
-pub fn spawn_level(mut commands: Commands, mut level: ResMut<Level>) {
+pub fn spawn_level(
+    mut commands: Commands,
+    mut level: ResMut<Level>,
+    level_assets: Res<LevelAssets>,
+    mut rng: ResMut<GlobalRng>,
+) {
     commands.insert_resource(ClearColor(tailwind::SLATE_700.into()));
 
     *level = Level::from_str(MAP_TEXT);
     commands.compose(
-        LevelParent::from_data(&level)
+        LevelParent::from_data(&level, &level_assets, rng)
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );
