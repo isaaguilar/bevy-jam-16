@@ -50,7 +50,7 @@ impl Plugin for AppPlugin {
                 })
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "Chain Reaction Towers".to_string(),
+                        title: "Zod's Tower Defender".to_string(),
                         resolution: (WINDOW_X, WINDOW_Y).into(),
                         fit_canvas_to_parent: true,
                         ..default()

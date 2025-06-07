@@ -1,11 +1,13 @@
 use avian2d::prelude::{Collider, CollisionLayers, RigidBody};
+use bevy::ecs::system::Res;
 use bevy::picking::Pickable;
 use bevy::{
-    color::Color, ecs::component::Component, math::Vec2, reflect::Reflect,
+    color::Color, ecs::component::Component, math::Vec2, prelude::info, reflect::Reflect,
     render::view::Visibility, sprite::Sprite, transform::components::Transform, utils::default,
 };
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 
+use crate::assets::{GameAssets, game_assets};
 use crate::prefabs::physics::GamePhysicsLayer as GPL;
 
 use super::resource::{CellDirection, Level};
@@ -45,8 +47,35 @@ pub struct StartNode;
 pub struct EndNode;
 
 impl LevelParent {
-    pub fn from_data(level_data: &Level) -> ComponentTree {
+    pub fn from_data(level_data: &Level, game_assets: &Res<GameAssets>) -> ComponentTree {
         let mut level = (LevelParent, Transform::default(), Visibility::default()).store();
+
+        // TODO find a good tilemap size that will allow scaling the tilemap
+        // to closely match the width and height of the maze. Break up the larger image
+        // and then randomly select images to create a semi-non-repetative background.
+        for x in 0..=level_data.width as i32 / 7 {
+            for y in 0..=level_data.height as i32 / 7 {
+                level = level
+                    << (
+                        Sprite {
+                            image: game_assets.floortiles.clone(),
+                            custom_size: Some(Vec2::new(
+                                10.0 * LEVEL_SCALING,
+                                10.0 * LEVEL_SCALING,
+                            )),
+                            ..default()
+                        },
+                        Transform::from_translation(
+                            Vec2::new(
+                                (x * 10) as f32 * LEVEL_SCALING + 20.,
+                                (y * 10) as f32 * LEVEL_SCALING + 20.,
+                            )
+                            .extend(-10.0),
+                        ),
+                    )
+                        .store();
+            }
+        }
 
         for x in 0..(level_data.width + 1) {
             for y in 0..level_data.height {

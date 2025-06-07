@@ -10,7 +10,7 @@ use crate::{
     data::PlayerState,
     demo::enemy_health::EnemyHealth,
     level::{
-        components::{EndNode, LevelParent},
+        components::{EndNode, LEVEL_SCALING, LevelParent},
         resource::{Level, MAP_TEXT},
     },
     menus::Menu,
@@ -42,12 +42,12 @@ fn unpause_physics(mut commands: Commands, colliders: Query<Entity, With<Collide
 }
 
 /// A system that spawns the main level.
-pub fn spawn_level(mut commands: Commands, mut level: ResMut<Level>) {
+pub fn spawn_level(mut commands: Commands, mut level: ResMut<Level>, game_assets: Res<GameAssets>) {
     commands.insert_resource(ClearColor(tailwind::SLATE_700.into()));
 
     *level = Level::from_str(MAP_TEXT);
     commands.compose(
-        LevelParent::from_data(&level)
+        LevelParent::from_data(&level, &game_assets)
             + name("Level Parent")
             + StateScoped(Screen::Gameplay).store(),
     );

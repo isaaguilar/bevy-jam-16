@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 // Temporary hardcoded map until I pull the asset-loading changes
+
 pub const MAP_TEXT: &'static str = "^<<v<
 >>^v^
 ^<<<^
@@ -12,6 +13,9 @@ pub const MAP_TEXT2: &'static str = "^<<<<
 ^<<<<
 >>>>^
 ";
+
+pub const MAP_TEXT3: &'static str = "^<<<<<<<<<<<<<
+>>>>>>>>>>>>>^";
 
 // Which direction the enemies need to move in. If we end up adding splitting paths, this won't be
 // usable. It's mainly to help get a FWP going.
