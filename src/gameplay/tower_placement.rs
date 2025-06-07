@@ -21,9 +21,9 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<PlaceTower>();
 
     app.add_observer(on_turret_placement_hover);
-    app.add_observer(add_observer_to_component::<Architecture, _, _, _, _>(
-        click_tower,
-    ));
+    // app.add_observer(add_observer_to_component::<Architecture, _, _, _, _>(
+    //     click_tower,
+    // ));
 
     app.add_systems(
         Update,
@@ -50,7 +50,7 @@ enum TowerPlacementState {
 }
 
 #[derive(Component, Debug, Clone, Copy, Reflect)]
-struct TowerPreview;
+struct TowerPreview(Tower, Entity, CellDirection);
 
 #[derive(Event, Debug, Clone, Copy, Reflect)]
 struct PlaceTower(pub Entity, pub Tower, pub CellDirection);
@@ -74,11 +74,69 @@ fn tower_placement_change(
         commands.entity(entity).despawn()
     }
 
-    commands.entity(*parent).with_child((
-        sprites.tower_bundle(tower, placement),
-        placement.sprite_offset(),
-        TowerPreview,
-    ));
+    commands.entity(*parent).with_children(|builder| {
+        builder
+            .spawn((
+                sprites.tower_bundle(tower, placement),
+                placement.sprite_offset(),
+                TowerPreview(*tower, *parent, *placement),
+                Pickable::default(),
+            ))
+            .observe(observe_placeholder);
+    });
+    //     (
+    //     sprites.tower_bundle(tower, placement),
+    //     placement.sprite_offset(),
+    //     TowerPreview(*tower, *parent, *placement),
+    //     Pickable::default(),
+    // ));
+}
+
+fn observe_placeholder(
+    trigger: Trigger<Pointer<Click>>,
+    mut commands: Commands,
+    mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
+    mut place_events: EventWriter<PlaceTower>,
+    mut player_state: ResMut<PlayerState>,
+    input: Res<ButtonInput<KeyCode>>,
+    // pointer_input_state: Res<State<PointerInteractionState>>,
+    previews: Query<&TowerPreview>,
+    relationships: Query<&Children>,
+    tower_placement_state: Res<State<TowerPlacementState>>,
+    towers: Query<(), With<Tower>>,
+) {
+    // let entity = trigger.target;
+
+    let TowerPreview(tower, entity, placement) = previews.get(trigger.target).unwrap();
+
+    let (_, _, orientation) = (match **tower_placement_state {
+        TowerPlacementState::None => None,
+        TowerPlacementState::Placing(tower, entity, tower_placement) => {
+            Some((tower, entity, tower_placement))
+        }
+    })
+    .unwrap();
+
+    if !player_state.can_afford(tower.price()) {
+        commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
+        return;
+    }
+
+    if let Ok(children) = relationships.get(*entity) {
+        for child in children {
+            if let Ok(_) = towers.get(*child) {
+                commands.trigger(DisplayFlashMessage::new("Cannot place tower here"));
+                return;
+            }
+        }
+    }
+
+    player_state.money -= tower.price();
+    place_events.write(PlaceTower(*entity, *tower, orientation));
+
+    if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
+        next_pointer_state.set(PointerInteractionState::Selecting);
+    }
 }
 
 fn on_turret_placement_hover(
@@ -123,61 +181,58 @@ fn on_turret_placement_hover(
     }
 }
 
-fn click_tower(
-    trigger: Trigger<Pointer<Pressed>>,
-    pointer_input_state: Res<State<PointerInteractionState>>,
-    mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
-    tower_placement_state: Res<State<TowerPlacementState>>,
-    mut select_events: EventWriter<SelectTower>,
-    mut place_events: EventWriter<PlaceTower>,
-    input: Res<ButtonInput<KeyCode>>,
-    mut player_state: ResMut<PlayerState>,
-    relationships: Query<&Children>,
-    towers: Query<(), With<Tower>>,
-    mut commands: Commands,
-) {
-    match **pointer_input_state {
-        PointerInteractionState::Selecting => {
-            println!("Selecting!");
-            select_events.write(SelectTower(trigger.target));
-        }
-        PointerInteractionState::Placing(tower) => {
-            let entity = trigger.target;
-
-            let (_, _, orientation) = (match **tower_placement_state {
-                TowerPlacementState::None => None,
-                TowerPlacementState::Placing(tower, entity, tower_placement) => {
-                    Some((tower, entity, tower_placement))
-                }
-            })
-            .unwrap();
-
-            if tower.price() > player_state.money {
-                commands.trigger(DisplayFlashMessage::new("Not enough money to place tower"));
-                info!("Not enough money to place tower!");
-                return;
-            }
-
-            if let Ok(children) = relationships.get(entity) {
-                for child in children {
-                    if let Ok(_) = towers.get(*child) {
-                        commands
-                            .trigger(DisplayFlashMessage::new("Cannot place another tower here"));
-                        info!("Cannot place another tower here!");
-                        return;
-                    }
-                }
-            }
-
-            player_state.money -= tower.price();
-            place_events.write(PlaceTower(entity, tower, orientation));
-
-            if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
-                next_pointer_state.set(PointerInteractionState::Selecting);
-            }
-        }
-    }
-}
+// fn click_tower(
+//     trigger: Trigger<Pointer<Pressed>>,
+//     input: Res<ButtonInput<KeyCode>>,
+//     pointer_input_state: Res<State<PointerInteractionState>>,
+//     relationships: Query<&Children>,
+//     tower_placement_state: Res<State<TowerPlacementState>>,
+//     towers: Query<(), With<Tower>>,
+//     mut commands: Commands,
+//     mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
+//     mut place_events: EventWriter<PlaceTower>,
+//     mut player_state: ResMut<PlayerState>,
+//     mut select_events: EventWriter<SelectTower>,
+// ) {
+//     match **pointer_input_state {
+//         PointerInteractionState::Selecting => {
+//             println!("Selecting!");
+//             select_events.write(SelectTower(trigger.target));
+//         }
+//         PointerInteractionState::Placing(tower) => {
+//             let entity = trigger.target;
+//
+//             let (_, _, orientation) = (match **tower_placement_state {
+//                 TowerPlacementState::None => None,
+//                 TowerPlacementState::Placing(tower, entity, tower_placement) => {
+//                     Some((tower, entity, tower_placement))
+//                 }
+//             })
+//             .unwrap();
+//
+//             if !player_state.can_afford(tower.price()) {
+//                 commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
+//                 return;
+//             }
+//
+//             if let Ok(children) = relationships.get(entity) {
+//                 for child in children {
+//                     if let Ok(_) = towers.get(*child) {
+//                         commands.trigger(DisplayFlashMessage::new("Cannot place tower here"));
+//                         return;
+//                     }
+//                 }
+//             }
+//
+//             player_state.money -= tower.price();
+//             place_events.write(PlaceTower(entity, tower, orientation));
+//
+//             if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
+//                 next_pointer_state.set(PointerInteractionState::Selecting);
+//             }
+//         }
+//     }
+// }
 
 fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
     for PlaceTower(entity, tower_type, orientation) in place_events.read() {

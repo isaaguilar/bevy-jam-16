@@ -1,3 +1,4 @@
+use crate::gameplay::messages::DisplayFlashMessage;
 use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
 use bevy::color::palettes::tailwind;
@@ -196,6 +197,7 @@ fn on_press_hotbar(
     current_pointer_input_state: Res<State<PointerInteractionState>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
     mut tile_query: Query<(&Interaction, &Tower), With<HotbarItem>>,
+    mut commands: Commands,
     player_state: Res<PlayerState>,
 ) {
     for (interaction, tower) in &mut tile_query {
@@ -206,7 +208,8 @@ fn on_press_hotbar(
                         continue;
                     }
                 }
-                if tower.price() > player_state.money {
+                if !player_state.can_afford(tower.price()) {
+                    commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
                     return;
                 }
                 pointer_input_state.set(PointerInteractionState::Placing(*tower));
