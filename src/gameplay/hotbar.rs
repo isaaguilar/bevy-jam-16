@@ -1,3 +1,4 @@
+use crate::gameplay::messages::DisplayFlashMessage;
 use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
 use bevy::color::palettes::tailwind;
@@ -8,7 +9,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), on_enter_game);
     app.add_systems(
         Update,
-        (highlight_hovered_tile, on_press_hotbar)
+        highlight_hovered_tile
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );
@@ -38,15 +39,17 @@ fn on_enter_game(mut commands: Commands, assets: Res<UiAssets>) {
         })
         .collect();
 
-    commands.spawn((
-        StateScoped(Screen::Gameplay),
-        spawn_hotbar(),
-        Children::spawn(SpawnIter(
-            hotbar_items
-                .into_iter()
-                .map(|(tower, icon)| spawn_hotbar_item(tower, icon)),
-        )),
-    ));
+    commands
+        .spawn((
+            StateScoped(Screen::Gameplay),
+            spawn_hotbar(),
+            Children::spawn(SpawnIter(
+                hotbar_items
+                    .into_iter()
+                    .map(|(tower, icon)| spawn_hotbar_item(tower, icon)),
+            )),
+        ))
+        .observe(hotbar_click_observer);
 
     commands
         .spawn((
@@ -168,6 +171,7 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
                     height: Val::Px(64.0),
                     ..default()
                 },
+                Pickable::IGNORE,
                 ImageNode::new(icon)
             )
         ],
@@ -192,26 +196,20 @@ fn highlight_hovered_tile(
     }
 }
 
-fn on_press_hotbar(
-    current_pointer_input_state: Res<State<PointerInteractionState>>,
+fn hotbar_click_observer(
+    trigger: Trigger<Pointer<Click>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
-    mut tile_query: Query<(&Interaction, &Tower), With<HotbarItem>>,
+    mut commands: Commands,
+    hotbar_items: Query<&Tower>,
     player_state: Res<PlayerState>,
 ) {
-    for (interaction, tower) in &mut tile_query {
-        match interaction {
-            Interaction::Pressed => {
-                if let PointerInteractionState::Placing(t) = **current_pointer_input_state {
-                    if &t == tower {
-                        continue;
-                    }
-                }
-                if tower.price() > player_state.money {
-                    return;
-                }
-                pointer_input_state.set(PointerInteractionState::Placing(*tower));
-            }
-            _ => {}
-        }
+    let Ok(tower) = hotbar_items.get(trigger.target) else {
+        return;
+    };
+
+    if !player_state.can_afford(tower.price()) {
+        commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
+        return;
     }
+    pointer_input_state.set(PointerInteractionState::Placing(*tower));
 }
