@@ -2,6 +2,7 @@ use crate::{
     PausableSystems,
     assets::TowerSprites,
     data::*,
+    gameplay::messages::DisplayFlashMessage,
     level::{
         components::{Architecture, Ceiling, Floor, Wall, WallDirection},
         resource::CellDirection,
@@ -133,6 +134,7 @@ fn click_tower(
     mut player_state: ResMut<PlayerState>,
     relationships: Query<&Children>,
     towers: Query<(), With<Tower>>,
+    mut commands: Commands,
 ) {
     match **pointer_input_state {
         PointerInteractionState::Selecting => {
@@ -151,6 +153,9 @@ fn click_tower(
             .unwrap();
 
             if tower.price() > player_state.money {
+                commands.trigger(DisplayFlashMessage(String::from(
+                    "Not enough money to place tower",
+                )));
                 info!("Not enough money to place tower!");
                 return;
             }
@@ -158,6 +163,9 @@ fn click_tower(
             if let Ok(children) = relationships.get(entity) {
                 for child in children {
                     if let Ok(_) = towers.get(*child) {
+                        commands.trigger(DisplayFlashMessage(String::from(
+                            "Cannot place another tower here",
+                        )));
                         info!("Cannot place another tower here!");
                         return;
                     }
