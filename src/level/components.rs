@@ -71,8 +71,11 @@ impl LevelParent {
                             ..default()
                         },
                         Transform::from_translation(
-                            Vec2::new(x as f32 * LEVEL_SCALING - 5., y as f32 * LEVEL_SCALING - 5.)
-                                .extend(-10.0),
+                            Vec2::new(
+                                x as f32 * LEVEL_SCALING - LEVEL_SCALING / 2.,
+                                y as f32 * LEVEL_SCALING - LEVEL_SCALING / 2.,
+                            )
+                            .extend(-10.0),
                         ),
                     )
                         .store();
