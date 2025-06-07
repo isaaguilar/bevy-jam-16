@@ -1,3 +1,5 @@
+use crate::level::components::AdjacentId;
+use crate::prefabs::utils::GiveMeMesh;
 use crate::{
     assets::TowerSprites,
     data::*,
@@ -88,6 +90,7 @@ fn observe_placeholder(
     previews: Query<&TowerPreview>,
     relationships: Query<&Children>,
     towers: Query<(), With<Tower>>,
+    adjacent_placements: Query<(Entity, &AdjacentId)>,
 ) {
     let TowerPreview(tower, entity, orientation) = *previews.get(trigger.target).unwrap();
 
@@ -105,6 +108,25 @@ fn observe_placeholder(
                 return;
             }
         }
+    }
+
+    if tower.requires_adjecent_wall() {
+        if let Ok((_, adjacent_id)) = adjacent_placements.get(entity) {
+            for (other_entity, other_adjacent_id) in adjacent_placements {
+                if adjacent_id == other_adjacent_id {
+                    if let Ok(children) = relationships.get(other_entity) {
+                        for child in children {
+                            if let Ok(_) = towers.get(*child) {
+                                commands.trigger(DisplayFlashMessage::new(
+                                    "This tower requires both sides of the wall",
+                                ));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        };
     }
 
     player_state.money -= tower.price();

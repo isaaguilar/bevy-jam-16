@@ -156,6 +156,13 @@ impl Tower {
             Tower::Portal => 3.0,
         }
     }
+
+    pub fn requires_adjecent_wall(&self) -> bool {
+        match self {
+            Tower::TrapDoor => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Component, Default)]

@@ -49,6 +49,29 @@ pub struct StartNode;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
 pub struct EndNode;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Reflect)]
+pub enum GeneralPosition {
+    UpDown,
+    LeftRight,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
+pub struct AdjacentId {
+    pub unit_x: usize,
+    pub unit_y: usize,
+    pub position: GeneralPosition,
+}
+
+impl AdjacentId {
+    pub fn new(unit_x: usize, unit_y: usize, position: GeneralPosition) -> Self {
+        Self {
+            unit_x,
+            unit_y,
+            position,
+        }
+    }
+}
+
 impl LevelParent {
     pub fn from_data(
         level_data: &Level,
@@ -90,12 +113,12 @@ impl LevelParent {
                             (x as f32 - 0.5 - (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
                             y as f32 * LEVEL_SCALING,
                             WallDirection::Left,
-                        )
+                        ) + AdjacentId::new(x, y, GeneralPosition::LeftRight).store()
                         << wall(
                             (x as f32 - 0.5 + (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
                             y as f32 * LEVEL_SCALING,
                             WallDirection::Right,
-                        );
+                        ) + AdjacentId::new(x, y, GeneralPosition::LeftRight).store();
                 }
             }
         }
@@ -106,11 +129,11 @@ impl LevelParent {
                         << ceiling(
                             x as f32 * LEVEL_SCALING,
                             ((y as f32) - 0.5 - FLOOR_TOTAL_HEIGHT / 4.) * LEVEL_SCALING,
-                        )
+                        ) + AdjacentId::new(x, y, GeneralPosition::UpDown).store()
                         << floor(
                             x as f32 * LEVEL_SCALING,
                             ((y as f32) - 0.5 + FLOOR_TOTAL_HEIGHT / 4.) * LEVEL_SCALING,
-                        );
+                        ) + AdjacentId::new(x, y, GeneralPosition::UpDown).store();
                 }
             }
         }
