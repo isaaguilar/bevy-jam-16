@@ -4,7 +4,7 @@ use crate::{
     data::*,
     gameplay::messages::DisplayFlashMessage,
     level::{
-        components::{Architecture, Ceiling, Floor, Wall, WallDirection},
+        components::{Ceiling, Floor, Wall, WallDirection},
         resource::CellDirection,
     },
     prefabs::{towers::tower, wizardry::add_observer_to_component},
@@ -15,19 +15,14 @@ use bevy::prelude::*;
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 
 pub(super) fn plugin(app: &mut App) {
-    app.init_state::<TowerPlacementState>();
-
+    app.add_event::<TowerPlacementEvent>();
     app.add_event::<SelectTower>();
-    app.add_event::<PlaceTower>();
 
     app.add_observer(on_turret_placement_hover);
-    // app.add_observer(add_observer_to_component::<Architecture, _, _, _, _>(
-    //     click_tower,
-    // ));
 
     app.add_systems(
         Update,
-        tower_placement_change.run_if(state_changed::<TowerPlacementState>),
+        tower_placement_change.run_if(on_event::<TowerPlacementEvent>),
     );
     app.add_systems(
         OnEnter(PointerInteractionState::Selecting),
@@ -36,38 +31,36 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (place_towers)
+        place_towers
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );
 }
 
-#[derive(States, Default, Debug, Hash, PartialEq, Eq, Clone, Reflect)]
-enum TowerPlacementState {
-    #[default]
-    None,
-    Placing(Tower, Entity, CellDirection),
+#[derive(Event, Debug, Hash, PartialEq, Eq, Clone, Reflect)]
+enum TowerPlacementEvent {
+    Requested(Tower, Entity, CellDirection),
+    Accepted(Tower, Entity, CellDirection),
 }
 
 #[derive(Component, Debug, Clone, Copy, Reflect)]
 struct TowerPreview(Tower, Entity, CellDirection);
 
 #[derive(Event, Debug, Clone, Copy, Reflect)]
-struct PlaceTower(pub Entity, pub Tower, pub CellDirection);
-
-#[derive(Event, Debug, Clone, Copy, Reflect)]
 struct SelectTower(pub Entity);
 
 fn tower_placement_change(
-    tower_placement_state: Res<State<TowerPlacementState>>,
+    mut tower_placement_events: EventReader<TowerPlacementEvent>,
     previews: Query<Entity, With<TowerPreview>>,
     sprites: Option<Res<TowerSprites>>,
     mut commands: Commands,
 ) {
-    let tower_placement_state = tower_placement_state.get();
-    let TowerPlacementState::Placing(tower, parent, placement) = tower_placement_state else {
+    let Some(TowerPlacementEvent::Requested(tower, parent, placement)) =
+        tower_placement_events.read().last()
+    else {
         return;
     };
+
     let sprites = sprites.expect("GameAssets should be available during turret placement");
 
     for entity in previews {
@@ -84,55 +77,39 @@ fn tower_placement_change(
             ))
             .observe(observe_placeholder);
     });
-    //     (
-    //     sprites.tower_bundle(tower, placement),
-    //     placement.sprite_offset(),
-    //     TowerPreview(*tower, *parent, *placement),
-    //     Pickable::default(),
-    // ));
 }
 
 fn observe_placeholder(
     trigger: Trigger<Pointer<Click>>,
     mut commands: Commands,
     mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
-    mut place_events: EventWriter<PlaceTower>,
+    mut tower_placement_writer: EventWriter<TowerPlacementEvent>,
     mut player_state: ResMut<PlayerState>,
     input: Res<ButtonInput<KeyCode>>,
-    // pointer_input_state: Res<State<PointerInteractionState>>,
     previews: Query<&TowerPreview>,
     relationships: Query<&Children>,
-    tower_placement_state: Res<State<TowerPlacementState>>,
     towers: Query<(), With<Tower>>,
 ) {
-    // let entity = trigger.target;
+    let TowerPreview(tower, entity, orientation) = *previews.get(trigger.target).unwrap();
 
-    let TowerPreview(tower, entity, placement) = previews.get(trigger.target).unwrap();
-
-    let (_, _, orientation) = (match **tower_placement_state {
-        TowerPlacementState::None => None,
-        TowerPlacementState::Placing(tower, entity, tower_placement) => {
-            Some((tower, entity, tower_placement))
-        }
-    })
-    .unwrap();
-
+    // prevent placement if user cannot afford tower
     if !player_state.can_afford(tower.price()) {
         commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
         return;
     }
 
-    if let Ok(children) = relationships.get(*entity) {
+    // prevent double placement
+    if let Ok(children) = relationships.get(entity) {
         for child in children {
             if let Ok(_) = towers.get(*child) {
-                commands.trigger(DisplayFlashMessage::new("Cannot place tower here"));
+                commands.trigger(DisplayFlashMessage::new("There is already a tower here"));
                 return;
             }
         }
     }
 
     player_state.money -= tower.price();
-    place_events.write(PlaceTower(*entity, *tower, orientation));
+    tower_placement_writer.write(TowerPlacementEvent::Accepted(tower, entity, orientation));
 
     if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
         next_pointer_state.set(PointerInteractionState::Selecting);
@@ -145,18 +122,22 @@ fn on_turret_placement_hover(
     floors: Query<(), With<Floor>>,
     ceilings: Query<(), With<Ceiling>>,
     pointer_input_state: Res<State<PointerInteractionState>>,
-    tower_placement_state: Res<State<TowerPlacementState>>,
-    mut next_tower_placement_state: ResMut<NextState<TowerPlacementState>>,
+    previews: Query<&TowerPreview>,
+    relationships: Query<&Children>,
+    mut tower_placement_writer: EventWriter<TowerPlacementEvent>,
 ) {
-    let PointerInteractionState::Placing(tower) = pointer_input_state.get() else {
+    let PointerInteractionState::Placing(tower) = *pointer_input_state.get() else {
         return;
     };
 
     let entity = trigger.target;
 
-    if let TowerPlacementState::Placing(t, e, _) = tower_placement_state.get() {
-        if *t == *tower && *e == entity {
-            return;
+    if let Ok(children) = relationships.get(entity) {
+        for child in children {
+            if previews.get(*child).is_ok() {
+                // Early return if the entity already has a preview
+                return;
+            }
         }
     }
 
@@ -165,81 +146,34 @@ fn on_turret_placement_hover(
             WallDirection::Left => CellDirection::Left,
             WallDirection::Right => CellDirection::Right,
         };
-        next_tower_placement_state.set(TowerPlacementState::Placing(*tower, entity, placement));
+        tower_placement_writer.write(TowerPlacementEvent::Requested(tower, entity, placement));
     } else if ceilings.get(entity).is_ok() {
-        next_tower_placement_state.set(TowerPlacementState::Placing(
-            *tower,
+        tower_placement_writer.write(TowerPlacementEvent::Requested(
+            tower,
             entity,
             CellDirection::Up,
         ));
     } else if floors.get(entity).is_ok() {
-        next_tower_placement_state.set(TowerPlacementState::Placing(
-            *tower,
+        tower_placement_writer.write(TowerPlacementEvent::Requested(
+            tower,
             entity,
             CellDirection::Down,
         ));
     }
 }
 
-// fn click_tower(
-//     trigger: Trigger<Pointer<Pressed>>,
-//     input: Res<ButtonInput<KeyCode>>,
-//     pointer_input_state: Res<State<PointerInteractionState>>,
-//     relationships: Query<&Children>,
-//     tower_placement_state: Res<State<TowerPlacementState>>,
-//     towers: Query<(), With<Tower>>,
-//     mut commands: Commands,
-//     mut next_pointer_state: ResMut<NextState<PointerInteractionState>>,
-//     mut place_events: EventWriter<PlaceTower>,
-//     mut player_state: ResMut<PlayerState>,
-//     mut select_events: EventWriter<SelectTower>,
-// ) {
-//     match **pointer_input_state {
-//         PointerInteractionState::Selecting => {
-//             println!("Selecting!");
-//             select_events.write(SelectTower(trigger.target));
-//         }
-//         PointerInteractionState::Placing(tower) => {
-//             let entity = trigger.target;
-//
-//             let (_, _, orientation) = (match **tower_placement_state {
-//                 TowerPlacementState::None => None,
-//                 TowerPlacementState::Placing(tower, entity, tower_placement) => {
-//                     Some((tower, entity, tower_placement))
-//                 }
-//             })
-//             .unwrap();
-//
-//             if !player_state.can_afford(tower.price()) {
-//                 commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
-//                 return;
-//             }
-//
-//             if let Ok(children) = relationships.get(entity) {
-//                 for child in children {
-//                     if let Ok(_) = towers.get(*child) {
-//                         commands.trigger(DisplayFlashMessage::new("Cannot place tower here"));
-//                         return;
-//                     }
-//                 }
-//             }
-//
-//             player_state.money -= tower.price();
-//             place_events.write(PlaceTower(entity, tower, orientation));
-//
-//             if !input.pressed(KeyCode::ShiftLeft) && !input.pressed(KeyCode::ShiftRight) {
-//                 next_pointer_state.set(PointerInteractionState::Selecting);
-//             }
-//         }
-//     }
-// }
-
-fn place_towers(mut place_events: EventReader<PlaceTower>, mut commands: Commands) {
-    for PlaceTower(entity, tower_type, orientation) in place_events.read() {
-        commands.entity(*entity).with_children(|commands| {
-            println!("Placing tower with parent {:?}", entity);
-            commands
-                .compose(tower(*tower_type, *orientation) + orientation.sprite_offset().store());
-        });
+fn place_towers(mut place_events: EventReader<TowerPlacementEvent>, mut commands: Commands) {
+    for event in place_events.read() {
+        match *event {
+            TowerPlacementEvent::Accepted(tower, entity, orientation) => {
+                commands.entity(entity).with_children(|commands| {
+                    commands.compose(
+                        crate::prefabs::towers::tower(tower, orientation)
+                            + orientation.sprite_offset().store(),
+                    );
+                });
+            }
+            _ => {}
+        }
     }
 }
