@@ -1,6 +1,6 @@
 //! The screen state for the main gameplay.
 
-use crate::data::PointerInteractionState;
+use crate::data::{PlayerState, PointerInteractionState};
 use crate::{Pause, gameplay::level::spawn_level, menus::Menu, screens::Screen};
 use bevy::log::tracing_subscriber::filter::FilterExt;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
@@ -26,6 +26,7 @@ pub(super) fn plugin(app: &mut App) {
             ),
         ),
     );
+    app.add_systems(OnEnter(Screen::Gameplay), on_game_start);
     app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
     app.add_systems(
         OnEnter(Menu::None),
@@ -39,6 +40,10 @@ fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
 
 fn pause(mut next_pause: ResMut<NextState<Pause>>) {
     next_pause.set(Pause(true));
+}
+
+fn on_game_start(mut commands: Commands) {
+    commands.insert_resource(PlayerState::default());
 }
 
 fn spawn_pause_overlay(mut commands: Commands) {

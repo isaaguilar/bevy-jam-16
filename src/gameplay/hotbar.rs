@@ -1,5 +1,6 @@
 use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
+use bevy::color::palettes::tailwind;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::{ecs::spawn::*, prelude::*};
 
@@ -174,12 +175,19 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
 }
 
 fn highlight_hovered_tile(
-    mut tile_query: Query<(&Interaction, &mut BackgroundColor), With<HotbarItem>>,
+    mut tile_query: Query<(&Interaction, &Tower, &mut BackgroundColor), With<HotbarItem>>,
+    player_state: Res<PlayerState>,
 ) {
-    for (interaction, mut background_color) in &mut tile_query {
+    for (interaction, tower, mut background_color) in &mut tile_query {
         background_color.0 = match interaction {
-            Interaction::None => Color::WHITE.with_alpha(0.25),
-            _ => Color::WHITE,
+            Interaction::None => tailwind::SLATE_50.with_alpha(0.25).into(),
+            _ => {
+                if player_state.can_afford(tower.price()) {
+                    tailwind::SLATE_50.with_alpha(0.8).into()
+                } else {
+                    tailwind::SLATE_50.with_alpha(0.25).into()
+                }
+            }
         }
     }
 }
