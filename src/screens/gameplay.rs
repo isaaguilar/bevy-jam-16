@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
                 in_state(Screen::Gameplay)
                     .and(in_state(Menu::None))
                     .and(in_state(PointerInteractionState::Selecting))
-                    .and(input_just_pressed(KeyCode::KeyP).or(input_just_pressed(KeyCode::Space))),
+                    .and(input_just_pressed(KeyCode::KeyP)),
             ),
             close_menu.run_if(
                 in_state(Screen::Gameplay)
