@@ -40,7 +40,11 @@ pub struct ApplyAttackEffect {
 }
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackEffect>);
+pub struct AttackEnemiesInContact {
+    pub sensor: Entity,
+    pub effect: Vec<AttackEffect>,
+    pub tower: Entity,
+}
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
 pub struct DropLiquid(pub Entity, pub LiquidType);
@@ -60,17 +64,19 @@ pub fn do_tower_attacks(
 
         match tower.attack_def() {
             AttackType::EntireCell(attack_effects) => {
-                contact_events.write(AttackEnemiesInContact(
-                    *children
+                contact_events.write(AttackEnemiesInContact {
+                    sensor: *children
                         .iter()
                         .filter(|w| ranges.get(**w).is_ok())
                         .next()
                         .unwrap(),
-                    attack_effects,
-                ));
+                    effect: attack_effects,
+                    tower: event.0,
+                });
             }
             AttackType::Contact(attack_effects) => todo!(),
             AttackType::DropsLiquid(liquid_type) => {
+                bevy::prelude::info!(entity = ?event.0, liquid_type = ?liquid_type, "here i am");
                 drop_events.write(DropLiquid(event.0, liquid_type));
             }
             AttackType::ModifiesSelf => todo!(),
@@ -109,29 +115,6 @@ pub fn dispatch_attack_effects(
     }
 }
 
-pub fn drop_liquids(
-    mut events: EventReader<DropLiquid>,
-    mut commands: Commands,
-    mut towers: Query<(
-        &Tower,
-        &GlobalTransform,
-        &CellDirection,
-        &mut AnimationFrameQueue,
-    )>,
-) {
-    for DropLiquid(e, liquid) in events.read() {
-        let Ok((tower, global_transform, cell_direction, mut animation)) = towers.get_mut(*e)
-        else {
-            warn!("Tower not found in dispatch_attack_effects");
-            return;
-        };
-
-        let loc = global_transform.to_scale_rotation_translation().2.xy();
-        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
-        animation.set_override(cell_direction.attack_frames(&tower));
-    }
-}
-
 pub fn splat_droplets(
     trigger: Trigger<OnCollisionStart>,
     sensors: Query<(), With<Sensor>>,
@@ -156,17 +139,28 @@ pub fn attack_contact_enemies(
     mut attack_events: EventWriter<ApplyAttackEffect>,
     collisions: Collisions,
     enemies: Query<(), With<EnemyHealth>>,
+    mut towers: Query<(&Tower, &CellDirection, &mut AnimationFrameQueue)>,
 ) {
-    for &AttackEnemiesInContact(sensor_entity, ref damage_def) in events.read() {
+    for &AttackEnemiesInContact {
+        sensor,
+        ref effect,
+        tower,
+    } in events.read()
+    {
         let enemies: Vec<_> = collisions
-            .entities_colliding_with(sensor_entity)
+            .entities_colliding_with(sensor)
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
-        for effect in damage_def {
+        let Ok((tower, cell_direction, mut animation)) = towers.get_mut(tower) else {
+            warn!("Tower not found in dispatch_attack_effects");
+            return;
+        };
+        animation.set_override(cell_direction.attack_frames(&tower));
+        for effect in effect {
             for enemy in &enemies {
                 attack_events.write(ApplyAttackEffect {
                     target: *enemy,
-                    source: sensor_entity,
+                    source: sensor,
                     effect: effect.clone(),
                 });
             }
