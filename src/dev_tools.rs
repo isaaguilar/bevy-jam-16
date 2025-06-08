@@ -9,6 +9,7 @@ use bevy::{
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::data::PlayerState;
+use crate::level::resource::LevelSelect;
 use crate::{data::PointerInteractionState, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
@@ -23,6 +24,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_systems(Update, add_1k.run_if(input_just_pressed(KeyCode::KeyM)));
+    app.add_systems(Update, next_level.run_if(input_just_pressed(KeyCode::KeyN)));
     app.add_systems(Startup, on_startup);
 
     app.add_plugins(EguiPlugin {
@@ -46,4 +48,9 @@ fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, mut store: ResMut<GizmoC
 fn add_1k(mut player_state: ResMut<PlayerState>) {
     player_state.money += 1000;
     info!("Added $1000 to player state.");
+}
+
+fn next_level(mut level_select: ResMut<LevelSelect>, mut next_screen: ResMut<NextState<Screen>>) {
+    level_select.0 += 1;
+    next_screen.set(Screen::LevelTransition);
 }
