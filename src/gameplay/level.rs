@@ -97,13 +97,11 @@ pub fn unlock_next_level(
 pub fn goto_next_level(
     mut _event: EventReader<GotoNextLevel>,
     mut level_select: ResMut<LevelSelect>,
-    unlocked_levels: Res<UnlockedLevels>,
     mut next_screen: ResMut<NextState<Screen>>,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
     if enemies.iter().len() == 0 {
-        info!(unlocked_levels=?unlocked_levels.0);
-        level_select.0 = *unlocked_levels.0.last().unwrap_or(&0);
+        level_select.0 += 1;
         next_screen.set(Screen::LevelTransition);
     }
 }

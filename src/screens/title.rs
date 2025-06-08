@@ -16,13 +16,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnExit(Screen::Title), close_menu);
 }
 
-fn open_main_menu(
-    mut next_menu: ResMut<NextState<Menu>>,
-    mut level_select: ResMut<LevelSelect>,
-    mut unlocked_levels: ResMut<UnlockedLevels>,
-) {
+fn open_main_menu(mut next_menu: ResMut<NextState<Menu>>, mut level_select: ResMut<LevelSelect>) {
     level_select.0 = START_LEVEL;
-    unlocked_levels.0 = vec![START_LEVEL];
     next_menu.set(Menu::Main);
 }
 
