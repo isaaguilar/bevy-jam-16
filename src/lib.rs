@@ -34,6 +34,8 @@ pub struct AppPlugin;
 
 const WINDOW_X: f32 = 1280.0;
 const WINDOW_Y: f32 = 720.0;
+const MAX_ZOOM_OUT: f32 = 2.5;
+const MAX_ZOOM_IN: f32 = 0.5;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
@@ -153,7 +155,7 @@ fn cameraman(
 
     if mouse_button_input.any_pressed([MouseButton::Right, MouseButton::Middle]) {
         let delta = accumulated_mouse_motion.delta;
-        camera_transform.translation += Vec2::new(-delta.x / 50., delta.y / 50.).extend(0.0);
+        camera_transform.translation += Vec2::new(-delta.x / 15., delta.y / 15.).extend(0.0);
     }
 
     for mouse_wheel_event in mouse_wheel_events.read() {
@@ -162,28 +164,27 @@ fn cameraman(
                 // Case 1: Use is using a scroll wheel
                 let dy = mouse_wheel_event.y;
                 camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
-                if camera_transform.scale.x > 2.5 {
-                    camera_transform.scale = Vec2::splat(2.5).extend(1.);
-                } else if camera_transform.scale.x < 0.5 {
-                    camera_transform.scale = Vec2::splat(0.5).extend(1.);
+                if camera_transform.scale.x > MAX_ZOOM_IN {
+                    camera_transform.scale = Vec2::splat(MAX_ZOOM_OUT).extend(1.);
+                } else if camera_transform.scale.x < MAX_ZOOM_IN {
+                    camera_transform.scale = Vec2::splat(MAX_ZOOM_IN).extend(1.);
                 }
             }
             MouseScrollUnit::Pixel => {
-                // This is trackpad-like behavior. Use shift to zoom, else follow
+                // Case 2: This is trackpad-like behavior. Use shift to zoom, else follow
                 // trackpad as camera translation
                 let dy = mouse_wheel_event.y;
                 let dx = mouse_wheel_event.x;
 
                 if keys.pressed(KeyCode::ShiftLeft) {
                     camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
-                    if camera_transform.scale.x > 2.5 {
-                        camera_transform.scale = Vec2::splat(2.5).extend(1.);
-                    } else if camera_transform.scale.x < 0.5 {
-                        camera_transform.scale = Vec2::splat(0.5).extend(1.);
+                    if camera_transform.scale.x > MAX_ZOOM_OUT {
+                        camera_transform.scale = Vec2::splat(MAX_ZOOM_OUT).extend(1.);
+                    } else if camera_transform.scale.x < MAX_ZOOM_IN {
+                        camera_transform.scale = Vec2::splat(MAX_ZOOM_IN).extend(1.);
                     }
-                    // Space was pressed
                 } else {
-                    camera_transform.translation += Vec2::new(-dx / 50., dy / 50.).extend(0.0);
+                    camera_transform.translation += Vec2::new(-dx / 35., dy / 35.).extend(0.0);
                 }
             }
         }
