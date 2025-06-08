@@ -1,14 +1,7 @@
 use bevy::prelude::*;
 
 // Temporary hardcoded map until I pull the asset-loading changes
-pub const MAP_TEXT: &'static str = "
->>>>>>>>>>>>>^
-^<v<v<v<v<v<v<
-^^<^<^<^<^<^<^
->>>>>>>>>>>>>^
-";
-
-pub const MAP_TEXT2: &'static str = "^<<v<
+pub const MAP_TEXT: &'static str = "^<<v<
 >>^v^
 ^<<<^
 >>>>^

@@ -118,7 +118,7 @@ impl Tower {
         match self {
             Tower::Piston => TowerAttackType::EntireCell(vec![
                 AttackSpecification::Damage(DamageType::Physical, 10),
-                AttackSpecification::Push(200.),
+                AttackSpecification::Push(800.),
             ]),
             Tower::Fan => TowerAttackType::EntireCell(vec![AttackSpecification::Push(10.)]),
             Tower::SpikePit => TowerAttackType::Contact(vec![AttackSpecification::Damage(

@@ -13,6 +13,7 @@ use bevy::{
     transform::components::Transform,
 };
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
+use fan::{do_forcefields, resolve_fancasters, spawn_fancasters};
 use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
 use liquids::{
     drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
@@ -80,7 +81,7 @@ pub(super) fn plugin(app: &mut App) {
                 do_tower_attacks,
                 (attack_contact_enemies, drop_liquids),
                 dispatch_attack_effects,
-                do_shoves,
+                (do_shoves, do_forcefields),
             )
                 .chain(),
         )
@@ -94,7 +95,9 @@ pub(super) fn plugin(app: &mut App) {
             add_tower_targets_from_zone,
             remove_tower_targets,
             spawn_rangedroppers,
+            spawn_fancasters,
             drop_ranges,
+            resolve_fancasters,
         )
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),

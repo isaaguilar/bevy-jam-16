@@ -1,19 +1,24 @@
 use avian2d::prelude::ExternalImpulse;
 use bevy::{
     ecs::{
+        component::Component,
         entity::Entity,
         event::{Event, EventReader},
         query::With,
-        system::Query,
+        system::{Commands, Query},
     },
     math::Vec2,
     reflect::Reflect,
+    transform::components::Transform,
 };
 
 use crate::{
-    data::status_effects::damage_multiplier, demo::enemy_health::EnemyHealth,
-    level::resource::CellDirection,
+    data::status_effects::damage_multiplier,
+    demo::enemy_health::EnemyHealth,
+    level::{components::PathNode, resource::CellDirection},
 };
+
+use super::directional::FireDirection;
 
 #[derive(Event, Reflect, Clone, Debug, Copy, PartialEq)]
 pub struct Shove(pub Entity, pub CellDirection, pub f32);

@@ -4,24 +4,39 @@ use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers
 
 use crate::{
     data::Tower,
-    gameplay::towers::common::{TowerTriggerNeedsGravity, TowerTriggerRange},
+    gameplay::towers::{
+        common::{TowerTriggerNeedsGravity, TowerTriggerRange},
+        directional::FireDirection,
+        fan::FanNeedsDirection,
+    },
     level::resource::CellDirection,
 };
 
 use super::{physics::GamePhysicsLayer as GPL, utils::TowerSprite};
 
 pub fn tower(tower: Tower, direction: CellDirection) -> ComponentTree {
-    (tower, direction, TowerSprite(tower, direction)).store() + name(tower.name()) + {
-        if tower.has_trigger_zone() {
-            if tower.gravity_influences_trigger() {
-                ().store() << (trigger_zone(Vec2::new(9., 9.5)) + TowerTriggerNeedsGravity.store())
+    let tower_specific_components = match tower {
+        Tower::Piston => FireDirection(direction).store(),
+        Tower::Fan => FanNeedsDirection.store(),
+        Tower::SpikePit => todo!(),
+        Tower::Portal => todo!(),
+        _ => ().store(),
+    };
+    (tower, direction, TowerSprite(tower, direction)).store()
+        + name(tower.name())
+        + tower_specific_components
+        + {
+            if tower.has_trigger_zone() {
+                if tower.gravity_influences_trigger() {
+                    ().store()
+                        << (trigger_zone(Vec2::new(9., 9.5)) + TowerTriggerNeedsGravity.store())
+                } else {
+                    ().store() << trigger_zone(Vec2::new(9., 9.))
+                }
             } else {
-                ().store() << trigger_zone(Vec2::new(9., 9.))
+                ().store()
             }
-        } else {
-            ().store()
         }
-    }
 }
 
 pub fn trigger_zone(size: Vec2) -> ComponentTree {

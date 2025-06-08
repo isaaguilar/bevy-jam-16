@@ -3,7 +3,7 @@ use bevy::{
     ecs::{
         entity::Entity,
         event::{Event, EventReader, EventWriter},
-        hierarchy::Children,
+        hierarchy::{ChildOf, Children},
         observer::Trigger,
         query::With,
         system::{Commands, Query},
@@ -18,6 +18,7 @@ use std::cell;
 
 use super::{
     common::{TowerFired, TowerTriggerRange},
+    directional::FireDirection,
     piston::Shove,
 };
 use crate::{
@@ -177,6 +178,8 @@ pub fn attack_contact_enemies(
     mut events: EventReader<AttackEnemiesInContact>,
     mut attack_events: EventWriter<ApplyAttackData>,
     collisions: Collisions,
+    directions: Query<&FireDirection>,
+    parents: Query<&ChildOf, With<TowerTriggerRange>>,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
     for &AttackEnemiesInContact(sensor_entity, ref damage_def) in events.read() {
@@ -185,6 +188,7 @@ pub fn attack_contact_enemies(
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
         for effect in damage_def {
+            let mut direction: Option<CellDirection> = None;
             for enemy in &enemies {
                 attack_events.write(ApplyAttackData {
                     target: *enemy,
@@ -195,7 +199,21 @@ pub fn attack_contact_enemies(
                             strength: 1,
                             damage: *damage,
                         },
-                        AttackSpecification::Push(_) => todo!(),
+                        AttackSpecification::Push(force) => {
+                            if direction.is_none() {
+                                direction = Some(
+                                    directions
+                                        .get(parents.get(sensor_entity).unwrap().0)
+                                        .map(|w| w.0)
+                                        .unwrap_or(CellDirection::Down),
+                                );
+                            }
+                            AttackData::Push {
+                                direction: direction.unwrap(),
+                                strength: 1,
+                                force: *force,
+                            }
+                        }
                         AttackSpecification::Status(status_enum) => AttackData::Status {
                             status: *status_enum,
                             strength: 1,
