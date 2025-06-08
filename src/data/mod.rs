@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::prelude::*;
-use projectiles::{AttackEffect, DamageType, Droplet, LiquidType, Puddle, TowerAttackType};
+use projectiles::{AttackSpecification, DamageType, Droplet, LiquidType, Puddle, TowerAttackType};
 pub use status_effects::{StatusEffect, StatusEffectTrait};
 
 mod input_state;
@@ -28,9 +28,9 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<Droplet>()
         .register_type::<Puddle>()
         .register_type::<LiquidType>()
+        .register_type::<AttackSpecification>()
         .register_type::<DamageType>()
         .register_type::<PlayerState>()
-        //.register_type::<StatusEffect>()
         .register_type::<Tower>()
         .register_type::<PointerInteractionState>();
 

@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 
 use super::{
-    StatusEffect,
-    projectiles::{AttackEffect, DamageType, LiquidType, TowerAttackType},
+    projectiles::{AttackSpecification, DamageType, LiquidType, TowerAttackType},
     status_effects::StatusEnum,
 };
 
@@ -118,27 +117,30 @@ impl Tower {
     pub fn attack_def(&self) -> TowerAttackType {
         match self {
             Tower::Piston => TowerAttackType::EntireCell(vec![
-                AttackEffect::Damage(DamageType::Physical),
-                AttackEffect::Push,
+                AttackSpecification::Damage(DamageType::Physical, 10),
+                AttackSpecification::Push(200.),
             ]),
-            Tower::Fan => TowerAttackType::EntireCell(vec![AttackEffect::Push]),
-            Tower::SpikePit => {
-                TowerAttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
-            }
+            Tower::Fan => TowerAttackType::EntireCell(vec![AttackSpecification::Push(10.)]),
+            Tower::SpikePit => TowerAttackType::Contact(vec![AttackSpecification::Damage(
+                DamageType::Physical,
+                10,
+            )]),
             Tower::Oil => TowerAttackType::DropsLiquid(LiquidType::Oil),
             Tower::TrapDoor => TowerAttackType::ModifiesSelf,
             Tower::Ice => TowerAttackType::EntireCell(vec![
-                AttackEffect::Damage(DamageType::Cold),
-                AttackEffect::Status(StatusEnum::Chilled),
+                AttackSpecification::Damage(DamageType::Cold, 10),
+                AttackSpecification::Status(StatusEnum::Chilled),
             ]),
             Tower::Acid => TowerAttackType::DropsLiquid(LiquidType::Acid),
-            Tower::Tesla => {
-                TowerAttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Lightning)])
-            }
+            Tower::Tesla => TowerAttackType::EntireCell(vec![AttackSpecification::Damage(
+                DamageType::Lightning,
+                15,
+            )]),
             Tower::Water => TowerAttackType::DropsLiquid(LiquidType::Water),
-            Tower::Flame => {
-                TowerAttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Burning)])
-            }
+            Tower::Flame => TowerAttackType::EntireCell(vec![AttackSpecification::Damage(
+                DamageType::Burning,
+                10,
+            )]),
             Tower::Portal => todo!(),
         }
     }

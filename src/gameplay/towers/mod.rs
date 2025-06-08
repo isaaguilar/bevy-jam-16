@@ -1,5 +1,5 @@
 use attacks::{
-    ApplyAttackEffect, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
+    ApplyAttackData, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
     dispatch_attack_effects, do_tower_attacks,
 };
 use bevy::{
@@ -18,6 +18,7 @@ use liquids::{
     drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
     timeout_lifetimes,
 };
+use piston::{Shove, do_shoves};
 use std::f32;
 
 use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
@@ -38,6 +39,7 @@ use common::*;
 
 pub mod attacks;
 pub mod common;
+pub mod directional;
 pub mod fan;
 pub mod gravity_bullshit;
 pub mod liquids;
@@ -53,7 +55,8 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_event::<DropLiquid>()
         .add_event::<TowerFired>()
-        .add_event::<ApplyAttackEffect>()
+        .add_event::<Shove>()
+        .add_event::<ApplyAttackData>()
         .add_event::<AttackEnemiesInContact>();
 
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
@@ -77,6 +80,7 @@ pub(super) fn plugin(app: &mut App) {
                 do_tower_attacks,
                 (attack_contact_enemies, drop_liquids),
                 dispatch_attack_effects,
+                do_shoves,
             )
                 .chain(),
         )

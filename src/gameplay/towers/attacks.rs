@@ -16,12 +16,19 @@ use bevy::{
 use bevy_composable::app_impl::ComplexSpawnable;
 use std::cell;
 
-use super::common::{TowerFired, TowerTriggerRange};
+use super::{
+    common::{TowerFired, TowerTriggerRange},
+    piston::Shove,
+};
 use crate::{
     assets::LiquidSprites,
     data::{
         Tower,
-        projectiles::{AttackEffect, DamageType, Droplet, LiquidType, Puddle, TowerAttackType},
+        projectiles::{
+            AttackData, AttackSpecification, DamageType, Droplet, LiquidType, Puddle,
+            TowerAttackType,
+        },
+        status_effects::damage_multiplier,
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::{animation::AnimationFrameQueue, status_effects::common::TryApplyStatus},
@@ -33,14 +40,14 @@ use crate::{
 };
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct ApplyAttackEffect {
+pub struct ApplyAttackData {
     pub target: Entity,
     pub source: Entity,
-    pub effect: AttackEffect,
+    pub effect: AttackData,
 }
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackEffect>);
+pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackSpecification>);
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
 pub struct DropLiquid(pub Entity, pub LiquidType);
@@ -79,30 +86,45 @@ pub fn do_tower_attacks(
 }
 
 pub fn dispatch_attack_effects(
-    mut attackeffect_events: EventReader<ApplyAttackEffect>,
+    mut attackeffect_events: EventReader<ApplyAttackData>,
     mut damage_events: EventWriter<TryDamageToEnemy>,
     mut status_events: EventWriter<TryApplyStatus>,
+    mut shoves: EventWriter<Shove>,
 ) {
-    for (ApplyAttackEffect {
+    for (ApplyAttackData {
         target,
         source,
         effect,
     }) in attackeffect_events.read()
     {
         match effect {
-            AttackEffect::Damage(damage_type) => {
+            AttackData::Damage {
+                dmg_type,
+                strength,
+                damage,
+            } => {
                 damage_events.write(TryDamageToEnemy {
-                    damage: 10, // TODO: Add damage details
-                    damage_type: *damage_type,
+                    damage: (*damage as f32 * damage_multiplier(*strength)) as isize,
+                    damage_type: *dmg_type,
                     enemy: *target,
                 });
             }
-            AttackEffect::Push(direction) => todo!(),
-            AttackEffect::Status(status_effect) => {
+            AttackData::Push {
+                direction,
+                strength,
+                force,
+            } => {
+                shoves.write(Shove(
+                    *target,
+                    *direction,
+                    force * damage_multiplier(*strength),
+                ));
+            }
+            AttackData::Status { status, strength } => {
                 status_events.write(TryApplyStatus {
-                    status: *status_effect,
+                    status: *status,
                     enemy: *target,
-                    strength: 1, // TODO: Update with strength system
+                    strength: *strength,
                 });
             }
         }
@@ -153,7 +175,7 @@ pub fn splat_droplets(
 
 pub fn attack_contact_enemies(
     mut events: EventReader<AttackEnemiesInContact>,
-    mut attack_events: EventWriter<ApplyAttackEffect>,
+    mut attack_events: EventWriter<ApplyAttackData>,
     collisions: Collisions,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
@@ -164,10 +186,21 @@ pub fn attack_contact_enemies(
             .collect();
         for effect in damage_def {
             for enemy in &enemies {
-                attack_events.write(ApplyAttackEffect {
+                attack_events.write(ApplyAttackData {
                     target: *enemy,
                     source: sensor_entity,
-                    effect: effect.clone(),
+                    effect: match effect {
+                        AttackSpecification::Damage(damage_type, damage) => AttackData::Damage {
+                            dmg_type: *damage_type,
+                            strength: 1,
+                            damage: *damage,
+                        },
+                        AttackSpecification::Push(_) => todo!(),
+                        AttackSpecification::Status(status_enum) => AttackData::Status {
+                            status: *status_enum,
+                            strength: 1,
+                        },
+                    },
                 });
             }
         }

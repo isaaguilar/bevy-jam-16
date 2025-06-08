@@ -4,30 +4,40 @@ use bevy::{
 };
 use std::sync::Arc;
 
+use super::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum};
 use crate::level::resource::CellDirection;
 
-use super::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum};
-
-#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
+#[derive(Clone, Debug, Reflect, PartialEq)]
 pub enum TowerAttackType {
-    EntireCell(Vec<AttackEffect>),
-    Contact(Vec<AttackEffect>),
+    EntireCell(Vec<AttackSpecification>),
+    Contact(Vec<AttackSpecification>),
     DropsLiquid(LiquidType),
     ModifiesSelf,
 }
 
-#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackData {
-    Damage(DamageType, usize, isize),
-    Push(CellDirection, usize, f32),
-    Status(StatusEnum, usize),
+#[derive(Clone, Debug, Reflect, PartialEq)]
+pub enum AttackSpecification {
+    Damage(DamageType, usize),
+    Push(f32),
+    Status(StatusEnum),
 }
 
-#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackType {
-    Damage(DamageType),
-    Push,
-    Status(StatusEnum),
+#[derive(Clone, Debug, Reflect, PartialEq)]
+pub enum AttackData {
+    Damage {
+        dmg_type: DamageType,
+        strength: usize,
+        damage: usize,
+    },
+    Push {
+        direction: CellDirection,
+        strength: usize,
+        force: f32,
+    },
+    Status {
+        status: StatusEnum,
+        strength: usize,
+    },
 }
 
 #[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
@@ -65,13 +75,13 @@ impl DamageType {
 }
 
 impl LiquidType {
-    pub fn contact_effects(&self) -> Vec<AttackEffect> {
+    pub fn contact_effects(&self) -> Vec<AttackSpecification> {
         match self {
-            LiquidType::Water => vec![AttackEffect::Status(StatusEnum::Wet)],
-            LiquidType::Oil => vec![AttackEffect::Status(StatusEnum::Oiled)],
+            LiquidType::Water => vec![AttackSpecification::Status(StatusEnum::Wet)],
+            LiquidType::Oil => vec![AttackSpecification::Status(StatusEnum::Oiled)],
             LiquidType::Acid => vec![
-                AttackEffect::Damage(DamageType::Chemical),
-                AttackEffect::Status(StatusEnum::Acidified),
+                AttackSpecification::Damage(DamageType::Chemical, 10),
+                AttackSpecification::Status(StatusEnum::Acidified),
             ],
         }
     }
