@@ -5,6 +5,7 @@ use projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Pud
 pub use status_effects::{StatusEffect, StatusEffectTrait};
 
 mod input_state;
+pub mod levels;
 pub mod projectiles;
 mod state;
 pub mod stats;
@@ -19,7 +20,8 @@ pub use {
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.init_resource::<PlayerState>();
+    app.init_resource::<PlayerState>()
+        .insert_resource(levels::LevelData::default());
     app.init_state::<PointerInteractionState>();
 
     app
