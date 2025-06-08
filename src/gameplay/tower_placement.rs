@@ -151,7 +151,7 @@ fn observe_placeholder(
     input: Res<ButtonInput<KeyCode>>,
     preview: Res<TowerPreview>,
     relationships: Query<&Children>,
-    towers: Query<(), With<Tower>>,
+    towers: Query<(&ChildOf, &Tower)>,
     adjacent_placements: Query<(Entity, &Adjacent)>,
     hotbar: Query<(), With<HotbarItem>>,
 ) {
@@ -193,20 +193,22 @@ fn observe_placeholder(
     }
 
     if tower.requires_adjecent_wall() {
-        if let Ok((_, adjacent)) = adjacent_placements.get(entity) {
-            if tower.requires_floor_placement() && adjacent.exact_position != ExactPosition::Floor {
+        if let Ok((_, occupied_adjacent)) = adjacent_placements.get(entity) {
+            if tower.requires_floor_placement()
+                && occupied_adjacent.exact_position != ExactPosition::Floor
+            {
                 commands.trigger(DisplayFlashMessage::new(
                     "This tower must be placed on a floor panel",
                 ));
                 return;
-            } else if tower.requires_floor_placement() && adjacent.id.unit_y == 0 {
+            } else if tower.requires_floor_placement() && occupied_adjacent.id.unit_y == 0 {
                 commands.trigger(DisplayFlashMessage::new(
                     "This tower cannot be placed on the bottom",
                 ));
                 return;
             }
-            for (other_entity, other_adjacent_id) in adjacent_placements {
-                if adjacent == other_adjacent_id {
+            for (other_entity, target_adjacent) in adjacent_placements {
+                if occupied_adjacent.id == target_adjacent.id {
                     if let Ok(children) = relationships.get(other_entity) {
                         for child in children {
                             if let Ok(_) = towers.get(*child) {
@@ -220,6 +222,21 @@ fn observe_placeholder(
                 }
             }
         };
+    }
+
+    for (parent, tower) in towers {
+        if tower.requires_adjecent_wall() {
+            if let Ok((_, occupied_adjacent)) = adjacent_placements.get(parent.0) {
+                for (target_e, target_adjacent) in adjacent_placements {
+                    if target_e == entity && occupied_adjacent.id == target_adjacent.id {
+                        commands.trigger(DisplayFlashMessage::new(
+                            "Cannot place this tower under a trap door",
+                        ));
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     player_state.money -= tower.price();
