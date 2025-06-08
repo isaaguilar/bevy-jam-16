@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_composable::app_impl::ComponentTreeable;
+use directional::FireDirection;
 
 use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
 use crate::{
@@ -17,7 +18,7 @@ use attacks::{
     attack_contact_enemies, dispatch_attack_effects, do_tower_attacks, play_tower_sfx,
 };
 use common::*;
-use fan::{do_forcefields, resolve_fancasters, spawn_fancasters};
+use fan::{ForceField, do_forcefields, resolve_fancasters, spawn_fancasters};
 use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
 use liquids::{drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles};
 use piston::{Shove, do_shoves};
@@ -37,6 +38,8 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<TowerTriggerNeedsGravity>()
         .register_type::<Cooldown>()
         .register_type::<TowerFired>()
+        .register_type::<FireDirection>()
+        .register_type::<ForceField>()
         .register_type::<TowerHasTargets>()
         .register_type::<RangeDropper>();
 
