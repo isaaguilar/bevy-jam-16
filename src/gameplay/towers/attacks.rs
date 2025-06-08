@@ -94,11 +94,11 @@ pub fn dispatch_attack_effects(
     mut damage_events: EventWriter<TryDamageToEnemy>,
     mut status_events: EventWriter<TryApplyStatus>,
 ) {
-    for (ApplyAttackEffect {
+    for ApplyAttackEffect {
         target,
         source,
         effect,
-    }) in attackeffect_events.read()
+    } in attackeffect_events.read()
     {
         match effect {
             AttackEffect::Damage(damage_type) => {

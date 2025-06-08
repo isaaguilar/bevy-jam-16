@@ -79,7 +79,7 @@ pub fn add_status_animation<T: StatusEffectTrait>(
             p.spawn((
                 StatusAnimation::<T>::new(),
                 status_sprite_bundle,
-                Transform::from_translation(Vec3::new(15.0, 12.0, 1.0)),
+                Transform::default(),
             ));
         });
     }

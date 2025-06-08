@@ -84,7 +84,7 @@ impl StatusSprites {
         (
             Sprite {
                 image: image.clone(),
-                custom_size: Some(Vec2::splat(LEVEL_SCALING)),
+                custom_size: Some(Vec2::splat(LEVEL_SCALING / 2.0)),
                 texture_atlas: Some(TextureAtlas::from(atlas.clone())),
                 ..default()
             },
