@@ -40,6 +40,10 @@ pub struct UiAssets {
     pub intro: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 256, tile_size_y = 128, columns = 12, rows = 1))]
     pub intro_layout: Handle<TextureAtlasLayout>,
+    #[asset(path = "ui/spawnbtn.png")]
+    pub spawnbtn: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 3, rows = 1))]
+    pub spawnbtn_layout: Handle<TextureAtlasLayout>,
 }
 
 impl UiAssets {

@@ -71,6 +71,17 @@ pub fn ui_font(text: impl Into<String>) -> impl Bundle {
     )
 }
 
+pub fn ui_font_with_node(text: impl Into<String>, node: Node) -> impl Bundle {
+    (
+        Name::new("Text"),
+        Text(text.into()),
+        TextFont::from_font(LABEL_FONT).with_font_size(18.0),
+        TextColor(tailwind::STONE_900.into()),
+        node,
+        Pickable::IGNORE,
+    )
+}
+
 /// A simple text label.
 pub fn body_text(text: impl Into<String>) -> impl Bundle {
     (
