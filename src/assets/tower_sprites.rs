@@ -233,6 +233,13 @@ impl CellDirection {
                 CellDirection::Left => &[2],
                 CellDirection::Right => &[2],
             },
+            Tower::Piston => match self {
+                // TODO: Get actual sprites
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[1],
+                CellDirection::Left => &[2],
+                CellDirection::Right => &[2],
+            },
             _ => todo!(),
         }
     }
