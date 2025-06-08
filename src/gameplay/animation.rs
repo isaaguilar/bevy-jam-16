@@ -1,9 +1,13 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 const FRAME_DURATION: f32 = 0.15;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (animate_sprite_frames, animate_image_node_frames));
+    app.add_systems(
+        Update,
+        (animate_sprite_frames, animate_image_node_frames).in_set(PausableSystems),
+    );
 }
 
 #[derive(Component, Default, Clone, PartialEq)]

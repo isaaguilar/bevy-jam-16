@@ -1,6 +1,5 @@
 use crate::gameplay::hotbar::HotbarItem;
 use crate::level::components::{Adjacent, ExactPosition, LEVEL_SCALING};
-use crate::prefabs::utils::GiveMeMesh;
 use crate::{
     PausableSystems,
     assets::TowerSprites,
@@ -10,9 +9,7 @@ use crate::{
         components::{Ceiling, Floor, Wall, WallDirection},
         resource::CellDirection,
     },
-    prefabs::{towers::tower, wizardry::add_observer_to_component},
     screens::Screen,
-    utils::destroy_entity,
 };
 
 use bevy::prelude::*;
@@ -27,6 +24,11 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         tower_placement_change.run_if(on_event::<TowerPlacementEvent>),
+    );
+
+    app.add_systems(
+        OnEnter(PointerInteractionState::Selecting),
+        on_exit_placement_state,
     );
 
     app.insert_resource(TowerPreview::default());
@@ -104,6 +106,17 @@ fn remove_preview(
     }
 }
 
+fn on_exit_placement_state(
+    spawned_previews: Query<Entity, With<SpawnedPreview>>,
+    mut preview: ResMut<TowerPreview>,
+    mut commands: Commands,
+) {
+    for entity in spawned_previews {
+        commands.entity(entity).despawn();
+        preview.reset();
+    }
+}
+
 fn tower_placement_change(
     mut tower_placement_events: EventReader<TowerPlacementEvent>,
     mut preview: ResMut<TowerPreview>,
@@ -160,7 +173,7 @@ fn observe_placeholder(
     }
 
     let total_previews = spawned_previews.iter().len();
-    if total_previews == 0 || total_previews > 1 {
+    if total_previews != 1 {
         return;
     }
 
