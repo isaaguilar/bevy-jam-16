@@ -29,6 +29,8 @@ pub struct GameAssets {
         collection(typed)
     )]
     pub steps: Vec<Handle<AudioSource>>,
+    #[asset(path = "audio/music/tuba-invaders.ogg")]
+    pub tubamusic: Handle<AudioSource>,
     #[asset(path = "audio/music/Fluffing A Duck.ogg")]
     pub music: Handle<AudioSource>,
     #[asset(path = "audio/music/Monkeys Spinning Monkeys.ogg")]
