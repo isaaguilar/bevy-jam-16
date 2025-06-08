@@ -14,7 +14,9 @@ use std::marker::PhantomData;
 use crate::{
     data::{
         stats::{Stat, StatTrait},
-        status_effects::{StatusEffect, StatusEffectTrait, StatusEnum, duration_multiplier},
+        status_effects::{
+            StatusEffect, StatusEffectTrait, StatusEnum, damage_multiplier, duration_multiplier,
+        },
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
 };
@@ -69,7 +71,7 @@ pub fn status_debuff_premul_flat<S: StatusEffectTrait, T: StatTrait>(
 ) -> ScheduleConfigs<ScheduleSystem> {
     (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
         for (mut stat, status) in enemies.iter_mut() {
-            stat.premul_bonus(debuff * status.damage_multiplier());
+            stat.premul_bonus(debuff * damage_multiplier(status.strength));
         }
     })
     .into_configs()
@@ -80,7 +82,7 @@ pub fn status_debuff_multiplier<S: StatusEffectTrait, T: StatTrait>(
 ) -> ScheduleConfigs<ScheduleSystem> {
     (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
         for (mut stat, status) in enemies.iter_mut() {
-            stat.multiplier(debuff * status.damage_multiplier());
+            stat.multiplier(debuff * damage_multiplier(status.strength));
         }
     })
     .into_configs()
@@ -91,7 +93,7 @@ pub fn status_debuff_postmul_flat<S: StatusEffectTrait, T: StatTrait>(
 ) -> ScheduleConfigs<ScheduleSystem> {
     (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
         for (mut stat, status) in enemies.iter_mut() {
-            stat.postmul_bonus(debuff * status.damage_multiplier());
+            stat.postmul_bonus(debuff * damage_multiplier(status.strength));
         }
     })
     .into_configs()

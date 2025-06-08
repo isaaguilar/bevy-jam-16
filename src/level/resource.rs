@@ -74,6 +74,33 @@ impl CellDirection {
             },
         }
     }
+
+    pub fn clockwise(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Right,
+            CellDirection::Down => CellDirection::Left,
+            CellDirection::Left => CellDirection::Up,
+            CellDirection::Right => CellDirection::Down,
+        }
+    }
+
+    pub fn counter_clockwise(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Left,
+            CellDirection::Down => CellDirection::Right,
+            CellDirection::Left => CellDirection::Down,
+            CellDirection::Right => CellDirection::Up,
+        }
+    }
+
+    pub fn flip(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Down,
+            CellDirection::Down => CellDirection::Up,
+            CellDirection::Left => CellDirection::Right,
+            CellDirection::Right => CellDirection::Left,
+        }
+    }
 }
 
 // Holds all the information necessary to load a level to the game

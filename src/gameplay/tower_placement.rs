@@ -325,6 +325,7 @@ fn place_towers(mut place_events: EventReader<TowerPlacementEvent>, mut commands
                             + orientation.sprite_offset(&tower).store(),
                     );
                 });
+                info!("Placed {:?} at {:?}", tower, entity);
             }
             _ => {}
         }
@@ -334,55 +335,52 @@ fn place_towers(mut place_events: EventReader<TowerPlacementEvent>, mut commands
 fn right_click_tower_options(
     triggers: Trigger<Pointer<Click>>,
     windows: Query<&Window>,
-
     cameras: Query<(&Camera, &GlobalTransform)>,
     mut preview: ResMut<TowerPreview>,
     mut player_state: ResMut<PlayerState>,
     towers: Query<(Entity, &GlobalTransform, &Tower)>,
     mut commands: Commands,
 ) {
-    if triggers.event().button != PointerButton::Secondary {
-        return;
-    };
+    if triggers.event().button == PointerButton::Secondary {
+        let Ok(window) = windows.single() else {
+            return;
+        };
 
-    let Ok(window) = windows.single() else {
-        return;
-    };
+        let Ok((camera, camera_transform)) = cameras.single() else {
+            return;
+        };
 
-    let Ok((camera, camera_transform)) = cameras.single() else {
-        return;
-    };
+        let Some(window_cursor_position) = window.cursor_position() else {
+            return;
+        };
 
-    let Some(window_cursor_position) = window.cursor_position() else {
-        return;
-    };
+        let Ok(game_cursor_position) =
+            camera.viewport_to_world_2d(camera_transform, window_cursor_position)
+        else {
+            return;
+        };
 
-    let Ok(game_cursor_position) =
-        camera.viewport_to_world_2d(camera_transform, window_cursor_position)
-    else {
-        return;
-    };
+        info!(window_position=?window_cursor_position, game_position=?game_cursor_position, "Cusor Position on click");
 
-    info!(window_position=?window_cursor_position, game_position=?game_cursor_position, "Cusor Position on click");
+        let mut in_range = towers
+            .iter()
+            .filter(|(_, transform, _)| {
+                transform.translation().xy().distance(game_cursor_position) < 5.0
+            })
+            .collect::<Vec<_>>();
 
-    let mut in_range = towers
-        .iter()
-        .filter(|(_, transform, _)| {
-            transform.translation().xy().distance(game_cursor_position) < 5.0
-        })
-        .collect::<Vec<_>>();
+        in_range.sort_by(|a, b| {
+            a.1.translation()
+                .xy()
+                .distance(game_cursor_position)
+                .partial_cmp(&b.1.translation().xy().distance(game_cursor_position))
+                .unwrap()
+        });
 
-    in_range.sort_by(|a, b| {
-        a.1.translation()
-            .xy()
-            .distance(game_cursor_position)
-            .partial_cmp(&b.1.translation().xy().distance(game_cursor_position))
-            .unwrap()
-    });
-
-    if let Some((entity, _, tower)) = in_range.into_iter().next() {
-        player_state.money += tower.price();
-        commands.entity(entity).despawn();
+        if let Some((entity, _, tower)) = in_range.into_iter().next() {
+            player_state.money += tower.price();
+            commands.entity(entity).despawn();
+        }
     }
 }
 

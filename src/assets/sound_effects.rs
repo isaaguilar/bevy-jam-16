@@ -1,4 +1,6 @@
-use crate::data::Tower;
+use std::sync::Arc;
+
+use crate::{audio::sound_effect, data::Tower};
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 
@@ -18,11 +20,38 @@ pub struct SoundEffects {
 }
 
 impl SoundEffects {
-    pub fn tower_attack(&self, tower: &Tower) -> Option<Handle<AudioSource>> {
-        match tower {
-            Tower::Tesla => Some(self.tesla_attack.clone()),
-            Tower::SpikePit => Some(self.spike_pit.clone()),
-            _ => None,
-        }
+    pub fn tower_placed(&self) -> Handle<AudioSource> {
+        self.tower_placed_sfx.clone()
+    }
+
+    pub fn enemy_spawn(&self) -> Handle<AudioSource> {
+        self.enemy_spawn_sfx.clone()
+    }
+
+    pub fn damage(&self) -> Handle<AudioSource> {
+        self.took_damage.clone()
+    }
+
+    pub fn tesla_fire(&self) -> Handle<AudioSource> {
+        self.tesla_attack.clone()
+    }
+    pub fn spike_fire(&self) -> Handle<AudioSource> {
+        self.spike_pit.clone()
+    }
+}
+
+#[derive(Event, Reflect, Clone)]
+pub struct FireSoundEffect(pub Arc<dyn SoundFn>);
+
+pub trait SoundFn: 'static + Sync + Send + Fn(&SoundEffects) -> Handle<AudioSource> {}
+impl<F> SoundFn for F where F: Fn(&SoundEffects) -> Handle<AudioSource> + Send + Sync + 'static {}
+
+pub fn fire_sounds(
+    mut commands: Commands,
+    mut events: EventReader<FireSoundEffect>,
+    sfx: Res<SoundEffects>,
+) {
+    for FireSoundEffect(fetcher) in events.read() {
+        commands.spawn(sound_effect(fetcher(&*sfx)));
     }
 }

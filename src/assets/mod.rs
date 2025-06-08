@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use sound_effects::{FireSoundEffect, fire_sounds};
 
 use crate::prelude::*;
 
@@ -18,6 +19,10 @@ pub use {
 };
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_event::<FireSoundEffect>();
+
+    app.add_systems(Update, fire_sounds.run_if(resource_exists::<SoundEffects>));
+
     app.add_loading_state(
         LoadingState::new(Screen::Loading)
             .continue_to_state(Screen::Splash)

@@ -27,10 +27,17 @@ pub fn plugin(app: &mut App) {
 }
 
 pub fn draw_nodes(mut gizmos: Gizmos, nodes: Query<(&Transform, &PathNode), With<PathNode>>) {
-    for (pos, PathNode(dir)) in nodes.iter() {
+    for (
+        pos,
+        PathNode {
+            direction: direction,
+            prev_direction: prev_direction,
+        },
+    ) in nodes.iter()
+    {
         let node_pos = pos.translation.xy();
         gizmos.circle_2d(node_pos, 0.5, Color::WHITE);
-        let node_offset = match dir {
+        let node_offset = match direction {
             resource::CellDirection::Up => Vec2::new(0., 1.),
             resource::CellDirection::Down => Vec2::new(0., -1.),
             resource::CellDirection::Left => Vec2::new(-1., 0.),

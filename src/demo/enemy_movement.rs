@@ -49,7 +49,7 @@ fn follow_path(
 
         let mut nodes_sorted_by_distance = nodes
             .iter()
-            .map(|w| (pos.distance(w.0.translation.xy()), (w.0, w.1.0)))
+            .map(|w| (pos.distance(w.0.translation.xy()), (w.0, w.1.direction)))
             .collect::<Vec<_>>();
         nodes_sorted_by_distance.sort_by(|w, other| w.0.total_cmp(&other.0));
         let (closest, second_closest) =

@@ -1,10 +1,36 @@
-use super::common::{TowerFired, TowerTriggerRange};
-use crate::assets::SoundEffects;
-use crate::audio::sound_effect;
+use avian2d::prelude::{Collisions, LinearVelocity, OnCollisionStart, Sensor};
+use bevy::{
+    ecs::{
+        entity::Entity,
+        event::{Event, EventReader, EventWriter},
+        hierarchy::{ChildOf, Children},
+        observer::Trigger,
+        query::With,
+        system::{Commands, Query},
+    },
+    math::{Vec2, Vec3Swizzles},
+    prelude::{warn, *},
+    reflect::Reflect,
+    transform::components::{GlobalTransform, Transform},
+};
+use bevy_composable::app_impl::ComplexSpawnable;
+use std::cell;
+
+use super::{
+    common::{TowerFired, TowerTriggerRange},
+    directional::FireDirection,
+    piston::Shove,
+};
 use crate::{
+    assets::{SoundEffects, sound_effects::FireSoundEffect},
+    audio::sound_effect,
     data::{
         Tower,
-        projectiles::{AttackEffect, AttackType, DamageType, Droplet, LiquidType, Puddle},
+        projectiles::{
+            AttackData, AttackSpecification, DamageType, Droplet, LiquidType, Puddle,
+            TowerAttackType,
+        },
+        status_effects::damage_multiplier,
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::{
@@ -17,28 +43,16 @@ use crate::{
     },
     prefabs::attacks::{droplet, puddle},
 };
-use avian2d::prelude::{Collisions, LinearVelocity, OnCollisionStart, Sensor};
-use bevy::{
-    math::{Vec2, Vec3Swizzles},
-    prelude::*,
-    reflect::Reflect,
-    transform::components::{GlobalTransform, Transform},
-};
-use bevy_composable::app_impl::ComplexSpawnable;
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct ApplyAttackEffect {
+pub struct ApplyAttackData {
     pub target: Entity,
     pub source: Entity,
-    pub effect: AttackEffect,
+    pub effect: AttackData,
 }
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone)]
-pub struct AttackEnemiesInContact {
-    pub sensor: Entity,
-    pub effect: Vec<AttackEffect>,
-    pub tower: Entity,
-}
+pub struct AttackEnemiesInContact(pub Entity, pub Vec<AttackSpecification>);
 
 #[derive(Event, Reflect, Debug, PartialEq, Clone, Copy)]
 pub struct DropLiquid(pub Entity, pub LiquidType);
@@ -58,22 +72,21 @@ pub fn do_tower_attacks(
         };
 
         match tower.attack_def() {
-            AttackType::EntireCell(attack_effects) => {
-                contact_events.write(AttackEnemiesInContact {
-                    sensor: children
+            TowerAttackType::EntireCell(attack_effects) => {
+                contact_events.write(AttackEnemiesInContact(
+                    children
                         .iter()
                         .filter(|w| ranges.get(*w).is_ok())
                         .next()
                         .unwrap(),
-                    effect: attack_effects,
-                    tower: event.0,
-                });
+                    attack_effects,
+                ));
             }
-            AttackType::Contact(attack_effects) => todo!(),
-            AttackType::DropsLiquid(liquid_type) => {
+            TowerAttackType::Contact(attack_effects) => todo!(),
+            TowerAttackType::DropsLiquid(liquid_type) => {
                 drop_events.write(DropLiquid(event.0, liquid_type));
             }
-            AttackType::ModifiesSelf => {
+            TowerAttackType::ModifiesSelf => {
                 detect_trap_door_events.write(DetectTrapDoor(event.0));
             }
         }
@@ -81,30 +94,45 @@ pub fn do_tower_attacks(
 }
 
 pub fn dispatch_attack_effects(
-    mut attackeffect_events: EventReader<ApplyAttackEffect>,
+    mut attackeffect_events: EventReader<ApplyAttackData>,
     mut damage_events: EventWriter<TryDamageToEnemy>,
     mut status_events: EventWriter<TryApplyStatus>,
+    mut shoves: EventWriter<Shove>,
 ) {
-    for ApplyAttackEffect {
+    for ApplyAttackData {
         target,
         source,
         effect,
     } in attackeffect_events.read()
     {
         match effect {
-            AttackEffect::Damage(damage_type) => {
+            AttackData::Damage {
+                dmg_type,
+                strength,
+                damage,
+            } => {
                 damage_events.write(TryDamageToEnemy {
-                    damage: 10, // TODO: Add damage details
-                    damage_type: *damage_type,
+                    damage: (*damage as f32 * damage_multiplier(*strength)) as isize,
+                    damage_type: *dmg_type,
                     enemy: *target,
                 });
             }
-            AttackEffect::Push => todo!(),
-            AttackEffect::Status(status_effect) => {
+            AttackData::Push {
+                direction,
+                strength,
+                force,
+            } => {
+                shoves.write(Shove(
+                    *target,
+                    *direction,
+                    force * damage_multiplier(*strength),
+                ));
+            }
+            AttackData::Status { status, strength } => {
                 status_events.write(TryApplyStatus {
-                    status: *status_effect,
+                    status: *status,
                     enemy: *target,
-                    strength: 1, // TODO: Update with strength system
+                    strength: *strength,
                 });
             }
         }
@@ -132,40 +160,72 @@ pub fn splat_droplets(
 
 pub fn attack_contact_enemies(
     mut events: EventReader<AttackEnemiesInContact>,
-    mut attack_events: EventWriter<ApplyAttackEffect>,
+    mut attack_events: EventWriter<ApplyAttackData>,
     collisions: Collisions,
-    sfx: Res<SoundEffects>,
+    directions: Query<&FireDirection>,
+    parents: Query<&ChildOf, With<TowerTriggerRange>>,
     enemies: Query<(), With<EnemyHealth>>,
     mut towers: Query<(&Tower, &CellDirection, &mut AnimationFrameQueue)>,
     mut commands: Commands,
 ) {
-    for &AttackEnemiesInContact {
-        sensor,
-        ref effect,
-        tower,
-    } in events.read()
-    {
+    for &AttackEnemiesInContact(sensor, ref effects) in events.read() {
+        let direction = parents
+            .get(sensor)
+            .ok()
+            .map(|w| directions.get(w.0).ok().map(|w| w.0))
+            .flatten()
+            .unwrap_or(CellDirection::Up);
+
         let enemies: Vec<_> = collisions
             .entities_colliding_with(sensor)
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
-        let Ok((tower, cell_direction, mut animation)) = towers.get_mut(tower) else {
-            warn!("Tower not found in dispatch_attack_effects");
-            return;
-        };
-        animation.set_override(cell_direction.attack_frames(&tower));
-        if let Some(sfx) = sfx.tower_attack(&tower) {
-            commands.spawn(sound_effect(sfx));
-        }
 
-        for effect in effect {
+        for effect in effects {
             for enemy in &enemies {
-                attack_events.write(ApplyAttackEffect {
+                attack_events.write(ApplyAttackData {
                     target: *enemy,
                     source: sensor,
-                    effect: effect.clone(),
+                    effect: match effect {
+                        AttackSpecification::Damage(damage_type, damage) => AttackData::Damage {
+                            dmg_type: *damage_type,
+                            strength: 1,
+                            damage: *damage,
+                        },
+                        AttackSpecification::Push(force) => AttackData::Push {
+                            direction: direction,
+                            strength: 1,
+                            force: *force,
+                        },
+                        AttackSpecification::Status(status_enum) => AttackData::Status {
+                            status: *status_enum,
+                            strength: 1,
+                        },
+                    },
                 });
             }
+        }
+    }
+}
+
+pub fn animate_towers_on_attack(
+    mut fire_events: EventReader<TowerFired>,
+    mut towers: Query<(&mut AnimationFrameQueue, &CellDirection, &Tower)>,
+) {
+    for TowerFired(e) in fire_events.read() {
+        let (mut queue, direction, tower) = towers.get_mut(*e).unwrap();
+        queue.set_override(direction.attack_frames(&tower));
+    }
+}
+
+pub fn play_tower_sfx(
+    mut fire_events: EventReader<TowerFired>,
+    mut sounds: EventWriter<FireSoundEffect>,
+    towers: Query<&Tower>,
+) {
+    for TowerFired(e) in fire_events.read() {
+        if let Some(sfx) = towers.get(*e).unwrap().fire_sfx() {
+            sounds.write(FireSoundEffect(sfx));
         }
     }
 }
