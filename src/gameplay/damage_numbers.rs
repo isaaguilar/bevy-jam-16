@@ -22,11 +22,10 @@ struct DamageNumberLifetime {
     velocity: Vec3,
 }
 
-pub fn show_damage_numbers(
-    mut events: EventReader<DoDamageToEnemy>,
+fn show_damage_numbers(
     enemies: Query<&Transform, With<EnemyHealth>>,
+    mut events: EventReader<DoDamageToEnemy>,
     mut rng: ResMut<GlobalRng>,
-
     mut commands: Commands,
 ) {
     for event in events.read() {
@@ -39,7 +38,7 @@ pub fn show_damage_numbers(
 
         commands.spawn((
             StateScoped(Screen::Gameplay),
-            Text2d::new((event.damage).to_string()),
+            Text2d::new(event.damage.to_string()),
             TextColor(event.damage_type.color()),
             TextFont::from_font_size(18.0).with_font(TITLE_FONT),
             DamageNumber,
@@ -52,7 +51,7 @@ pub fn show_damage_numbers(
     }
 }
 
-pub fn animate_damage_numbers(
+fn animate_damage_numbers(
     mut commands: Commands,
     time: Res<Time>,
     mut query: Query<

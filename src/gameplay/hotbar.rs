@@ -1,5 +1,7 @@
+use crate::gameplay::messages::DisplayFlashMessage;
 use crate::theme::palette::LABEL_TEXT;
 use crate::{data::*, prelude::*, theme::prelude::*};
+use bevy::color::palettes::tailwind;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::{ecs::spawn::*, prelude::*};
 
@@ -7,7 +9,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), on_enter_game);
     app.add_systems(
         Update,
-        (highlight_hovered_tile, on_press_hotbar)
+        highlight_hovered_tile
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
     );
@@ -21,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[derive(Component, Debug, Reflect)]
-struct HotbarItem;
+pub struct HotbarItem;
 
 #[derive(Component)]
 struct CancelInput;
@@ -37,15 +39,17 @@ fn on_enter_game(mut commands: Commands, assets: Res<UiAssets>) {
         })
         .collect();
 
-    commands.spawn((
-        StateScoped(Screen::Gameplay),
-        spawn_hotbar(),
-        Children::spawn(SpawnIter(
-            hotbar_items
-                .into_iter()
-                .map(|(tower, icon)| spawn_hotbar_item(tower, icon)),
-        )),
-    ));
+    commands
+        .spawn((
+            StateScoped(Screen::Gameplay),
+            spawn_hotbar(),
+            Children::spawn(SpawnIter(
+                hotbar_items
+                    .into_iter()
+                    .map(|(tower, icon)| spawn_hotbar_item(tower, icon)),
+            )),
+        ))
+        .observe(hotbar_click_observer);
 
     commands
         .spawn((
@@ -167,6 +171,7 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
                     height: Val::Px(64.0),
                     ..default()
                 },
+                Pickable::IGNORE,
                 ImageNode::new(icon)
             )
         ],
@@ -174,36 +179,37 @@ fn spawn_hotbar_item(tower: Tower, icon: Handle<Image>) -> impl Bundle {
 }
 
 fn highlight_hovered_tile(
-    mut tile_query: Query<(&Interaction, &mut BackgroundColor), With<HotbarItem>>,
+    mut tile_query: Query<(&Interaction, &Tower, &mut BackgroundColor), With<HotbarItem>>,
+    player_state: Res<PlayerState>,
 ) {
-    for (interaction, mut background_color) in &mut tile_query {
+    for (interaction, tower, mut background_color) in &mut tile_query {
         background_color.0 = match interaction {
-            Interaction::None => Color::WHITE.with_alpha(0.25),
-            _ => Color::WHITE,
+            Interaction::None => tailwind::SLATE_50.with_alpha(0.25).into(),
+            _ => {
+                if player_state.can_afford(tower.price()) {
+                    tailwind::SLATE_50.with_alpha(0.8).into()
+                } else {
+                    tailwind::SLATE_50.with_alpha(0.25).into()
+                }
+            }
         }
     }
 }
 
-fn on_press_hotbar(
-    current_pointer_input_state: Res<State<PointerInteractionState>>,
+fn hotbar_click_observer(
+    trigger: Trigger<Pointer<Click>>,
     mut pointer_input_state: ResMut<NextState<PointerInteractionState>>,
-    mut tile_query: Query<(&Interaction, &Tower), With<HotbarItem>>,
+    mut commands: Commands,
+    hotbar_items: Query<&Tower>,
     player_state: Res<PlayerState>,
 ) {
-    for (interaction, tower) in &mut tile_query {
-        match interaction {
-            Interaction::Pressed => {
-                if let PointerInteractionState::Placing(t) = **current_pointer_input_state {
-                    if &t == tower {
-                        continue;
-                    }
-                }
-                if tower.price() > player_state.money {
-                    return;
-                }
-                pointer_input_state.set(PointerInteractionState::Placing(*tower));
-            }
-            _ => {}
-        }
+    let Ok(tower) = hotbar_items.get(trigger.target) else {
+        return;
+    };
+
+    if !player_state.can_afford(tower.price()) {
+        commands.trigger(DisplayFlashMessage::new("Insufficient funds"));
+        return;
     }
+    pointer_input_state.set(PointerInteractionState::Placing(*tower));
 }

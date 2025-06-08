@@ -1,3 +1,5 @@
+use std::cell;
+
 use avian2d::prelude::{LinearVelocity, OnCollisionStart, Sensor};
 use bevy::{
     ecs::{
@@ -8,6 +10,7 @@ use bevy::{
         system::{Commands, Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
+    prelude::warn,
     time::Time,
     transform::components::{GlobalTransform, Transform},
 };
@@ -20,24 +23,33 @@ use crate::{
         projectiles::{AttackData, AttackSpecification, DamageType, Droplet, Puddle},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    gameplay::shared_systems::Lifetime,
-    level::components::{Architecture, pos},
+    gameplay::{animation::AnimationFrameQueue, shared_systems::Lifetime},
+    level::{
+        components::{Architecture, pos},
+        resource::CellDirection,
+    },
     prefabs::attacks::{droplet, puddle},
 };
 
 pub fn drop_liquids(
     mut events: EventReader<DropLiquid>,
     mut commands: Commands,
-    towers: Query<&GlobalTransform, With<Tower>>,
+    mut towers: Query<(
+        &Tower,
+        &GlobalTransform,
+        &CellDirection,
+        &mut AnimationFrameQueue,
+    )>,
 ) {
     for DropLiquid(e, liquid) in events.read() {
-        let loc = towers
-            .get(*e)
-            .unwrap()
-            .to_scale_rotation_translation()
-            .2
-            .xy();
+        let Ok((tower, global_transform, cell_direction, mut animation)) = towers.get_mut(*e)
+        else {
+            warn!("Tower not found in dispatch_attack_effects");
+            return;
+        };
+        let loc = global_transform.to_scale_rotation_translation().2.xy();
         commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
+        animation.set_override(cell_direction.attack_frames(&tower));
     }
 }
 
@@ -104,20 +116,6 @@ pub fn stop_dropping_puddles(
     if level_parts.get(other).is_ok() {
         if let Ok(mut vel) = droplets.get_mut(puddle) {
             vel.0 = Vec2::ZERO;
-        }
-    }
-}
-
-pub fn tick_lifetimes(mut lifetimes: Query<&mut Lifetime>, time: Res<Time>) {
-    for mut lifetime in lifetimes.iter_mut() {
-        lifetime.0.tick(time.delta());
-    }
-}
-
-pub fn timeout_lifetimes(mut commands: Commands, lifetimes: Query<(Entity, &Lifetime)>) {
-    for (e, lifetime) in lifetimes.iter() {
-        if lifetime.0.finished() {
-            commands.entity(e).despawn();
         }
     }
 }

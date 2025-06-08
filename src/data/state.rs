@@ -14,3 +14,9 @@ impl Default for PlayerState {
         }
     }
 }
+
+impl PlayerState {
+    pub fn can_afford(&self, cost: i32) -> bool {
+        self.money >= cost
+    }
+}

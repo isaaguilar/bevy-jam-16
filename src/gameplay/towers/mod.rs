@@ -1,42 +1,27 @@
-use attacks::{
-    ApplyAttackData, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
-    dispatch_attack_effects, do_tower_attacks,
-};
-use bevy::{
-    app::{App, FixedUpdate, Update},
-    ecs::{
-        schedule::IntoScheduleConfigs,
-        system::{Commands, Res},
-    },
-    math::{Quat, Vec3},
-    state::{condition::in_state, state::OnEnter},
-    transform::components::Transform,
-};
-use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
-use fan::{do_forcefields, resolve_fancasters, spawn_fancasters};
-use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
-use liquids::{
-    drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
-    timeout_lifetimes,
-};
-use piston::{Shove, do_shoves};
-use std::f32;
+use bevy::prelude::*;
+use bevy_composable::app_impl::ComponentTreeable;
 
 use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
 use crate::{
     PausableSystems,
-    assets::TowerSprites,
     data::{
-        Tower,
         projectiles::{Droplet, Puddle},
         stats::MoveSpeed,
         status_effects::Frozen,
     },
-    level::{components::pos, resource::CellDirection},
-    prefabs::{towers::tower, wizardry::add_observer_to_component},
+    prefabs::wizardry::add_observer_to_component,
     screens::Screen,
 };
+use attacks::{
+    ApplyAttackData, AttackEnemiesInContact, DropLiquid, animate_towers_on_attack,
+    attack_contact_enemies, dispatch_attack_effects, do_tower_attacks, play_tower_sfx,
+};
 use common::*;
+use fan::{do_forcefields, resolve_fancasters, spawn_fancasters};
+use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
+use liquids::{drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles};
+use piston::{Shove, do_shoves};
+use trap_door::{DetectTrapDoor, OpenTrapDoor, close_trap_door, detect_trap_door, open_trap_door};
 
 pub mod attacks;
 pub mod common;
@@ -45,6 +30,7 @@ pub mod fan;
 pub mod gravity_bullshit;
 pub mod liquids;
 pub mod piston;
+pub mod trap_door;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TowerTriggerRange>()
@@ -58,7 +44,10 @@ pub(super) fn plugin(app: &mut App) {
         .add_event::<TowerFired>()
         .add_event::<Shove>()
         .add_event::<ApplyAttackData>()
-        .add_event::<AttackEnemiesInContact>();
+        .add_event::<AttackEnemiesInContact>()
+        .add_event::<ApplyAttackData>()
+        .add_event::<DetectTrapDoor>()
+        .add_event::<OpenTrapDoor>();
 
     app.add_observer(add_observer_to_component::<Puddle, _, _, _, _>(
         stop_dropping_puddles,
@@ -73,15 +62,25 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            (status_debuff_multiplier::<Frozen, MoveSpeed>(0.)).in_set(StatSet::Modify),
-            (tick_lifetimes, timeout_lifetimes).chain(),
+            status_debuff_multiplier::<Frozen, MoveSpeed>(0.).in_set(StatSet::Modify),
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,
                 do_tower_attacks,
-                (attack_contact_enemies, drop_liquids),
-                dispatch_attack_effects,
-                (do_shoves, do_forcefields),
+                (
+                    attack_contact_enemies,
+                    drop_liquids,
+                    detect_trap_door,
+                    open_trap_door,
+                    close_trap_door,
+                ),
+                (
+                    dispatch_attack_effects,
+                    do_shoves,
+                    do_forcefields,
+                    animate_towers_on_attack,
+                    play_tower_sfx,
+                ),
             )
                 .chain(),
         )

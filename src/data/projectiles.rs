@@ -1,10 +1,7 @@
-use bevy::{
-    color::palettes::css::{AQUA, GREY, LIME, ORANGE, YELLOW},
-    prelude::*,
-};
+use bevy::{color::palettes::css::*, prelude::*};
 use std::sync::Arc;
 
-use super::status_effects::{StatusEffect, StatusEffectTrait, StatusEnum};
+use super::status_effects::*;
 use crate::level::resource::CellDirection;
 
 #[derive(Clone, Debug, Reflect, PartialEq)]

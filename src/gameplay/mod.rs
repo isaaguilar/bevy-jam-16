@@ -1,10 +1,12 @@
 use bevy::prelude::*;
 
 pub mod animation;
+mod background;
 mod damage_numbers;
 pub mod hotbar;
 pub mod hud;
 pub mod level;
+pub mod messages;
 pub mod shared_systems;
 pub mod stats;
 pub mod status_effects;
@@ -25,5 +27,7 @@ pub(super) fn plugin(app: &mut App) {
         towers::plugin,
         tower_placement::plugin,
         wave_manager::plugin,
+        messages::plugin,
+        background::plugin,
     ));
 }

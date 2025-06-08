@@ -9,7 +9,7 @@ use bevy::{
         system::{Commands, Query},
     },
     math::{Vec2, Vec3Swizzles},
-    prelude::warn,
+    prelude::{warn, *},
     reflect::Reflect,
     transform::components::{GlobalTransform, Transform},
 };
@@ -22,7 +22,8 @@ use super::{
     piston::Shove,
 };
 use crate::{
-    assets::LiquidSprites,
+    assets::{SoundEffects, sound_effects::FireSoundEffect},
+    audio::sound_effect,
     data::{
         Tower,
         projectiles::{
@@ -32,7 +33,10 @@ use crate::{
         status_effects::damage_multiplier,
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
-    gameplay::{animation::AnimationFrameQueue, status_effects::common::TryApplyStatus},
+    gameplay::{
+        animation::AnimationFrameQueue, status_effects::common::TryApplyStatus,
+        towers::trap_door::DetectTrapDoor,
+    },
     level::{
         components::{Architecture, pos},
         resource::CellDirection,
@@ -57,6 +61,7 @@ pub fn do_tower_attacks(
     mut fire_events: EventReader<TowerFired>,
     mut contact_events: EventWriter<AttackEnemiesInContact>,
     mut drop_events: EventWriter<DropLiquid>,
+    mut detect_trap_door_events: EventWriter<DetectTrapDoor>,
     towers: Query<(&Tower, &Children, &GlobalTransform)>,
     ranges: Query<(), With<TowerTriggerRange>>,
 ) {
@@ -69,9 +74,9 @@ pub fn do_tower_attacks(
         match tower.attack_def() {
             TowerAttackType::EntireCell(attack_effects) => {
                 contact_events.write(AttackEnemiesInContact(
-                    *children
+                    children
                         .iter()
-                        .filter(|w| ranges.get(**w).is_ok())
+                        .filter(|w| ranges.get(*w).is_ok())
                         .next()
                         .unwrap(),
                     attack_effects,
@@ -81,7 +86,9 @@ pub fn do_tower_attacks(
             TowerAttackType::DropsLiquid(liquid_type) => {
                 drop_events.write(DropLiquid(event.0, liquid_type));
             }
-            TowerAttackType::ModifiesSelf => todo!(),
+            TowerAttackType::ModifiesSelf => {
+                detect_trap_door_events.write(DetectTrapDoor(event.0));
+            }
         }
     }
 }
@@ -92,11 +99,11 @@ pub fn dispatch_attack_effects(
     mut status_events: EventWriter<TryApplyStatus>,
     mut shoves: EventWriter<Shove>,
 ) {
-    for (ApplyAttackData {
+    for ApplyAttackData {
         target,
         source,
         effect,
-    }) in attackeffect_events.read()
+    } in attackeffect_events.read()
     {
         match effect {
             AttackData::Damage {
@@ -132,29 +139,6 @@ pub fn dispatch_attack_effects(
     }
 }
 
-pub fn drop_liquids(
-    mut events: EventReader<DropLiquid>,
-    mut commands: Commands,
-    mut towers: Query<(
-        &Tower,
-        &GlobalTransform,
-        &CellDirection,
-        &mut AnimationFrameQueue,
-    )>,
-) {
-    for DropLiquid(e, liquid) in events.read() {
-        let Ok((tower, global_transform, cell_direction, mut animation)) = towers.get_mut(*e)
-        else {
-            warn!("Tower not found in dispatch_attack_effects");
-            return;
-        };
-
-        let loc = global_transform.to_scale_rotation_translation().2.xy();
-        commands.compose(droplet(*liquid) + pos(loc.x, loc.y));
-        animation.set_override(cell_direction.attack_frames(&tower));
-    }
-}
-
 pub fn splat_droplets(
     trigger: Trigger<OnCollisionStart>,
     sensors: Query<(), With<Sensor>>,
@@ -181,39 +165,38 @@ pub fn attack_contact_enemies(
     directions: Query<&FireDirection>,
     parents: Query<&ChildOf, With<TowerTriggerRange>>,
     enemies: Query<(), With<EnemyHealth>>,
+    mut towers: Query<(&Tower, &CellDirection, &mut AnimationFrameQueue)>,
+    mut commands: Commands,
 ) {
-    for &AttackEnemiesInContact(sensor_entity, ref damage_def) in events.read() {
+    for &AttackEnemiesInContact(sensor, ref effects) in events.read() {
+        let direction = parents
+            .get(sensor)
+            .ok()
+            .map(|w| directions.get(w.0).ok().map(|w| w.0))
+            .flatten()
+            .unwrap_or(CellDirection::Up);
+
         let enemies: Vec<_> = collisions
-            .entities_colliding_with(sensor_entity)
+            .entities_colliding_with(sensor)
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
-        for effect in damage_def {
-            let mut direction: Option<CellDirection> = None;
+
+        for effect in effects {
             for enemy in &enemies {
                 attack_events.write(ApplyAttackData {
                     target: *enemy,
-                    source: sensor_entity,
+                    source: sensor,
                     effect: match effect {
                         AttackSpecification::Damage(damage_type, damage) => AttackData::Damage {
                             dmg_type: *damage_type,
                             strength: 1,
                             damage: *damage,
                         },
-                        AttackSpecification::Push(force) => {
-                            if direction.is_none() {
-                                direction = Some(
-                                    directions
-                                        .get(parents.get(sensor_entity).unwrap().0)
-                                        .map(|w| w.0)
-                                        .unwrap_or(CellDirection::Down),
-                                );
-                            }
-                            AttackData::Push {
-                                direction: direction.unwrap(),
-                                strength: 1,
-                                force: *force,
-                            }
-                        }
+                        AttackSpecification::Push(force) => AttackData::Push {
+                            direction: direction,
+                            strength: 1,
+                            force: *force,
+                        },
                         AttackSpecification::Status(status_enum) => AttackData::Status {
                             status: *status_enum,
                             strength: 1,
@@ -221,6 +204,28 @@ pub fn attack_contact_enemies(
                     },
                 });
             }
+        }
+    }
+}
+
+pub fn animate_towers_on_attack(
+    mut fire_events: EventReader<TowerFired>,
+    mut towers: Query<(&mut AnimationFrameQueue, &CellDirection, &Tower)>,
+) {
+    for TowerFired(e) in fire_events.read() {
+        let (mut queue, direction, tower) = towers.get_mut(*e).unwrap();
+        queue.set_override(direction.attack_frames(&tower));
+    }
+}
+
+pub fn play_tower_sfx(
+    mut fire_events: EventReader<TowerFired>,
+    mut sounds: EventWriter<FireSoundEffect>,
+    towers: Query<&Tower>,
+) {
+    for TowerFired(e) in fire_events.read() {
+        if let Some(sfx) = towers.get(*e).unwrap().fire_sfx() {
+            sounds.write(FireSoundEffect(sfx));
         }
     }
 }

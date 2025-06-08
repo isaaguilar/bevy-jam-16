@@ -17,9 +17,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 2))]
     fan_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/spikes.png")]
+    #[asset(path = "images/towers/spikes2.png")]
     spike_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 1))]
     spike_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/oil2.png")]
@@ -56,6 +56,11 @@ pub struct TowerSprites {
     ice_sprite: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6))]
     ice_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/towers/trapdoor.png")]
+    trap_door_sprite: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 6,))]
+    trap_door_layout: Handle<TextureAtlasLayout>,
 }
 
 impl TowerSprites {
@@ -65,7 +70,7 @@ impl TowerSprites {
             Tower::Fan => (&self.fan_sprite, &self.fan_layout),
             Tower::SpikePit => (&self.spike_sprite, &self.spike_layout),
             Tower::Oil => (&self.oil_sprite, &self.oil_layout),
-            Tower::TrapDoor => (&self.tesla_sprite, &self.tesla_layout),
+            Tower::TrapDoor => (&self.trap_door_sprite, &self.trap_door_layout),
             Tower::Tesla => (&self.tesla_sprite, &self.tesla_layout),
             Tower::Water => (&self.water_sprite, &self.water_layout),
             Tower::Acid => (&self.acid_sprite, &self.acid_layout),
@@ -120,14 +125,24 @@ impl CellDirection {
                 CellDirection::Left => &[8],
                 CellDirection::Right => &[8],
             },
-            Tower::SpikePit => &[0],
+            Tower::SpikePit => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[1],
+                CellDirection::Left => &[2],
+                CellDirection::Right => &[2],
+            },
             Tower::Oil => match self {
                 CellDirection::Down => &[0, 1, 2, 3, 4, 5, 6],
                 CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
                 CellDirection::Left => &[33],
                 CellDirection::Right => &[33],
             },
-            Tower::TrapDoor => &[0],
+            Tower::TrapDoor => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[5],
+                CellDirection::Left => &[5],
+                CellDirection::Right => &[5],
+            },
             Tower::Tesla => match self {
                 CellDirection::Down => &[0, 1, 2, 3, 4],
                 CellDirection::Up => &[10, 11, 12, 13, 14],
@@ -205,6 +220,18 @@ impl CellDirection {
                 CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
                 CellDirection::Left => &[33, 34, 35, 36, 33],
                 CellDirection::Right => &[33, 34, 35, 36, 33],
+            },
+            Tower::TrapDoor => match self {
+                CellDirection::Down => &[1, 2, 3, 4, 4, 3, 2, 1],
+                CellDirection::Up => &[5],
+                CellDirection::Left => &[5],
+                CellDirection::Right => &[5],
+            },
+            Tower::SpikePit => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[1],
+                CellDirection::Left => &[2],
+                CellDirection::Right => &[2],
             },
             _ => todo!(),
         }

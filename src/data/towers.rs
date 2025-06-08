@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
 use bevy::prelude::*;
+
+use crate::assets::{SoundEffects, sound_effects::SoundFn};
 
 use super::{
     projectiles::{AttackSpecification, DamageType, LiquidType, TowerAttackType},
@@ -102,7 +106,7 @@ impl Tower {
 
     pub fn has_trigger_zone(&self) -> bool {
         match self {
-            Tower::Fan | Tower::SpikePit => false,
+            Tower::Fan => false,
             _ => true,
         }
     }
@@ -114,6 +118,13 @@ impl Tower {
         }
     }
 
+    pub fn custom_trigger_zone(&self) -> Option<Vec2> {
+        match self {
+            Tower::TrapDoor => Some(Vec2::new(10.0, 10.0)),
+            _ => None,
+        }
+    }
+
     pub fn attack_def(&self) -> TowerAttackType {
         match self {
             Tower::Piston => TowerAttackType::EntireCell(vec![
@@ -121,16 +132,25 @@ impl Tower {
                 AttackSpecification::Push(800.),
             ]),
             Tower::Fan => TowerAttackType::EntireCell(vec![AttackSpecification::Push(10.)]),
-            Tower::SpikePit => TowerAttackType::Contact(vec![AttackSpecification::Damage(
-                DamageType::Physical,
-                10,
-            )]),
+            //Tower::SpikePit => TowerAttackType::Contact(vec![AttackSpecification::Damage(
+            //    DamageType::Physical,
+            //    10,
+            //)]),
             Tower::Oil => TowerAttackType::DropsLiquid(LiquidType::Oil),
             Tower::TrapDoor => TowerAttackType::ModifiesSelf,
             Tower::Ice => TowerAttackType::EntireCell(vec![
                 AttackSpecification::Damage(DamageType::Cold, 10),
                 AttackSpecification::Status(StatusEnum::Chilled),
             ]),
+            Tower::SpikePit => {
+                TowerAttackType::EntireCell(vec![AttackSpecification::Damage(
+                    DamageType::Physical,
+                    10,
+                )])
+                // Since the sprite of spikes are large there isn't a case where an
+                // enemy will not be touching if they are in the cell.
+                // AttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
+            }
             Tower::Acid => TowerAttackType::DropsLiquid(LiquidType::Acid),
             Tower::Tesla => TowerAttackType::EntireCell(vec![AttackSpecification::Damage(
                 DamageType::Lightning,
@@ -151,13 +171,35 @@ impl Tower {
             Tower::Fan => 0.,
             Tower::SpikePit => 0.32,
             Tower::Oil => 2.0,
-            Tower::TrapDoor => 3.0,
+            Tower::TrapDoor => 1.5,
             Tower::Ice => 0.67,
             Tower::Acid => 2.0,
             Tower::Tesla => 0.67,
             Tower::Water => 2.0,
             Tower::Flame => 0.67,
             Tower::Portal => 3.0,
+        }
+    }
+
+    pub fn requires_adjecent_wall(&self) -> bool {
+        match self {
+            Tower::TrapDoor => true,
+            _ => false,
+        }
+    }
+
+    pub fn requires_floor_placement(&self) -> bool {
+        match self {
+            Tower::TrapDoor => true,
+            _ => false,
+        }
+    }
+
+    pub fn fire_sfx(&self) -> Option<Arc<dyn SoundFn>> {
+        match self {
+            Tower::SpikePit => Some(Arc::new(SoundEffects::spike_fire)),
+            Tower::Tesla => Some(Arc::new(SoundEffects::tesla_fire)),
+            _ => None,
         }
     }
 }
