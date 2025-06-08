@@ -46,7 +46,7 @@ pub fn trigger_zone(size: Vec2) -> ComponentTree {
         CollisionEventsEnabled,
         Collider::rectangle(size.x, size.y),
         Sensor,
-        CollisionLayers::new(GPL::Level, [GPL::Enemy]),
+        CollisionLayers::new(GPL::Projectiles, [GPL::Enemy]),
         TowerTriggerRange,
     )
         .store()
