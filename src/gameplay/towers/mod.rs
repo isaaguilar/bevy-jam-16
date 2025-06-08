@@ -2,38 +2,22 @@ use attacks::{
     ApplyAttackEffect, AttackEnemiesInContact, DropLiquid, attack_contact_enemies,
     dispatch_attack_effects, do_tower_attacks,
 };
-use bevy::{
-    app::{App, FixedUpdate, Update},
-    ecs::{
-        schedule::IntoScheduleConfigs,
-        system::{Commands, Res},
-    },
-    math::{Quat, Vec3},
-    state::{condition::in_state, state::OnEnter},
-    transform::components::Transform,
-};
-use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
+use bevy::prelude::*;
+use bevy_composable::app_impl::ComponentTreeable;
 use gravity_bullshit::{RangeDropper, drop_ranges, spawn_rangedroppers};
-use liquids::{
-    drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles, tick_lifetimes,
-    timeout_lifetimes,
-};
+use liquids::{drop_liquids, puddle_attacks, splat_droplets, stop_dropping_puddles};
 
-use std::f32;
 use trap_door::{DetectTrapDoor, OpenTrapDoor, close_trap_door, detect_trap_door, open_trap_door};
 
 use super::{stats::StatSet, status_effects::common::status_debuff_multiplier};
 use crate::{
     PausableSystems,
-    assets::TowerSprites,
     data::{
-        Tower,
         projectiles::{Droplet, Puddle},
         stats::MoveSpeed,
         status_effects::Frozen,
     },
-    level::{components::pos, resource::CellDirection},
-    prefabs::{towers::tower, wizardry::add_observer_to_component},
+    prefabs::wizardry::add_observer_to_component,
     screens::Screen,
 };
 use common::*;
@@ -73,8 +57,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            (status_debuff_multiplier::<Frozen, MoveSpeed>(0.)).in_set(StatSet::Modify),
-            (tick_lifetimes, timeout_lifetimes).chain(),
+            status_debuff_multiplier::<Frozen, MoveSpeed>(0.).in_set(StatSet::Modify),
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,

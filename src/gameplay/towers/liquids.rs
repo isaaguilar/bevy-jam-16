@@ -108,17 +108,3 @@ pub fn stop_dropping_puddles(
         }
     }
 }
-
-pub fn tick_lifetimes(mut lifetimes: Query<&mut Lifetime>, time: Res<Time>) {
-    for mut lifetime in lifetimes.iter_mut() {
-        lifetime.0.tick(time.delta());
-    }
-}
-
-pub fn timeout_lifetimes(mut commands: Commands, lifetimes: Query<(Entity, &Lifetime)>) {
-    for (e, lifetime) in lifetimes.iter() {
-        if lifetime.0.finished() {
-            commands.entity(e).despawn();
-        }
-    }
-}
