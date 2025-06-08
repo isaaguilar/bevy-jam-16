@@ -18,10 +18,12 @@ use crate::level::resource::*;
 pub mod components;
 pub mod resource;
 
+pub const START_LEVEL: usize = 0;
+
 pub fn plugin(app: &mut App) {
     app.insert_resource(Level::default())
-        .insert_resource(LevelSelect(0))
-        .insert_resource(UnlockedLevels(vec![0]));
+        .insert_resource(LevelSelect(START_LEVEL))
+        .insert_resource(UnlockedLevels(vec![START_LEVEL]));
 
     app.register_type::<Level>()
         .register_type::<WallDirection>()
