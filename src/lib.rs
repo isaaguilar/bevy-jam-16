@@ -155,7 +155,13 @@ fn cameraman(
 
     if mouse_button_input.any_pressed([MouseButton::Right, MouseButton::Middle]) {
         let delta = accumulated_mouse_motion.delta;
-        camera_transform.translation += Vec2::new(-delta.x / 15., delta.y / 15.).extend(0.0);
+        // In a browser, the scroll wheel might not work. So instead override
+        // movement when pressing shift to do zooming.
+        if keys.pressed(KeyCode::ShiftLeft) {
+            camera_transform.scale = zoom(delta.y, camera_transform.scale);
+        } else {
+            camera_transform.translation += Vec2::new(-delta.x / 15., delta.y / 15.).extend(0.0);
+        }
     }
 
     for mouse_wheel_event in mouse_wheel_events.read() {
@@ -163,12 +169,7 @@ fn cameraman(
             MouseScrollUnit::Line => {
                 // Case 1: Use is using a scroll wheel
                 let dy = mouse_wheel_event.y;
-                camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
-                if camera_transform.scale.x > MAX_ZOOM_IN {
-                    camera_transform.scale = Vec2::splat(MAX_ZOOM_OUT).extend(1.);
-                } else if camera_transform.scale.x < MAX_ZOOM_IN {
-                    camera_transform.scale = Vec2::splat(MAX_ZOOM_IN).extend(1.);
-                }
+                camera_transform.scale = zoom(dy, camera_transform.scale);
             }
             MouseScrollUnit::Pixel => {
                 // Case 2: This is trackpad-like behavior. Use shift to zoom, else follow
@@ -177,16 +178,22 @@ fn cameraman(
                 let dx = mouse_wheel_event.x;
 
                 if keys.pressed(KeyCode::ShiftLeft) {
-                    camera_transform.scale -= Vec2::splat(dy / 100.).extend(0.0);
-                    if camera_transform.scale.x > MAX_ZOOM_OUT {
-                        camera_transform.scale = Vec2::splat(MAX_ZOOM_OUT).extend(1.);
-                    } else if camera_transform.scale.x < MAX_ZOOM_IN {
-                        camera_transform.scale = Vec2::splat(MAX_ZOOM_IN).extend(1.);
-                    }
+                    camera_transform.scale = zoom(dy, camera_transform.scale);
                 } else {
                     camera_transform.translation += Vec2::new(-dx / 35., dy / 35.).extend(0.0);
                 }
             }
         }
+    }
+}
+
+fn zoom(scaler: f32, current_scale: Vec3) -> Vec3 {
+    let final_scale = current_scale - Vec2::splat(scaler / 100.).extend(0.0);
+    if final_scale.x > MAX_ZOOM_OUT {
+        Vec2::splat(MAX_ZOOM_OUT).extend(1.)
+    } else if final_scale.x < MAX_ZOOM_IN {
+        Vec2::splat(MAX_ZOOM_IN).extend(1.)
+    } else {
+        final_scale
     }
 }
