@@ -141,6 +141,24 @@ pub fn test_waves() -> VecDeque<Wave> {
             (vec![chonkus_trooper(), basic_trooper()], 0.),
         ]
         .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ].into()
     ]
     .into()
 }
