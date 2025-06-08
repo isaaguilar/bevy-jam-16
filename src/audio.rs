@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{audio::Volume, prelude::*};
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Music>();
@@ -20,7 +20,11 @@ pub struct Music;
 
 /// A music audio instance.
 pub fn music(handle: Handle<AudioSource>) -> impl Bundle {
-    (AudioPlayer(handle), PlaybackSettings::LOOP.muted(), Music)
+    (
+        AudioPlayer(handle),
+        PlaybackSettings::LOOP.with_volume(Volume::Linear(0.5)),
+        Music,
+    )
 }
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
