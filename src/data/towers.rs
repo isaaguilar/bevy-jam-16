@@ -103,7 +103,7 @@ impl Tower {
 
     pub fn has_trigger_zone(&self) -> bool {
         match self {
-            Tower::Fan | Tower::SpikePit => false,
+            Tower::Fan => false,
             _ => true,
         }
     }
@@ -130,7 +130,10 @@ impl Tower {
             ]),
             Tower::Fan => AttackType::EntireCell(vec![AttackEffect::Push]),
             Tower::SpikePit => {
-                AttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
+                AttackType::EntireCell(vec![AttackEffect::Damage(DamageType::Physical)])
+                // Since the sprite of spikes are large there isn't a case where an
+                // enemy will not be touching if they are in the cell.
+                // AttackType::Contact(vec![AttackEffect::Damage(DamageType::Physical)])
             }
             Tower::Oil => AttackType::DropsLiquid(LiquidType::Oil),
             Tower::TrapDoor => AttackType::ModifiesSelf,

@@ -17,9 +17,9 @@ pub struct TowerSprites {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 2))]
     fan_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "images/towers/spikes.png")]
+    #[asset(path = "images/towers/spikes2.png")]
     spike_sprite: Handle<Image>,
-    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 1))]
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 10, rows = 1))]
     spike_layout: Handle<TextureAtlasLayout>,
 
     #[asset(path = "images/towers/oil2.png")]
@@ -125,7 +125,12 @@ impl CellDirection {
                 CellDirection::Left => &[8],
                 CellDirection::Right => &[8],
             },
-            Tower::SpikePit => &[0],
+            Tower::SpikePit => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[1],
+                CellDirection::Left => &[2],
+                CellDirection::Right => &[2],
+            },
             Tower::Oil => match self {
                 CellDirection::Down => &[0, 1, 2, 3, 4, 5, 6],
                 CellDirection::Up => &[14, 15, 16, 17, 18, 19, 20, 21, 22],
@@ -221,6 +226,12 @@ impl CellDirection {
                 CellDirection::Up => &[5],
                 CellDirection::Left => &[5],
                 CellDirection::Right => &[5],
+            },
+            Tower::SpikePit => match self {
+                CellDirection::Down => &[0],
+                CellDirection::Up => &[1],
+                CellDirection::Left => &[2],
+                CellDirection::Right => &[2],
             },
             _ => todo!(),
         }

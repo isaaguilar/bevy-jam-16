@@ -80,7 +80,6 @@ pub fn do_tower_attacks(
             }
             AttackType::Contact(attack_effects) => todo!(),
             AttackType::DropsLiquid(liquid_type) => {
-                bevy::prelude::info!(entity = ?event.0, liquid_type = ?liquid_type, "here i am");
                 drop_events.write(DropLiquid(event.0, liquid_type));
             }
             AttackType::ModifiesSelf => {
