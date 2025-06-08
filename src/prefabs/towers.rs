@@ -18,7 +18,6 @@ pub fn tower(tower: Tower, direction: CellDirection) -> ComponentTree {
     let tower_specific_components = match tower {
         Tower::Piston => FireDirection(direction).store(),
         Tower::Fan => FanNeedsDirection.store(),
-        Tower::SpikePit => todo!(),
         Tower::Portal => todo!(),
         _ => ().store(),
     };
