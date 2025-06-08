@@ -1,7 +1,7 @@
 //! The screen state for the main gameplay.
 
 use crate::data::{PlayerState, PointerInteractionState};
-use crate::{gameplay::level::spawn_level, menus::Menu, screens::Screen, Pause};
+use crate::{Pause, gameplay::level::spawn_level, menus::Menu, screens::Screen};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 pub(super) fn plugin(app: &mut App) {
@@ -16,7 +16,7 @@ pub(super) fn plugin(app: &mut App) {
                 in_state(Screen::Gameplay)
                     .and(in_state(Menu::None))
                     .and(in_state(PointerInteractionState::Selecting))
-                    .and(input_just_pressed(KeyCode::KeyP)),
+                    .and(input_just_pressed(KeyCode::KeyP).or(input_just_pressed(KeyCode::Escape))),
             ),
             close_menu.run_if(
                 in_state(Screen::Gameplay)
