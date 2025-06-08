@@ -162,10 +162,12 @@ fn spawn_wave_ui(icon: Handle<Image>, layout: Handle<TextureAtlasLayout>) -> imp
                 ..default()
             },
             children![widget::ui_font_with_node(
-                "Spawn",
+                "Next Wave",
                 Node {
-                    left: Val::Px(24.2),
-                    top: Val::Px(54.8),
+                    left: Val::Px(31.0),
+                    top: Val::Px(48.0),
+                    width: Val::Px(1.0),
+                    flex_wrap: FlexWrap::Wrap,
                     ..default()
                 },
             ),]
