@@ -1,7 +1,5 @@
-use bevy::prelude::*;
-use std::f32::consts::PI;
-
 use crate::data::Tower;
+use bevy::prelude::*;
 
 #[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
 pub struct CurrentLoadedLevel(pub usize);
@@ -32,6 +30,7 @@ impl From<char> for CellDirection {
             '^' => CellDirection::Up,
             '<' => CellDirection::Left,
             'v' => CellDirection::Down,
+            'x' | 'X' => CellDirection::Up,
             _ => todo!(),
         }
     }
