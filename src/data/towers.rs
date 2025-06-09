@@ -157,10 +157,10 @@ impl Tower {
                 15,
             )]),
             Tower::Water => TowerAttackType::DropsLiquid(LiquidType::Water),
-            Tower::Flame => TowerAttackType::EntireCell(vec![AttackSpecification::Damage(
-                DamageType::Burning,
-                10,
-            )]),
+            Tower::Flame => TowerAttackType::EntireCell(vec![
+                AttackSpecification::Damage(DamageType::Burning, 10),
+                AttackSpecification::Status(StatusEnum::Burned),
+            ]),
             Tower::Portal => todo!(),
         }
     }

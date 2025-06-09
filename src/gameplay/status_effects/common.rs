@@ -46,14 +46,23 @@ pub struct RemoveStatus<T: StatusEffectTrait> {
     _phantom: PhantomData<T>,
 }
 
+#[derive(Reflect, Debug, Event, PartialEq, Eq)]
+pub struct DOTTimer(pub Timer);
+
+impl Default for DOTTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(0.5, bevy::time::TimerMode::Once))
+    }
+}
+
 pub fn periodic_damage<T: StatusEffectTrait>(dps: isize) -> ScheduleConfigs<ScheduleSystem> {
     let damage_per_tick = dps / 2;
     (move |enemies: Query<(Entity, &StatusEffect<T>), With<EnemyHealth>>,
-           mut cooldown: Local<Timer>,
+           mut cooldown: Local<DOTTimer>,
            time: Res<Time>,
            mut damage_events: EventWriter<TryDamageToEnemy>| {
-        cooldown.tick(time.delta());
-        if (*cooldown).just_finished() {
+        cooldown.0.tick(time.delta());
+        if (*cooldown).0.just_finished() {
             for (enemy, effect) in enemies.iter() {
                 damage_events.write(TryDamageToEnemy {
                     damage: (damage_per_tick),
@@ -62,6 +71,8 @@ pub fn periodic_damage<T: StatusEffectTrait>(dps: isize) -> ScheduleConfigs<Sche
                     strength: effect.strength,
                 });
             }
+            cooldown.0.reset();
+            cooldown.0.unpause();
         }
     })
     .into_configs()
