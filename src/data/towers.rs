@@ -201,6 +201,7 @@ impl Tower {
             Tower::Tesla => Some(Arc::new(SoundEffects::tesla_fire)),
             Tower::Piston => Some(Arc::new(SoundEffects::piston_fire)),
             Tower::Oil => Some(Arc::new(SoundEffects::oil_fire)),
+            Tower::Water => Some(Arc::new(SoundEffects::water_fire)),
             _ => None,
         }
     }

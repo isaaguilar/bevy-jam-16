@@ -12,7 +12,6 @@ pub struct SoundEffects {
     pub enemy_spawn_sfx: Handle<AudioSource>,
     #[asset(path = "audio/sound_effects/took_damage.wav")]
     pub took_damage: Handle<AudioSource>,
-
     #[asset(path = "audio/towers/tesla.ogg")]
     tesla_attack: Handle<AudioSource>,
     #[asset(path = "audio/towers/spike_pit.ogg")]
@@ -21,6 +20,8 @@ pub struct SoundEffects {
     piston: Handle<AudioSource>,
     #[asset(path = "audio/towers/oil.ogg")]
     oil: Handle<AudioSource>,
+    #[asset(path = "audio/towers/water.wav")]
+    water: Handle<AudioSource>,
 }
 
 impl SoundEffects {
@@ -45,9 +46,11 @@ impl SoundEffects {
     pub fn piston_fire(&self) -> Handle<AudioSource> {
         self.piston.clone()
     }
-
     pub fn oil_fire(&self) -> Handle<AudioSource> {
         self.oil.clone()
+    }
+    pub fn water_fire(&self) -> Handle<AudioSource> {
+        self.water.clone()
     }
 }
 
