@@ -63,6 +63,7 @@ pub struct RecordInitCollisionDamage {
 #[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
 pub struct TryDamageToEnemy {
     pub damage: isize,
+    pub strength: usize,
     pub damage_type: DamageType,
     pub enemy: Entity,
 }
@@ -146,6 +147,7 @@ fn start_collision_damage_event(
                 damage: collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: enemy_target,
+                strength: 1,
             });
 
             // Add a collision entity that deals damage on a timer while collision is active
@@ -173,6 +175,7 @@ fn active_tower_collision(
                 damage: tower_collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: entity,
+                strength: 1,
             });
         }
     }
