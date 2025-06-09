@@ -182,7 +182,7 @@ fn active_tower_collision(
 pub fn try_enemy_damage(
     mut attempts: EventReader<TryDamageToEnemy>,
     mut successes: EventWriter<DoDamageToEnemy>,
-    mut stats: Query<(
+    stats: Query<(
         &Stat<DamageMultiplierAll>,
         &Stat<DamageMultiplier<{ DamageType::Physical }>>,
         &Stat<DamageMultiplier<{ DamageType::Burning }>>,
