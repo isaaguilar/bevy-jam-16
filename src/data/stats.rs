@@ -67,6 +67,9 @@ impl<T: StatTrait> Stat<T> {
 
     pub fn reset(&mut self) {
         self.cached_value = self.base;
+        self.pre_flat = Vec::default();
+        self.multipliers = Vec::default();
+        self.post_flat = Vec::default();
         self.changed = false;
     }
 
