@@ -6,6 +6,8 @@ use bevy::{
 };
 use std::marker::PhantomData;
 
+use super::projectiles::DamageType;
+
 pub trait StatTrait:
     'static + Send + Sync + Reflect + Copy + Sized + TypePath + GetTypeRegistration
 {
@@ -79,7 +81,40 @@ impl<T: StatTrait> Stat<T> {
 }
 
 define_stat!(MoveSpeed, "Move Speed");
-define_stat!(DamageMultiplier, "Damage Multiplier");
+define_stat!(Friction, "Friction");
+
+#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
+pub struct DamageMultiplier<const G: DamageType>;
+
+impl StatTrait for DamageMultiplier<DamageType::Physical> {
+    fn name() -> &'static str {
+        "Physical Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<DamageType::Burning> {
+    fn name() -> &'static str {
+        "Fire Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<DamageType::Cold> {
+    fn name() -> &'static str {
+        "Cold Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<DamageType::Chemical> {
+    fn name() -> &'static str {
+        "Chemical Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<DamageType::Lightning> {
+    fn name() -> &'static str {
+        "Lightning Damage Multiplier"
+    }
+}
 
 #[macro_export]
 macro_rules! define_stat {

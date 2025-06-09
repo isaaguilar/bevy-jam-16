@@ -7,7 +7,10 @@ use bevy::{
 };
 
 use crate::{
-    data::stats::{DamageMultiplier, MoveSpeed, Stat, StatTrait},
+    data::{
+        projectiles::DamageType,
+        stats::{DamageMultiplier, Friction, MoveSpeed, Stat, StatTrait},
+    },
     screens::Screen,
 };
 
@@ -25,7 +28,12 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     implement_stat::<MoveSpeed>(app);
-    implement_stat::<DamageMultiplier>(app);
+    implement_stat::<Friction>(app);
+    implement_stat::<DamageMultiplier<DamageType::Physical>>(app);
+    implement_stat::<DamageMultiplier<DamageType::Cold>>(app);
+    implement_stat::<DamageMultiplier<DamageType::Burning>>(app);
+    implement_stat::<DamageMultiplier<DamageType::Chemical>>(app);
+    implement_stat::<DamageMultiplier<DamageType::Lightning>>(app);
 }
 
 pub fn recalculate_stats<T: StatTrait>(mut stats: Query<&mut Stat<T>>) {
