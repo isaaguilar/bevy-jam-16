@@ -1,21 +1,15 @@
-use avian2d::prelude::{Collider, CollisionLayers, RigidBody};
-use bevy::ecs::system::{Res, ResMut};
-use bevy::image::TextureAtlas;
-use bevy::picking::Pickable;
-use bevy::{
-    color::Color, ecs::component::Component, math::Vec2, prelude::info, reflect::Reflect,
-    render::view::Visibility, sprite::Sprite, transform::components::Transform, utils::default,
-};
-use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
-use bevy_turborand::DelegatedRng;
-use bevy_turborand::GlobalRng;
-
-use crate::assets::{GameAssets, LevelAssets, game_assets};
-use crate::prefabs::physics::GamePhysicsLayer as GPL;
-
 use super::resource::{CellDirection, Level};
+use crate::assets::LevelAssets;
+use crate::gameplay::animation::AnimationFrameQueue;
+use crate::prefabs::physics::GamePhysicsLayer as GPL;
+use avian2d::prelude::{Collider, CollisionLayers, Friction, RigidBody};
+use bevy::prelude::*;
+use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
+use bevy_turborand::{DelegatedRng, GlobalRng};
+use std::f32::consts::PI;
 
 pub const WALL_TOTAL_WIDTH: f32 = 0.10;
+pub const WALL_PICKABLE_WIDTH: f32 = 0.20;
 pub const FLOOR_TOTAL_HEIGHT: f32 = 0.10;
 pub const LEVEL_SCALING: f32 = 10.;
 
@@ -41,7 +35,10 @@ pub struct Floor;
 pub struct Ceiling;
 
 #[derive(Copy, Clone, Debug, PartialEq, Component, Reflect)]
-pub struct PathNode(pub CellDirection);
+pub struct PathNode {
+    pub direction: CellDirection,
+    pub prev_direction: CellDirection,
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Component, Reflect)]
 pub struct StartNode;
@@ -131,18 +128,8 @@ impl LevelParent {
                 if level_data.walls[x][y] {
                     level = level
                         << wall(
+                            level_assets,
                             (x as f32 - 0.5 - (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
-                            y as f32 * LEVEL_SCALING,
-                            WallDirection::Left,
-                        ) + Adjacent::new(
-                            x,
-                            y,
-                            GeneralPosition::LeftRight,
-                            ExactPosition::Wall(WallDirection::Left),
-                        )
-                        .store()
-                        << wall(
-                            (x as f32 - 0.5 + (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
                             y as f32 * LEVEL_SCALING,
                             WallDirection::Right,
                         ) + Adjacent::new(
@@ -150,6 +137,18 @@ impl LevelParent {
                             y,
                             GeneralPosition::LeftRight,
                             ExactPosition::Wall(WallDirection::Right),
+                        )
+                        .store()
+                        << wall(
+                            level_assets,
+                            (x as f32 - 0.5 + (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
+                            y as f32 * LEVEL_SCALING,
+                            WallDirection::Left,
+                        ) + Adjacent::new(
+                            x,
+                            y,
+                            GeneralPosition::LeftRight,
+                            ExactPosition::Wall(WallDirection::Left),
                         )
                         .store();
                 }
@@ -160,11 +159,13 @@ impl LevelParent {
                 if level_data.floors[x][y] {
                     level = level
                         << ceiling(
+                            level_assets,
                             x as f32 * LEVEL_SCALING,
                             ((y as f32) - 0.5 - FLOOR_TOTAL_HEIGHT / 4.) * LEVEL_SCALING,
                         ) + Adjacent::new(x, y, GeneralPosition::UpDown, ExactPosition::Ceiling)
                             .store()
                         << floor(
+                            level_assets,
                             x as f32 * LEVEL_SCALING,
                             ((y as f32) - 0.5 + FLOOR_TOTAL_HEIGHT / 4.) * LEVEL_SCALING,
                         ) + Adjacent::new(x, y, GeneralPosition::UpDown, ExactPosition::Floor)
@@ -174,12 +175,23 @@ impl LevelParent {
         }
         let mut path_iter = level_data.path.iter();
         let start_node = path_iter.next().unwrap();
+        let mut last_direction = start_node.1;
         level = level
             << (node(
                 start_node.0.x * LEVEL_SCALING,
                 start_node.0.y * LEVEL_SCALING,
                 start_node.1,
-            ) + StartNode.store());
+                last_direction,
+            ) + StartNode.store()
+                + AnimationFrameQueue::new(&[0, 1, 2, 3, 4]).store()
+                + Sprite {
+                    image: level_assets.enemy_spawner.clone(),
+                    texture_atlas: Some(TextureAtlas::from(level_assets.spawner_layout.clone())),
+                    custom_size: Some(Vec2::splat(LEVEL_SCALING * 0.8)),
+                    color: Color::WHITE.with_alpha(0.95),
+                    ..default()
+                }
+                .store());
         let mut path_iter = path_iter.rev();
         let last_node = path_iter.next().unwrap();
         let path_iter = path_iter.rev();
@@ -189,97 +201,154 @@ impl LevelParent {
                 last_node.0.x * LEVEL_SCALING,
                 last_node.0.y * LEVEL_SCALING,
                 last_node.1,
+                last_node.1,
             ) + EndNode.store());
 
         for node_i in path_iter {
             let (pos, direction) = node_i;
-            level = level << node(pos.x * LEVEL_SCALING, pos.y * LEVEL_SCALING, *direction);
+            level = level
+                << node(
+                    pos.x * LEVEL_SCALING,
+                    pos.y * LEVEL_SCALING,
+                    *direction,
+                    last_direction,
+                );
+            last_direction = *direction;
         }
 
         level
     }
 }
 
-pub fn wall(x: f32, y: f32, direction: WallDirection) -> ComponentTree {
+pub fn wall(
+    level_assets: &Res<LevelAssets>,
+    x: f32,
+    y: f32,
+    direction: WallDirection,
+) -> ComponentTree {
     (
-        Wall(direction),
         Architecture,
         Pickable::default(),
         Collider::rectangle(WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
+        Friction::new(0.3),
+        Name::new("Wall"),
+        Visibility::Inherited,
+        Wall(direction),
     )
         .store()
-        + name("Wall")
-        + rect_sprite(
-            x,
-            y,
-            LEVEL_SCALING,
-            WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING,
-            match direction {
-                WallDirection::Left => Color::srgba(0.9, 0.1, 0.1, 1.0),
-                WallDirection::Right => Color::srgba(0.8, 0.3, 0.0, 1.0),
+        + pickable_rect(LEVEL_SCALING, WALL_PICKABLE_WIDTH * LEVEL_SCALING)
+        + pos(x, y)
+        << (
+            Transform::from_xyz(0.0, 0.0, 0.1).with_rotation(Quat::from_rotation_z(PI / 2.0)),
+            Pickable::IGNORE,
+            Visibility::Inherited,
+            Sprite {
+                image: level_assets.level.clone(),
+                custom_size: Some(Vec2::new(LEVEL_SCALING, LEVEL_SCALING / 16.)),
+                texture_atlas: Some(TextureAtlas {
+                    layout: level_assets.level_layout.clone(),
+                    index: 2,
+                }),
+                ..default()
             },
         )
+            .store()
 }
 
-pub fn ceiling(x: f32, y: f32) -> ComponentTree {
+pub fn ceiling(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree {
     (
+        Architecture,
+        Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
+        CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
+        RigidBody::Static,
+        Friction::new(0.),
+        Name::new("Ceiling"),
+        Visibility::Inherited,
         Ceiling,
-        Architecture,
-        Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
-        CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
-        RigidBody::Static,
-        Pickable::default(),
     )
         .store()
-        + name("Ceiling")
-        + rect_sprite(
-            x,
-            y,
-            FLOOR_TOTAL_HEIGHT / 2. * LEVEL_SCALING,
-            LEVEL_SCALING,
-            Color::srgba(0.0, 0.2, 0.8, 1.0),
+        + pickable_rect(WALL_PICKABLE_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING)
+        + pos(x, y)
+        << (
+            Transform::from_xyz(0.0, -0.06, 0.0),
+            Pickable::IGNORE,
+            Visibility::Inherited,
+            Sprite {
+                image: level_assets.level.clone(),
+                custom_size: Some(Vec2::new(LEVEL_SCALING, LEVEL_SCALING / 16.)),
+                texture_atlas: Some(TextureAtlas {
+                    layout: level_assets.level_layout.clone(),
+                    index: 1,
+                }),
+                ..default()
+            },
         )
+            .store()
 }
 
-pub fn floor(x: f32, y: f32) -> ComponentTree {
+pub fn floor(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree {
     (
-        Floor,
         Architecture,
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
-        Pickable::default(),
+        Friction::new(0.3),
+        Name::new("Floor"),
+        Visibility::Inherited,
+        Floor,
     )
         .store()
-        + name("Floor")
-        + rect_sprite(
-            x,
-            y,
-            FLOOR_TOTAL_HEIGHT / 2. * LEVEL_SCALING,
-            LEVEL_SCALING,
-            Color::srgba(0.4, 0.4, 0.0, 1.0),
+        + pickable_rect(WALL_PICKABLE_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING)
+        + pos(x, y)
+        << (
+            Transform::from_xyz(0.0, 0.06, 0.0),
+            Pickable::IGNORE,
+            Visibility::Inherited,
+            Sprite {
+                image: level_assets.level.clone(),
+                custom_size: Some(Vec2::new(LEVEL_SCALING, LEVEL_SCALING / 16.)),
+                texture_atlas: Some(TextureAtlas {
+                    layout: level_assets.level_layout.clone(),
+                    index: 0,
+                }),
+                ..default()
+            },
         )
+            .store()
 }
 
-pub fn rect_sprite(x: f32, y: f32, h: f32, w: f32, color: Color) -> ComponentTree {
+pub fn node(
+    x: f32,
+    y: f32,
+    direction: CellDirection,
+    prev_direction: CellDirection,
+) -> ComponentTree {
+    PathNode::new(direction, prev_direction).store() + pos(x, y)
+}
+
+pub fn pickable_rect(h: f32, w: f32) -> ComponentTree {
     (
         Sprite {
-            color,
+            color: Color::WHITE.with_alpha(0.001),
             custom_size: Some(Vec2::new(w, h)),
             ..default()
         },
-        Visibility::Visible,
+        Pickable::default(),
     )
         .store()
-        + pos(x, y)
-}
-
-pub fn node(x: f32, y: f32, direction: CellDirection) -> ComponentTree {
-    (PathNode(direction)).store() + pos(x, y)
 }
 
 pub fn pos(x: f32, y: f32) -> ComponentTree {
     Transform::from_xyz(x, y, 0.).store()
+}
+
+impl PathNode {
+    pub fn new(direction: CellDirection, prev_direction: CellDirection) -> Self {
+        Self {
+            direction,
+            prev_direction,
+        }
+    }
 }

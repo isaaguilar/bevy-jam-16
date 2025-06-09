@@ -21,15 +21,18 @@ use std::{collections::VecDeque, time::Duration};
 use crate::{
     PausableSystems,
     assets::UiAssets,
+    data::levels::LevelData,
     level::components::StartNode,
     prefabs::enemies::{basic_trooper, chonkus_trooper, turbo_trooper},
-    screens::Screen,
+    prelude::*,
     theme::widget,
 };
+use crate::{assets::SoundEffects, level::resource::GotoNextLevel};
+use crate::{audio::sound_effect, level::resource::LevelSelect};
 
 #[derive(Resource, Clone)]
 pub struct WaveManager {
-    current_wave: Option<Wave>,
+    pub current_wave: Option<Wave>,
     upcoming_waves: VecDeque<Wave>,
     wave_timer: Timer,
 }
@@ -41,8 +44,17 @@ pub struct Wave(pub VecDeque<(Group, Duration)>);
 #[derive(Clone, Component)]
 pub struct Group(pub Vec<ComponentTree>);
 
+// Enemies don't spawn all at once in a wave, they spawn in delayed groups.
+#[derive(States, Default, Debug, Hash, PartialEq, Eq, Copy, Clone)]
+enum MouseSpawnBtn {
+    #[default]
+    Out,
+    In,
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(WaveManager::default());
+    app.init_state::<MouseSpawnBtn>();
     app.add_systems(OnEnter(Screen::Gameplay), (add_waves, add_spawn_button));
     app.add_systems(
         Update,
@@ -54,6 +66,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(spawn_leave_observer);
     app.add_observer(spawn_pressed_observer);
     app.add_observer(spawn_released_observer);
+    app.add_systems(
+        Update,
+        wave_spawn_button_mouse_out.run_if(in_state(MouseSpawnBtn::Out)),
+    );
 }
 
 pub fn add_spawn_button(mut commands: Commands, assets: Res<UiAssets>) {
@@ -63,9 +79,19 @@ pub fn add_spawn_button(mut commands: Commands, assets: Res<UiAssets>) {
     ));
 }
 
-pub fn add_waves(mut wave_manager: ResMut<WaveManager>) {
+pub fn add_waves(
+    mut wave_manager: ResMut<WaveManager>,
+    level_data: Res<LevelData>,
+    level_select: Res<LevelSelect>,
+) {
+    let default_set = &test_waves();
+    let next_wave_set = level_data
+        .enemies
+        .get(level_select.0)
+        .unwrap_or(default_set);
+
     *wave_manager = WaveManager {
-        upcoming_waves: test_waves(),
+        upcoming_waves: next_wave_set.clone(),
         ..Default::default()
     };
 }
@@ -78,6 +104,7 @@ pub fn spawn_next_wave(
     mut wave_manager: ResMut<WaveManager>,
     mut commands: Commands,
     start_loc: Query<&Transform, With<StartNode>>,
+    sfx: Res<SoundEffects>,
 ) {
     if wave_manager.wave_timer.finished() {
         if let (Some(wave), Ok(loc)) = (wave_manager.current_wave.as_mut(), start_loc.single()) {
@@ -87,6 +114,7 @@ pub fn spawn_next_wave(
                 }
                 wave_manager.wave_timer.set_duration(duration);
                 wave_manager.wave_timer.reset();
+                commands.spawn(sound_effect(sfx.enemy_spawn_sfx.clone()));
             } else {
                 wave_manager.current_wave = None;
             }
@@ -175,31 +203,60 @@ fn spawn_wave_ui(icon: Handle<Image>, layout: Handle<TextureAtlasLayout>) -> imp
     )
 }
 
+fn wave_spawn_button_mouse_out(
+    mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
+    wave_manager: Res<WaveManager>,
+) {
+    info!("Running");
+    let Ok(mut image_node) = spawn_button_marker.single_mut() else {
+        return;
+    };
+    if let Some(atlas) = &mut image_node.texture_atlas {
+        if wave_manager.current_wave.is_some() {
+            atlas.index = 3;
+        } else {
+            atlas.index = 0;
+        }
+    }
+}
+
 fn spawn_enter_observer(
     trigger: Trigger<Pointer<Over>>,
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
+    wave_manager: Res<WaveManager>,
+    mut mouse_state: ResMut<NextState<MouseSpawnBtn>>,
 ) {
     let Ok(mut image_node) = spawn_button_marker.get_mut(trigger.target) else {
         return;
     };
+    mouse_state.set(MouseSpawnBtn::In);
     if let Some(atlas) = &mut image_node.texture_atlas {
         atlas.index = 2;
+        if wave_manager.current_wave.is_some() {
+            atlas.index = 3;
+        }
     }
 }
+
 fn spawn_pressed_observer(
     trigger: Trigger<Pointer<Pressed>>,
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
+    wave_manager: Res<WaveManager>,
 ) {
     let Ok(mut image_node) = spawn_button_marker.get_mut(trigger.target) else {
         return;
     };
     if let Some(atlas) = &mut image_node.texture_atlas {
         atlas.index = 1;
+        if wave_manager.current_wave.is_some() {
+            atlas.index = 3;
+        }
     }
 }
 
 fn spawn_released_observer(
     trigger: Trigger<Pointer<Released>>,
+    mut goto_next_level: EventWriter<GotoNextLevel>,
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
     mut wave_manager: ResMut<WaveManager>,
 ) {
@@ -207,22 +264,33 @@ fn spawn_released_observer(
         return;
     };
     if let Some(atlas) = &mut image_node.texture_atlas {
-        atlas.index = 2;
+        atlas.index = 3;
     }
-    if wave_manager.current_wave.is_none() {
-        wave_manager.current_wave = wave_manager.upcoming_waves.pop_front();
+
+    if wave_manager.current_wave.is_none() && wave_manager.remaining_waves() == 0 {
+        goto_next_level.write(GotoNextLevel(0));
+    } else {
+        if wave_manager.current_wave.is_none() {
+            wave_manager.current_wave = wave_manager.upcoming_waves.pop_front();
+        }
     }
 }
 
 fn spawn_leave_observer(
     trigger: Trigger<Pointer<Out>>,
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
+    wave_manager: Res<WaveManager>,
+    mut mouse_state: ResMut<NextState<MouseSpawnBtn>>,
 ) {
     let Ok(mut image_node) = spawn_button_marker.get_mut(trigger.target) else {
         return;
     };
+    mouse_state.set(MouseSpawnBtn::Out);
     if let Some(atlas) = &mut image_node.texture_atlas {
         atlas.index = 0;
+        if wave_manager.current_wave.is_some() {
+            atlas.index = 3;
+        }
     }
 }
 
@@ -261,7 +329,8 @@ pub fn test_waves() -> VecDeque<Wave> {
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
-        ].into()
+        ]
+        .into(),
     ]
     .into()
 }

@@ -1,19 +1,40 @@
-use super::status_effects::*;
 use bevy::{color::palettes::css::*, prelude::*};
+use std::sync::Arc;
 
-#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackType {
-    EntireCell(Vec<AttackEffect>),
-    Contact(Vec<AttackEffect>),
+use super::status_effects::*;
+use crate::level::resource::CellDirection;
+
+#[derive(Clone, Debug, Reflect, PartialEq)]
+pub enum TowerAttackType {
+    EntireCell(Vec<AttackSpecification>),
+    Contact(Vec<AttackSpecification>),
     DropsLiquid(LiquidType),
     ModifiesSelf,
 }
 
-#[derive(Clone, Debug, Reflect, PartialEq, Eq)]
-pub enum AttackEffect {
-    Damage(DamageType),
-    Push,
+#[derive(Clone, Debug, Reflect, PartialEq)]
+pub enum AttackSpecification {
+    Damage(DamageType, usize),
+    Push(f32),
     Status(StatusEnum),
+}
+
+#[derive(Clone, Debug, Reflect, PartialEq)]
+pub enum AttackData {
+    Damage {
+        dmg_type: DamageType,
+        strength: usize,
+        damage: usize,
+    },
+    Push {
+        direction: CellDirection,
+        strength: usize,
+        force: f32,
+    },
+    Status {
+        status: StatusEnum,
+        strength: usize,
+    },
 }
 
 #[derive(Component, Copy, Clone, Debug, Reflect, PartialEq, Eq)]
@@ -51,13 +72,13 @@ impl DamageType {
 }
 
 impl LiquidType {
-    pub fn contact_effects(&self) -> Vec<AttackEffect> {
+    pub fn contact_effects(&self) -> Vec<AttackSpecification> {
         match self {
-            LiquidType::Water => vec![AttackEffect::Status(StatusEnum::Wet)],
-            LiquidType::Oil => vec![AttackEffect::Status(StatusEnum::Oiled)],
+            LiquidType::Water => vec![AttackSpecification::Status(StatusEnum::Wet)],
+            LiquidType::Oil => vec![AttackSpecification::Status(StatusEnum::Oiled)],
             LiquidType::Acid => vec![
-                AttackEffect::Damage(DamageType::Chemical),
-                AttackEffect::Status(StatusEnum::Acidified),
+                AttackSpecification::Damage(DamageType::Chemical, 10),
+                AttackSpecification::Status(StatusEnum::Acidified),
             ],
         }
     }

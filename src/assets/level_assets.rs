@@ -12,4 +12,14 @@ pub struct LevelAssets {
     pub floortiles: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 64, tile_size_y = 64, columns = 8, rows = 8))]
     pub floortiles_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/level.png")]
+    pub level: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 8, columns = 1, rows = 4))]
+    pub level_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "images/portal.png")]
+    pub enemy_spawner: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 64, tile_size_y = 64, columns = 5, rows = 1))]
+    pub spawner_layout: Handle<TextureAtlasLayout>,
 }

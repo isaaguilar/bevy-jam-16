@@ -1,23 +1,19 @@
 use bevy::prelude::*;
+use std::f32::consts::PI;
 
 use crate::data::Tower;
 
-// Temporary hardcoded map until I pull the asset-loading changes
+#[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct CurrentLoadedLevel(pub usize);
 
-pub const MAP_TEXT: &'static str = "^<<v<
->>^v^
-^<<<^
->>>>^
-";
+#[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct LevelSelect(pub usize);
 
-pub const MAP_TEXT2: &'static str = "^<<<<
->>>>^
-^<<<<
->>>>^
-";
+#[derive(Resource, Clone, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct UnlockedLevels(pub Vec<usize>);
 
-pub const MAP_TEXT3: &'static str = "^<<<<<<<<<<<<<
->>>>>>>>>>>>>^";
+#[derive(Event, Debug, Hash, PartialEq, Eq, Clone, Reflect)]
+pub struct GotoNextLevel(pub usize);
 
 // Which direction the enemies need to move in. If we end up adding splitting paths, this won't be
 // usable. It's mainly to help get a FWP going.
@@ -64,11 +60,38 @@ impl CellDirection {
             _ => match self {
                 CellDirection::Up => Transform::from_xyz(0., -5., 0.),
                 CellDirection::Down => Transform::from_xyz(0., 5., 0.),
-                CellDirection::Left => {
+                CellDirection::Right => {
                     Transform::from_xyz(-5., 0., 0.).with_scale(Vec3::new(-1., 1., 1.))
                 }
-                CellDirection::Right => Transform::from_xyz(5., 0., 0.),
+                CellDirection::Left => Transform::from_xyz(5., 0., 0.),
             },
+        }
+    }
+
+    pub fn clockwise(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Right,
+            CellDirection::Down => CellDirection::Left,
+            CellDirection::Left => CellDirection::Up,
+            CellDirection::Right => CellDirection::Down,
+        }
+    }
+
+    pub fn counter_clockwise(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Left,
+            CellDirection::Down => CellDirection::Right,
+            CellDirection::Left => CellDirection::Down,
+            CellDirection::Right => CellDirection::Up,
+        }
+    }
+
+    pub fn flip(&self) -> Self {
+        match self {
+            CellDirection::Up => CellDirection::Down,
+            CellDirection::Down => CellDirection::Up,
+            CellDirection::Left => CellDirection::Right,
+            CellDirection::Right => CellDirection::Left,
         }
     }
 }

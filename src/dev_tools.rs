@@ -1,5 +1,7 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
+use avian2d::debug_render::PhysicsGizmos;
+use avian2d::prelude::PhysicsDebugPlugin;
 use bevy::{
     dev_tools::states::log_transitions, input::common_conditions::input_just_pressed, prelude::*,
     ui::UiDebugOptions,
@@ -7,6 +9,7 @@ use bevy::{
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::data::PlayerState;
+use crate::level::resource::LevelSelect;
 use crate::{data::PointerInteractionState, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
@@ -21,6 +24,8 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_systems(Update, add_1k.run_if(input_just_pressed(KeyCode::KeyM)));
+    app.add_systems(Update, next_level.run_if(input_just_pressed(KeyCode::KeyN)));
+    app.add_systems(Startup, on_startup);
 
     app.add_plugins(EguiPlugin {
         enable_multipass_for_primary_context: true,
@@ -30,11 +35,22 @@ pub(super) fn plugin(app: &mut App) {
 
 const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
 
-fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
+fn on_startup(mut store: ResMut<GizmoConfigStore>) {
+    store.config_mut::<PhysicsGizmos>().0.enabled = false
+}
+
+fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, mut store: ResMut<GizmoConfigStore>) {
     options.toggle();
+    let config = store.config_mut::<PhysicsGizmos>().0;
+    config.enabled = options.enabled;
 }
 
 fn add_1k(mut player_state: ResMut<PlayerState>) {
     player_state.money += 1000;
     info!("Added $1000 to player state.");
+}
+
+fn next_level(mut level_select: ResMut<LevelSelect>, mut next_screen: ResMut<NextState<Screen>>) {
+    level_select.0 += 1;
+    next_screen.set(Screen::LevelTransition);
 }

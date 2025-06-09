@@ -1,5 +1,7 @@
 use bevy::{audio::Volume, prelude::*};
 
+use crate::{assets::GameAssets, screens::Screen};
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Music>();
     app.register_type::<SoundEffect>();
@@ -8,6 +10,9 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         apply_global_volume.run_if(resource_changed::<GlobalVolume>),
     );
+
+    app.add_systems(OnEnter(Screen::Gameplay), start_music);
+    app.add_systems(OnExit(Screen::Gameplay), pause_music);
 }
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
@@ -47,5 +52,26 @@ fn apply_global_volume(
 ) {
     for (playback, mut sink) in &mut audio_query {
         sink.set_volume(global_volume.volume * playback.volume);
+    }
+}
+
+pub fn start_music(
+    mut commands: Commands,
+    music_query: Query<&AudioSink, With<Music>>,
+    game_assets: Res<GameAssets>,
+) {
+    if let Ok(audio) = music_query.single() {
+        audio.play();
+    } else {
+        commands.spawn((
+            Name::new("Gameplay Music"),
+            music(game_assets.tubamusic.clone()),
+        ));
+    }
+}
+
+pub fn pause_music(music_query: Query<&AudioSink, With<Music>>) {
+    if let Ok(audio) = music_query.single() {
+        audio.pause();
     }
 }

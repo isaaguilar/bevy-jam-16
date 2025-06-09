@@ -14,7 +14,7 @@ use crate::{
     prelude::*,
 };
 use avian2d::prelude::{
-    Collider, CollisionLayers, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
+    Collider, CollisionLayers, Friction, GravityScale, LinearDamping, LockedAxes, Mass, RigidBody,
 };
 use bevy::prelude::*;
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
@@ -77,18 +77,22 @@ pub fn enemy_requirements(size: Vec2, speed: f32, bounty: i32) -> ComponentTree 
         EnemyHealth::new(100),
         MovementDirection::default(),
         RigidBody::Dynamic,
+        Friction::new(0.3),
         Visibility::Hidden,
         ShowDelay::new(),
-        LinearDamping(1.5),
-        GravityScale(1.0),
-        Mass(5.),
-        Stat::<DamageMultiplier>::new(1.0),
-        Stat::<MoveSpeed>::new(speed),
-        LockedAxes::ROTATION_LOCKED,
-        Collider::round_rectangle(size.x, size.y, 0.5),
-        CollisionLayers::new(GPL::Enemy, [GPL::Default, GPL::Level, GPL::Projectiles]),
     )
         .store()
+        + (
+            LinearDamping(1.5),
+            GravityScale(1.0),
+            Mass(5.),
+            Stat::<DamageMultiplier>::new(1.0),
+            Stat::<MoveSpeed>::new(speed),
+            LockedAxes::ROTATION_LOCKED,
+            Collider::round_rectangle(size.x, size.y, 0.5),
+            CollisionLayers::new(GPL::Enemy, [GPL::Default, GPL::Level, GPL::Projectiles]),
+        )
+            .store()
 }
 
 pub fn health_bar(y_offset: f32) -> ComponentTree {

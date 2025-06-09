@@ -49,23 +49,30 @@ fn follow_path(
 
         let mut nodes_sorted_by_distance = nodes
             .iter()
-            .map(|w| (pos.distance(w.0.translation.xy()), (w.0, w.1.0)))
+            .map(|w| {
+                (
+                    pos.distance(w.0.translation.xy()),
+                    (w.0, w.1.direction, w.1.prev_direction),
+                )
+            })
             .collect::<Vec<_>>();
         nodes_sorted_by_distance.sort_by(|w, other| w.0.total_cmp(&other.0));
-        let (closest, second_closest) =
-            (nodes_sorted_by_distance[0].1, nodes_sorted_by_distance[1].1);
+        let (_, closest, prev) = nodes_sorted_by_distance[0].1;
 
         // I plan on adding more complicated movement logic later to help them go around corners
         // but this will work for now
-        gravity_scale.0 = match closest.1 {
-            CellDirection::Up => 0.3,
+        gravity_scale.0 = match closest {
+            CellDirection::Up => 0.4,
             _ => 1.,
         };
-        movement_direction.0 = match closest.1 {
-            CellDirection::Up | CellDirection::Down => closest.1.vec(),
-            CellDirection::Left | CellDirection::Right => {
-                ((closest.1.vec() + second_closest.1.vec()) / 2.).normalize_or_zero()
-            }
+        let average = ((closest.vec() + prev.vec()) / 2.).normalize_or_zero();
+        movement_direction.0 = match closest {
+            CellDirection::Up => closest.vec(),
+            _ => match prev {
+                CellDirection::Up => ((closest.vec() + prev.vec() * 2.) / 3.).normalize_or_zero(),
+                CellDirection::Down => closest.vec(),
+                CellDirection::Left | CellDirection::Right => average,
+            },
         };
     }
 }

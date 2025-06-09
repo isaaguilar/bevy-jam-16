@@ -16,11 +16,11 @@ use bevy::{
 };
 use bevy_composable::app_impl::ComplexSpawnable;
 
-use super::attacks::{ApplyAttackEffect, DropLiquid};
+use super::attacks::{ApplyAttackData, DropLiquid};
 use crate::{
     data::{
         Tower,
-        projectiles::{DamageType, Droplet, Puddle},
+        projectiles::{AttackData, AttackSpecification, DamageType, Droplet, Puddle},
     },
     demo::enemy_health::{EnemyHealth, TryDamageToEnemy},
     gameplay::{animation::AnimationFrameQueue, shared_systems::Lifetime},
@@ -76,7 +76,7 @@ pub fn puddle_attacks(
     trigger: Trigger<OnCollisionStart>,
     enemies: Query<(), With<EnemyHealth>>,
     puddles: Query<&Puddle>,
-    mut attack_events: EventWriter<ApplyAttackEffect>,
+    mut attack_events: EventWriter<ApplyAttackData>,
 ) {
     let puddle = trigger.target();
     let other = trigger.collider;
@@ -84,10 +84,21 @@ pub fn puddle_attacks(
     if enemies.get(other).is_ok() {
         if let Ok(Puddle(liquid)) = puddles.get(puddle) {
             for effect in liquid.contact_effects() {
-                attack_events.write(ApplyAttackEffect {
+                attack_events.write(ApplyAttackData {
                     target: other,
                     source: puddle,
-                    effect,
+                    effect: match effect {
+                        AttackSpecification::Damage(damage_type, damage) => AttackData::Damage {
+                            dmg_type: damage_type,
+                            strength: 1,
+                            damage,
+                        },
+                        AttackSpecification::Push(_) => todo!(),
+                        AttackSpecification::Status(status_enum) => AttackData::Status {
+                            status: status_enum,
+                            strength: 1,
+                        },
+                    },
                 });
             }
         }
