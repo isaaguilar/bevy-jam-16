@@ -165,8 +165,7 @@ pub fn attack_contact_enemies(
     directions: Query<&FireDirection>,
     parents: Query<&ChildOf, With<TowerTriggerRange>>,
     enemies: Query<(), With<EnemyHealth>>,
-    mut towers: Query<(&Tower, &CellDirection, &mut AnimationFrameQueue)>,
-    mut commands: Commands,
+    towers: Query<(&Tower, &CellDirection, &AnimationFrameQueue)>,
 ) {
     for &AttackEnemiesInContact(sensor, ref effects) in events.read() {
         let direction = parents

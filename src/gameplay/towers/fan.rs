@@ -122,7 +122,7 @@ pub fn do_forcefields(
             .filter(|w| enemies.get(*w).is_ok())
             .collect();
 
-        for mut enemy in pushed_enemies {
+        for enemy in pushed_enemies {
             if let Ok(mut enemy) = enemies.get_mut(enemy) {
                 **enemy += direction * 70. * delta;
             }

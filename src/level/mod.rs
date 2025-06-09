@@ -36,27 +36,4 @@ pub fn plugin(app: &mut App) {
         .register_type::<Wall>();
 
     app.add_event::<GotoNextLevel>();
-
-    //app.add_systems(Update, draw_nodes);
-}
-
-pub fn draw_nodes(mut gizmos: Gizmos, nodes: Query<(&Transform, &PathNode), With<PathNode>>) {
-    for (
-        pos,
-        PathNode {
-            direction: direction,
-            prev_direction: prev_direction,
-        },
-    ) in nodes.iter()
-    {
-        let node_pos = pos.translation.xy();
-        gizmos.circle_2d(node_pos, 0.5, Color::WHITE);
-        let node_offset = match direction {
-            resource::CellDirection::Up => Vec2::new(0., 1.),
-            resource::CellDirection::Down => Vec2::new(0., -1.),
-            resource::CellDirection::Left => Vec2::new(-1., 0.),
-            resource::CellDirection::Right => Vec2::new(1., 0.),
-        };
-        gizmos.arrow_2d(node_pos, node_pos + node_offset * 3., Color::WHITE);
-    }
 }
