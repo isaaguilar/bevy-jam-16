@@ -18,20 +18,21 @@ use bevy_composable::{
 };
 use std::{collections::VecDeque, time::Duration};
 
-use crate::assets::SoundEffects;
-use crate::audio::sound_effect;
 use crate::{
     PausableSystems,
     assets::UiAssets,
+    data::levels::LevelData,
     level::components::StartNode,
     prefabs::enemies::{basic_trooper, chonkus_trooper, turbo_trooper},
     prelude::*,
     theme::widget,
 };
+use crate::{assets::SoundEffects, level::resource::GotoNextLevel};
+use crate::{audio::sound_effect, level::resource::LevelSelect};
 
 #[derive(Resource, Clone)]
 pub struct WaveManager {
-    current_wave: Option<Wave>,
+    pub current_wave: Option<Wave>,
     upcoming_waves: VecDeque<Wave>,
     wave_timer: Timer,
 }
@@ -65,9 +66,19 @@ pub fn add_spawn_button(mut commands: Commands, assets: Res<UiAssets>) {
     ));
 }
 
-pub fn add_waves(mut wave_manager: ResMut<WaveManager>) {
+pub fn add_waves(
+    mut wave_manager: ResMut<WaveManager>,
+    level_data: Res<LevelData>,
+    level_select: Res<LevelSelect>,
+) {
+    let default_set = &test_waves();
+    let next_wave_set = level_data
+        .enemies
+        .get(level_select.0)
+        .unwrap_or(default_set);
+
     *wave_manager = WaveManager {
-        upcoming_waves: test_waves(),
+        upcoming_waves: next_wave_set.clone(),
         ..Default::default()
     };
 }
@@ -204,6 +215,7 @@ fn spawn_pressed_observer(
 
 fn spawn_released_observer(
     trigger: Trigger<Pointer<Released>>,
+    mut goto_next_level: EventWriter<GotoNextLevel>,
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
     mut wave_manager: ResMut<WaveManager>,
 ) {
@@ -213,8 +225,13 @@ fn spawn_released_observer(
     if let Some(atlas) = &mut image_node.texture_atlas {
         atlas.index = 2;
     }
-    if wave_manager.current_wave.is_none() {
-        wave_manager.current_wave = wave_manager.upcoming_waves.pop_front();
+
+    if wave_manager.current_wave.is_none() && wave_manager.remaining_waves() == 0 {
+        goto_next_level.write(GotoNextLevel(0));
+    } else {
+        if wave_manager.current_wave.is_none() {
+            wave_manager.current_wave = wave_manager.upcoming_waves.pop_front();
+        }
     }
 }
 
@@ -265,7 +282,8 @@ pub fn test_waves() -> VecDeque<Wave> {
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
             (vec![chonkus_trooper(), basic_trooper()], 0.5),
-        ].into()
+        ]
+        .into(),
     ]
     .into()
 }

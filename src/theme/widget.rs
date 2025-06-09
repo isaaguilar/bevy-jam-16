@@ -176,3 +176,57 @@ where
         })),
     )
 }
+
+/// A large rounded button with text that is "Pickable"
+pub fn global_observer_button(
+    text: impl Into<String>,
+    observer_bundle: impl Bundle,
+) -> impl Bundle {
+    global_observer_button_base(
+        text,
+        (
+            observer_bundle,
+            Pickable::default(),
+            Node {
+                width: Px(380.0),
+                height: Px(64.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            BorderRadius::all(Px(8.0)),
+        ),
+    )
+}
+
+/// A simple button with text and an action defined as an [`Observer`]. The button's layout is provided by `button_bundle`.
+fn global_observer_button_base(text: impl Into<String>, button_bundle: impl Bundle) -> impl Bundle {
+    let text = text.into();
+
+    (
+        Name::new("Button"),
+        Node::default(),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent
+                .spawn((
+                    Name::new("Button Inner"),
+                    Button,
+                    BackgroundColor(BUTTON_BACKGROUND),
+                    InteractionPalette {
+                        none: BUTTON_BACKGROUND,
+                        hovered: BUTTON_HOVERED_BACKGROUND,
+                        pressed: BUTTON_PRESSED_BACKGROUND,
+                    },
+                    children![(
+                        Name::new("Button Text"),
+                        Text(text),
+                        TextFont::from_font(LABEL_FONT).with_font_size(32.0),
+                        TextColor(BUTTON_TEXT),
+                        // Don't bubble picking events from the text up to the button.
+                        Pickable::IGNORE,
+                    )],
+                ))
+                .insert(button_bundle);
+        })),
+    )
+}
