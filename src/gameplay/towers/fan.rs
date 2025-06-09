@@ -124,7 +124,7 @@ pub fn do_forcefields(
 
         for enemy in pushed_enemies {
             if let Ok(mut enemy) = enemies.get_mut(enemy) {
-                **enemy += direction * 50. * delta;
+                **enemy += direction * 45. * delta;
             }
         }
     }
