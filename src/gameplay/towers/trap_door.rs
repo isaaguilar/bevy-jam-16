@@ -41,7 +41,7 @@ pub fn detect_trap_door(
             return;
         };
 
-        let n = 3; // TODO  upgrades will lower this number
+        let n = 2; // TODO  upgrades will lower this number
 
         if 0 != rng.usize(0..n) {
             return;
