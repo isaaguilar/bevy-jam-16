@@ -82,7 +82,7 @@ pub fn status_debuff_multiplier<S: StatusEffectTrait, T: StatTrait>(
 ) -> ScheduleConfigs<ScheduleSystem> {
     (move |mut enemies: Query<(&mut Stat<T>, &StatusEffect<S>), With<EnemyHealth>>| {
         for (mut stat, status) in enemies.iter_mut() {
-            stat.multiplier(debuff * damage_multiplier(status.strength));
+            stat.multiplier(1. - debuff * (1. - damage_multiplier(status.strength)));
         }
     })
     .into_configs()
