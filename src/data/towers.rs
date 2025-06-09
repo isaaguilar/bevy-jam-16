@@ -58,16 +58,18 @@ impl Tower {
 
     pub fn description(&self) -> &'static str {
         match self {
-            Tower::Piston => "Pushes or crushes enemies with strong mechanical force.",
-            Tower::Fan => "Slows enemies or redirects airborne effects using wind.",
+            Tower::Piston => "Shoves enemies with strong mechanical force, and shatters ice.",
+            Tower::Fan => "Pushes against enemies. Use when they can't move.",
             Tower::SpikePit => "Triggers hidden spikes to damage passing enemies.",
-            Tower::Oil => "Covers the ground in oil, slowing enemies and increasing flammability.",
-            Tower::TrapDoor => "Drops enemies through the floor, removing or rerouting them.",
-            Tower::Ice => "Freezes the ground, significantly slowing movement speed.",
-            Tower::Acid => "Applies corrosive damage over time to enemies it contacts.",
-            Tower::Tesla => "Fires arcs of electricity that chain between nearby enemies.",
-            Tower::Water => "Slows enemies and can clear or interact with terrain effects.",
-            Tower::Flame => "Deals continuous fire damage to enemies in range.",
+            Tower::Oil => "Oil makes enemies slippery and flammable.",
+            Tower::TrapDoor => "50% chance to let enemies through.",
+            Tower::Ice => "Slows enemies and freezes water.",
+            Tower::Acid => "Acid weakens enemies to all damage.",
+            Tower::Tesla => "Shocks enemies. Ignites oil and bounces off water.",
+            Tower::Water => "Slows and damages, empowers lightning and ice.",
+            Tower::Flame => {
+                "Burns enemies, ignites oil. Enemies cooked without oil are weak to cold."
+            }
             Tower::Portal => "Teleports enemies backward along their path.",
         }
     }
@@ -167,15 +169,15 @@ impl Tower {
 
     pub fn cooldown(&self) -> f32 {
         match self {
-            Tower::Piston => 3.0,
+            Tower::Piston => 3.5,
             Tower::Fan => 0.,
             Tower::SpikePit => 0.5,
-            Tower::Oil => 4.0,
-            Tower::TrapDoor => 2.5,
+            Tower::Oil => 5.0,
+            Tower::TrapDoor => 3.0,
             Tower::Ice => 1.5,
-            Tower::Acid => 3.0,
+            Tower::Acid => 5.0,
             Tower::Tesla => 0.67,
-            Tower::Water => 4.0,
+            Tower::Water => 5.0,
             Tower::Flame => 0.67,
             Tower::Portal => 3.0,
         }
