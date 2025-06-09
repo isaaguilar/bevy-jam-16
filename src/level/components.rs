@@ -2,7 +2,7 @@ use super::resource::{CellDirection, Level};
 use crate::assets::{LevelAssets, game_assets};
 use crate::gameplay::animation::AnimationFrameQueue;
 use crate::prefabs::physics::GamePhysicsLayer as GPL;
-use avian2d::prelude::{Collider, CollisionLayers, RigidBody};
+use avian2d::prelude::{Collider, CollisionLayers, Friction, RigidBody};
 use bevy::prelude::*;
 use bevy_composable::{app_impl::ComponentTreeable, tree::ComponentTree, wrappers::name};
 use bevy_turborand::{DelegatedRng, GlobalRng};
@@ -232,6 +232,7 @@ pub fn wall(
         Collider::rectangle(WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
+        Friction::new(0.3),
         Name::new("Wall"),
         Visibility::Inherited,
     )
@@ -261,6 +262,7 @@ pub fn ceiling(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
+        Friction::new(0.),
         Name::new("Ceiling"),
         Visibility::Inherited,
     )
@@ -290,6 +292,7 @@ pub fn floor(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree {
         Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
+        Friction::new(0.3),
         Name::new("Floor"),
         Visibility::Inherited,
     )
