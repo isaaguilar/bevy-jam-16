@@ -6,6 +6,8 @@ use bevy::{
 };
 use std::marker::PhantomData;
 
+use super::projectiles::DamageType;
+
 pub trait StatTrait:
     'static + Send + Sync + Reflect + Copy + Sized + TypePath + GetTypeRegistration
 {
@@ -65,6 +67,9 @@ impl<T: StatTrait> Stat<T> {
 
     pub fn reset(&mut self) {
         self.cached_value = self.base;
+        self.pre_flat = Vec::default();
+        self.multipliers = Vec::default();
+        self.post_flat = Vec::default();
         self.changed = false;
     }
 
@@ -79,7 +84,41 @@ impl<T: StatTrait> Stat<T> {
 }
 
 define_stat!(MoveSpeed, "Move Speed");
-define_stat!(DamageMultiplier, "Damage Multiplier");
+define_stat!(StatFriction, "Friction");
+define_stat!(DamageMultiplierAll, "Global Damage Multiplier");
+
+#[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
+pub struct DamageMultiplier<const G: DamageType>;
+
+impl StatTrait for DamageMultiplier<{ DamageType::Physical }> {
+    fn name() -> &'static str {
+        "Physical Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<{ DamageType::Burning }> {
+    fn name() -> &'static str {
+        "Fire Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<{ DamageType::Cold }> {
+    fn name() -> &'static str {
+        "Cold Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<{ DamageType::Chemical }> {
+    fn name() -> &'static str {
+        "Chemical Damage Multiplier"
+    }
+}
+
+impl StatTrait for DamageMultiplier<{ DamageType::Lightning }> {
+    fn name() -> &'static str {
+        "Lightning Damage Multiplier"
+    }
+}
 
 #[macro_export]
 macro_rules! define_stat {

@@ -7,24 +7,32 @@ use bevy::{
 };
 use common::{
     ApplyStatus, RemoveStatus, TryApplyStatus, apply_status_effects, dispatch_typed_events,
-    do_remove_status, periodic_damage, tick_statuses, timeout_statuses,
+    do_remove_status, periodic_damage, status_debuff_multiplier, tick_statuses, timeout_statuses,
 };
 use display::{add_status_animation, animate_status_effect, remove_status_animation_on_timeout};
 use ice::freeze_when_wet;
 use std::time::Duration;
+use tesla::{damage_after_electrocute, electrocute_on_damage};
 
 use crate::{
     PausableSystems,
-    data::status_effects::{
-        Acidified, Burned, Chilled, Electrocuted, Frozen, Ignited, Oiled, StatusEffect,
-        StatusEffectTrait, Wet,
+    data::{
+        projectiles::DamageType,
+        stats::{DamageMultiplier, DamageMultiplierAll, MoveSpeed, StatFriction},
+        status_effects::{
+            Acidified, Burned, Chilled, Electrocuted, Frozen, Ignited, Oiled, StatusEffect,
+            StatusEffectTrait, Wet,
+        },
     },
     screens::Screen,
 };
 
+use super::stats::StatSet;
+
 pub mod common;
 pub mod display;
 pub mod ice;
+pub mod tesla;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TryApplyStatus>()
@@ -34,13 +42,40 @@ pub(super) fn plugin(app: &mut App) {
         FixedUpdate,
         (
             periodic_damage::<Ignited>(20),
-            periodic_damage::<Burned>(10),
+            periodic_damage::<Burned>(8),
             periodic_damage::<Acidified>(10),
             periodic_damage::<Chilled>(6),
-        ),
+        )
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
     );
 
     app.add_observer(freeze_when_wet);
+    app.add_systems(
+        Update,
+        (damage_after_electrocute, electrocute_on_damage)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.add_systems(
+        Update,
+        (
+            status_debuff_multiplier::<Frozen, MoveSpeed>(0.),
+            status_debuff_multiplier::<Frozen, StatFriction>(0.),
+            status_debuff_multiplier::<Frozen, DamageMultiplier<{ DamageType::Physical }>>(0.),
+            status_debuff_multiplier::<Chilled, MoveSpeed>(0.5),
+            status_debuff_multiplier::<Wet, MoveSpeed>(0.9),
+            status_debuff_multiplier::<Burned, DamageMultiplierAll>(1.15),
+            status_debuff_multiplier::<Acidified, DamageMultiplierAll>(1.05),
+            status_debuff_multiplier::<Acidified, DamageMultiplier<{ DamageType::Burning }>>(1.10),
+            status_debuff_multiplier::<Acidified, DamageMultiplier<{ DamageType::Chemical }>>(1.10),
+            status_debuff_multiplier::<Wet, DamageMultiplier<{ DamageType::Lightning }>>(1.3),
+        )
+            .in_set(StatSet::Modify)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
 
     implement_status_effect::<Wet>(app);
     implement_status_effect::<Ignited>(app);

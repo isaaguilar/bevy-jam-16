@@ -1,3 +1,8 @@
+use bevy::{color::palettes::css::*, prelude::*};
+use std::marker::ConstParamTy_;
+use std::marker::UnsizedConstParamTy;
+use std::{fmt::Display, sync::Arc};
+
 use super::status_effects::*;
 use crate::level::resource::CellDirection;
 use bevy::{color::palettes::css, prelude::*};
@@ -48,7 +53,7 @@ pub enum LiquidType {
     Acid,
 }
 
-#[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Reflect, PartialEq, Eq, UnsizedConstParamTy)]
 pub enum DamageType {
     Physical,
     Burning,
@@ -56,6 +61,8 @@ pub enum DamageType {
     Lightning,
     Chemical,
 }
+
+impl ConstParamTy_ for DamageType {}
 
 impl DamageType {
     pub fn color(&self) -> Color {
@@ -66,6 +73,19 @@ impl DamageType {
             DamageType::Lightning => css::YELLOW.into(),
             DamageType::Chemical => css::LIME.into(),
         }
+    }
+}
+
+impl Display for DamageType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let string = match self {
+            DamageType::Physical => "Physical",
+            DamageType::Burning => "Burning",
+            DamageType::Cold => "Cold",
+            DamageType::Lightning => "Lightning",
+            DamageType::Chemical => "Chemical",
+        };
+        write!(f, "{}", string)
     }
 }
 

@@ -115,6 +115,7 @@ pub fn dispatch_attack_effects(
                     damage: (*damage as f32 * damage_multiplier(*strength)) as isize,
                     damage_type: *dmg_type,
                     enemy: *target,
+                    strength: 1,
                 });
             }
             AttackData::Push {

@@ -40,11 +40,19 @@ pub struct EnemyControllerBundle {
 
 /// Sends [`MovementAction`] events based on enemy's waypoint direction
 fn follow_path(
-    mut enemies: Query<(&Transform, &mut MovementDirection, &mut GravityScale), With<EnemyHealth>>,
+    mut enemies: Query<
+        (
+            &Transform,
+            &mut MovementDirection,
+            &mut GravityScale,
+            &Stat<MoveSpeed>,
+        ),
+        With<EnemyHealth>,
+    >,
     nodes: Query<(&Transform, &PathNode)>,
 ) {
     // path instructions to walk around in a circle
-    for (enemy_transform, mut movement_direction, mut gravity_scale) in enemies.iter_mut() {
+    for (enemy_transform, mut movement_direction, mut gravity_scale, speed) in enemies.iter_mut() {
         let pos = enemy_transform.translation.xy();
 
         let mut nodes_sorted_by_distance = nodes
@@ -59,12 +67,14 @@ fn follow_path(
         nodes_sorted_by_distance.sort_by(|w, other| w.0.total_cmp(&other.0));
         let (_, closest, prev) = nodes_sorted_by_distance[0].1;
 
-        // I plan on adding more complicated movement logic later to help them go around corners
-        // but this will work for now
-        gravity_scale.0 = match closest {
-            CellDirection::Up => 0.4,
-            _ => 1.,
+        gravity_scale.0 = if speed.current_value() > 0.1
+            && (closest == CellDirection::Up || prev == CellDirection::Up)
+        {
+            0.1
+        } else {
+            1.0
         };
+
         let average = ((closest.vec() + prev.vec()) / 2.).normalize_or_zero();
         movement_direction.0 = match closest {
             CellDirection::Up => closest.vec(),
