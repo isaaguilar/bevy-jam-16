@@ -1,6 +1,7 @@
 //! A splash screen that plays briefly at startup.
 
 use crate::assets::UiAssets;
+use crate::level::resource::{CurrentLoadedLevel, LevelSelect};
 use crate::{AppSystems, screens::Screen, theme::prelude::*};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
@@ -50,7 +51,14 @@ const SPLASH_BACKGROUND_COLOR: Color = Color::srgb(0.157, 0.157, 0.157);
 const SPLASH_DURATION_SECS: f32 = 1.8;
 const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 
-fn spawn_screen(mut commands: Commands, assets: Res<UiAssets>, asset_server: Res<AssetServer>) {
+fn spawn_screen(
+    mut commands: Commands,
+    assets: Res<UiAssets>,
+    asset_server: Res<AssetServer>,
+    mut current_loaded_level: ResMut<CurrentLoadedLevel>,
+    level_select: Res<LevelSelect>,
+) {
+    current_loaded_level.0 = level_select.0;
     commands.spawn((
         widget::ui_root("Splash Screen"),
         BackgroundColor(SPLASH_BACKGROUND_COLOR),

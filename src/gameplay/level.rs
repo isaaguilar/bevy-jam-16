@@ -10,8 +10,9 @@ use bevy_turborand::GlobalRng;
 use crate::assets::SoundEffects;
 use crate::audio::sound_effect;
 use crate::data::levels::LevelData;
+use crate::gameplay::level;
 use crate::gameplay::wave_manager::WaveManager;
-use crate::level::resource::{GotoNextLevel, LevelSelect, UnlockedLevels};
+use crate::level::resource::{CurrentLoadedLevel, GotoNextLevel, LevelSelect, UnlockedLevels};
 use crate::{
     assets::LevelAssets,
     audio::music,
@@ -36,7 +37,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(PreUpdate, pause_physics.run_if(in_state(Menu::Pause)));
     app.add_systems(PreUpdate, unpause_physics.run_if(in_state(Menu::None)));
 
-    app.add_systems(Update, unlock_next_level);
+    app.add_systems(Update, unlock_next_level.run_if(in_state(Screen::Gameplay)));
     app.add_systems(Update, goto_next_level.run_if(on_event::<GotoNextLevel>));
 }
 
@@ -80,9 +81,13 @@ pub fn spawn_level(
 pub fn unlock_next_level(
     wave_manager: Res<WaveManager>,
     level_select: Res<LevelSelect>,
+    current_loaded_level: Res<CurrentLoadedLevel>,
     mut unlocked_levels: ResMut<UnlockedLevels>,
     enemies: Query<(), With<EnemyHealth>>,
 ) {
+    if current_loaded_level.0 != level_select.0 {
+        return;
+    }
     if wave_manager.remaining_waves() == 0
         && wave_manager.current_wave.is_none()
         && enemies.iter().len() == 0

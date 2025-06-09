@@ -3,7 +3,8 @@ use std::f32::consts::PI;
 
 use crate::data::Tower;
 
-// Temporary hardcoded map until I pull the asset-loading changes
+#[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct CurrentLoadedLevel(pub usize);
 
 #[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
 pub struct LevelSelect(pub usize);

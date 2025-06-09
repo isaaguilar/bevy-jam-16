@@ -22,6 +22,7 @@ pub const START_LEVEL: usize = 0;
 
 pub fn plugin(app: &mut App) {
     app.insert_resource(Level::default())
+        .insert_resource(CurrentLoadedLevel(START_LEVEL))
         .insert_resource(LevelSelect(START_LEVEL))
         .insert_resource(UnlockedLevels(vec![START_LEVEL]));
 
