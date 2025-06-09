@@ -269,7 +269,7 @@ pub fn ceiling(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree
         Ceiling,
     )
         .store()
-        + pickable_rect(WALL_PICKABLE_WIDTH / 2. * LEVEL_SCALING, LEVEL_SCALING)
+        + pickable_rect(WALL_PICKABLE_WIDTH / 4. * LEVEL_SCALING, LEVEL_SCALING)
         + pos(x, y)
         << (
             Transform::from_xyz(0.0, -0.06, 0.0),
@@ -291,7 +291,7 @@ pub fn ceiling(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree
 pub fn floor(level_assets: &Res<LevelAssets>, x: f32, y: f32) -> ComponentTree {
     (
         Architecture,
-        Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 2. * LEVEL_SCALING),
+        Collider::rectangle(LEVEL_SCALING, WALL_TOTAL_WIDTH / 4. * LEVEL_SCALING),
         CollisionLayers::new(GPL::Level, [GPL::Enemy, GPL::Default, GPL::Projectiles]),
         RigidBody::Static,
         Friction::new(0.3),
