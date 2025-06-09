@@ -50,7 +50,7 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_observer(freeze_when_wet);
     app.add_systems(
-        FixedUpdate,
+        Update,
         (
             status_debuff_multiplier::<Frozen, MoveSpeed>(0.),
             status_debuff_multiplier::<Frozen, StatFriction>(0.),
