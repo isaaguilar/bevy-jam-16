@@ -28,7 +28,7 @@ pub struct EnemySprite;
 
 pub fn basic_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[8, 9, 10, 11, 12, 13, 14]);
-    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 35., 10)
+    name("Minor Trooper") + enemy_requirements(Vec2::new(3., 4.), 30., 10)
         << ((
             Transform::from_translation(Vec3::new(0., 0.5, 0.)),
             Pickable::default(),
@@ -44,7 +44,7 @@ pub fn basic_trooper() -> ComponentTree {
 pub fn chonkus_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19]);
     name("Major Trooper")
-        + enemy_requirements(Vec2::new(4., 5.0), 25., 20)
+        + enemy_requirements(Vec2::new(4., 5.0), 20., 20)
         + Stat::<DamageMultiplierAll>::new(0.75).store()
         << ((
             Transform::from_translation(Vec3::new(0., 1., 0.)),
@@ -61,7 +61,7 @@ pub fn chonkus_trooper() -> ComponentTree {
 pub fn turbo_trooper() -> ComponentTree {
     let animation = AnimationFrameQueue::new(&[0, 1, 2, 3, 4, 5, 6, 7]);
     name("Turbo Trooper")
-        + enemy_requirements(Vec2::new(2., 3.), 55., 15)
+        + enemy_requirements(Vec2::new(2., 3.), 45., 15)
         + Stat::<DamageMultiplierAll>::new(1.15).store()
         << ((
             // Transform::from_scale(Vec3::splat(0.10)),
