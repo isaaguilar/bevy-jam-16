@@ -1,13 +1,18 @@
 //! A splash screen that plays briefly at startup.
 
 use crate::assets::UiAssets;
+use crate::data::levels::LevelData;
 use crate::level::resource::{CurrentLoadedLevel, LevelSelect};
 use crate::{AppSystems, screens::Screen, theme::prelude::*};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
+#[derive(Resource)]
+struct DisplayedControls(bool);
+
 pub(super) fn plugin(app: &mut App) {
     // Spawn splash screen.
     app.insert_resource(ClearColor(SPLASH_BACKGROUND_COLOR));
+    app.insert_resource(DisplayedControls(false));
 
     // Add splash timer.
     app.register_type::<ScreenTimer>();
@@ -54,30 +59,58 @@ const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 fn spawn_screen(
     mut commands: Commands,
     assets: Res<UiAssets>,
-    asset_server: Res<AssetServer>,
     mut current_loaded_level: ResMut<CurrentLoadedLevel>,
     level_select: Res<LevelSelect>,
+    mut displayed_controls: ResMut<DisplayedControls>,
 ) {
     current_loaded_level.0 = level_select.0;
-    commands.spawn((
-        widget::ui_root("Splash Screen"),
-        BackgroundColor(SPLASH_BACKGROUND_COLOR),
-        StateScoped(Screen::LevelTransition),
-        children![(
-            Name::new("Splash image"),
-            Node {
-                margin: UiRect::all(Val::Auto),
-                ..default()
-            },
-            assets.intro_bundle(),
-            // ImageNode::new(asset_server.load("images/splash.png")),
-            ImageNodeFadeInOut {
-                total_duration: SPLASH_DURATION_SECS,
-                fade_duration: SPLASH_FADE_DURATION_SECS,
-                t: 0.0,
-            },
-        )],
-    ));
+
+    if level_select.0 == 0 && !displayed_controls.0 {
+        displayed_controls.0 = true;
+        commands.spawn((
+            widget::ui_root("Controls"),
+            GlobalZIndex(2),
+            BackgroundColor(SPLASH_BACKGROUND_COLOR),
+            StateScoped(Screen::LevelTransition),
+            children![
+                widget::ui_font_color("Controls:", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color(
+                    "Move Map: Middle Click and Drag",
+                    Color::srgb(0.88, 0.88, 0.88)
+                ),
+                widget::ui_font_color(
+                    "Zoom: Shift + Middle Click and Drag",
+                    Color::srgb(0.88, 0.88, 0.88)
+                ),
+                widget::ui_font_color("Pause: Spacebar", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color("Interact: Left Click to Select and Place Items", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color("\n", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color("Set up your towers and click 'Next Wave'.\nTry to set up towers of elements that react with other elements.\nFor example, setup water next to electcity for a bigger impact.\nGood luck! ", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color("\n", Color::srgb(0.88, 0.88, 0.88)),
+                widget::ui_font_color("Click to Continue", Color::srgb(0.88, 0.88, 0.88)),
+            ],
+        ));
+    } else {
+        commands.spawn((
+            widget::ui_root("Splash Screen"),
+            BackgroundColor(SPLASH_BACKGROUND_COLOR),
+            StateScoped(Screen::LevelTransition),
+            children![(
+                Name::new("Splash image"),
+                Node {
+                    margin: UiRect::all(Val::Auto),
+                    ..default()
+                },
+                assets.intro_bundle(),
+                // ImageNode::new(asset_server.load("images/splash.png")),
+                ImageNodeFadeInOut {
+                    total_duration: SPLASH_DURATION_SECS,
+                    fade_duration: SPLASH_FADE_DURATION_SECS,
+                    t: 0.0,
+                },
+            )],
+        ));
+    }
 }
 
 #[derive(Component, Reflect)]
@@ -132,17 +165,44 @@ fn remove_splash_timer(mut commands: Commands) {
     commands.remove_resource::<ScreenTimer>();
 }
 
-fn tick_screen_timer(time: Res<Time>, mut timer: ResMut<ScreenTimer>) {
+fn tick_screen_timer(
+    time: Res<Time>,
+    mut timer: ResMut<ScreenTimer>,
+    level_select: Res<LevelSelect>,
+    displayed_controls: Res<DisplayedControls>,
+) {
+    if level_select.0 == 0 && !displayed_controls.0 {
+        return;
+    }
     timer.0.tick(time.delta());
 }
 
-fn check_splash_timer(timer: ResMut<ScreenTimer>, mut next_screen: ResMut<NextState<Screen>>) {
+fn check_splash_timer(
+    timer: ResMut<ScreenTimer>,
+    mut next_screen: ResMut<NextState<Screen>>,
+    level_select: Res<LevelSelect>,
+    level_data: Res<LevelData>,
+) {
     if timer.0.just_finished() {
-        next_screen.set(Screen::Gameplay);
+        if let Some(_) = level_data.maps.get(level_select.0).cloned() {
+            next_screen.set(Screen::Gameplay);
+        } else {
+            // Next level is unavailable (usually end of game)
+            next_screen.set(Screen::Title);
+        }
     }
 }
 
 // Early Exit from screen
-fn enter_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
-    next_screen.set(Screen::Gameplay);
+fn enter_title_screen(
+    mut next_screen: ResMut<NextState<Screen>>,
+    level_select: Res<LevelSelect>,
+    level_data: Res<LevelData>,
+) {
+    if let Some(_) = level_data.maps.get(level_select.0).cloned() {
+        next_screen.set(Screen::Gameplay);
+    } else {
+        // Next level is unavailable (usually end of game)
+        next_screen.set(Screen::Title);
+    }
 }

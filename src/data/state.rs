@@ -9,8 +9,8 @@ pub struct PlayerState {
 impl Default for PlayerState {
     fn default() -> Self {
         PlayerState {
-            money: 100,
-            health: 100,
+            money: 400,
+            health: 25,
         }
     }
 }

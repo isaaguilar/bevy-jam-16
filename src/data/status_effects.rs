@@ -39,26 +39,26 @@ impl<T: StatusEffectTrait> StatusEffect<T> {
     }
 }
 
-define_status_effect!(Wet, "Wet", BLUE.into(), 3., DamageType::Cold);
+define_status_effect!(Wet, "Wet", BLUE.into(), 4., DamageType::Cold);
 define_status_effect!(Ignited, "Ignited", RED.into(), 3., DamageType::Burning);
-define_status_effect!(Burned, "Burned", ORANGE.into(), 3., DamageType::Burning);
-define_status_effect!(Chilled, "Chilled", AQUA.into(), 2.5, DamageType::Cold);
-define_status_effect!(Frozen, "Frozen", AQUA.into(), 2.0, DamageType::Cold);
+define_status_effect!(Burned, "Burned", ORANGE.into(), 4., DamageType::Burning);
+define_status_effect!(Chilled, "Chilled", AQUA.into(), 3.0, DamageType::Cold);
+define_status_effect!(Frozen, "Frozen", AQUA.into(), 3.0, DamageType::Cold);
 define_status_effect!(
     Electrocuted,
     "Electrocuted",
     YELLOW.into(),
-    0.5,
+    0.9,
     DamageType::Lightning
 );
 define_status_effect!(
     Acidified,
     "Acidified",
     LIME.into(),
-    2.0,
+    4.0,
     DamageType::Chemical
 );
-define_status_effect!(Oiled, "Oiled", BROWN.into(), 3.0, DamageType::Chemical);
+define_status_effect!(Oiled, "Oiled", BROWN.into(), 4.0, DamageType::Chemical);
 
 #[derive(Clone, Copy, Debug, Reflect, PartialEq, Eq)]
 pub enum StatusEnum {

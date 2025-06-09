@@ -1,13 +1,18 @@
+use avian2d::prelude::Friction;
 use bevy::{
     app::{App, PreUpdate, Update},
-    ecs::{schedule::SystemSet, system::Query},
+    ecs::{query::Changed, schedule::SystemSet, system::Query},
     prelude::IntoScheduleConfigs,
     reflect::Reflect,
     state::condition::in_state,
 };
 
 use crate::{
-    data::stats::{DamageMultiplier, MoveSpeed, Stat, StatTrait},
+    PausableSystems,
+    data::{
+        projectiles::DamageType,
+        stats::{DamageMultiplier, MoveSpeed, Stat, StatFriction, StatTrait},
+    },
     screens::Screen,
 };
 
@@ -25,7 +30,20 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     implement_stat::<MoveSpeed>(app);
-    implement_stat::<DamageMultiplier>(app);
+    implement_stat::<StatFriction>(app);
+    implement_stat::<DamageMultiplier<{ DamageType::Physical }>>(app);
+    implement_stat::<DamageMultiplier<{ DamageType::Cold }>>(app);
+    implement_stat::<DamageMultiplier<{ DamageType::Burning }>>(app);
+    implement_stat::<DamageMultiplier<{ DamageType::Chemical }>>(app);
+    implement_stat::<DamageMultiplier<{ DamageType::Lightning }>>(app);
+
+    app.add_systems(
+        Update,
+        update_friction_from_stats
+            .in_set(PausableSystems)
+            .in_set(StatSet::Use)
+            .run_if(in_state(Screen::Gameplay)),
+    );
 }
 
 pub fn recalculate_stats<T: StatTrait>(mut stats: Query<&mut Stat<T>>) {
@@ -49,4 +67,13 @@ pub fn implement_stat<T: StatTrait>(app: &mut App) {
             .in_set(StatSet::Recalc)
             .run_if(in_state(Screen::Gameplay)),
     );
+}
+
+pub fn update_friction_from_stats(
+    mut query: Query<(&mut Friction, &Stat<StatFriction>), Changed<Stat<StatFriction>>>,
+) {
+    for (mut friction, stat) in query.iter_mut() {
+        friction.dynamic_coefficient = stat.current_value();
+        friction.static_coefficient = stat.current_value();
+    }
 }

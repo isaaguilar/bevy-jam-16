@@ -2,7 +2,7 @@ use crate::data::PlayerState;
 use crate::demo::enemy_health::BountyEarned;
 use crate::gameplay::shared_systems::Lifetime;
 use crate::gameplay::wave_manager::WaveManager;
-use crate::level::resource::{CurrentLoadedLevel, LevelSelect};
+use crate::level::resource::CurrentLoadedLevel;
 use crate::prelude::*;
 use crate::theme::handles::LABEL_FONT;
 use crate::theme::widget;
@@ -100,8 +100,11 @@ fn update_wave_tracker(
 fn bounty_earned(trigger: Trigger<BountyEarned>, mut commands: Commands) {
     let earned = trigger.1;
 
+    // commands.spawn(sound_effect(sfx.money.clone()));
+
     commands.spawn((
         Lifetime::new(2.0),
+        StateScoped(Screen::Gameplay),
         HudElement::BountyEarned,
         Node {
             top: Val::Px(32.0),

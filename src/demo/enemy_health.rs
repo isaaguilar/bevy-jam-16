@@ -2,7 +2,9 @@ use crate::{
     AppSystems, PausableSystems,
     assets::{StatusSprites, game_assets::HEALTH_BAR_WIDTH},
     data::{
-        PlayerState, StatusEffect, Tower, TowerCollision, get_collision, projectiles::DamageType,
+        PlayerState, StatusEffect, Tower, TowerCollision, get_collision,
+        projectiles::DamageType,
+        stats::{DamageMultiplier, DamageMultiplierAll, Stat},
     },
     demo::enemy_movement::MovementDirection,
     gameplay::shared_systems::Lifetime,
@@ -61,6 +63,7 @@ pub struct RecordInitCollisionDamage {
 #[derive(Event, Debug, Clone, Copy, PartialEq, Reflect)]
 pub struct TryDamageToEnemy {
     pub damage: isize,
+    pub strength: usize,
     pub damage_type: DamageType,
     pub enemy: Entity,
 }
@@ -144,6 +147,7 @@ fn start_collision_damage_event(
                 damage: collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: enemy_target,
+                strength: 1,
             });
 
             // Add a collision entity that deals damage on a timer while collision is active
@@ -171,6 +175,7 @@ fn active_tower_collision(
                 damage: tower_collision.damage,
                 damage_type: DamageType::Physical,
                 enemy: entity,
+                strength: 1,
             });
         }
     }
@@ -180,16 +185,33 @@ fn active_tower_collision(
 pub fn try_enemy_damage(
     mut attempts: EventReader<TryDamageToEnemy>,
     mut successes: EventWriter<DoDamageToEnemy>,
+    stats: Query<(
+        &Stat<DamageMultiplierAll>,
+        &Stat<DamageMultiplier<{ DamageType::Physical }>>,
+        &Stat<DamageMultiplier<{ DamageType::Burning }>>,
+        &Stat<DamageMultiplier<{ DamageType::Cold }>>,
+        &Stat<DamageMultiplier<{ DamageType::Chemical }>>,
+        &Stat<DamageMultiplier<{ DamageType::Lightning }>>,
+    )>,
     mut rng: ResMut<GlobalRng>,
 ) {
     for event in attempts.read() {
-        let damage: isize = (rng.f32_normalized() * (event.damage as f32) * DAMAGE_VARIANCE)
-            as isize
-            + event.damage;
+        let mut damage =
+            (rng.f32_normalized() * (event.damage as f32) * DAMAGE_VARIANCE) + event.damage as f32;
+        if let Ok((all, phys, burn, cold, chem, light)) = stats.get(event.enemy) {
+            let type_mul = match event.damage_type {
+                DamageType::Physical => phys.current_value(),
+                DamageType::Burning => burn.current_value(),
+                DamageType::Cold => cold.current_value(),
+                DamageType::Lightning => light.current_value(),
+                DamageType::Chemical => chem.current_value(),
+            };
+            damage = damage * all.current_value() * type_mul;
+        }
         // TODO: I-Frame logic, which is how damage can fail
         // TODO: Elemental resistances and weaknesses from current status effects
         successes.write(DoDamageToEnemy {
-            damage,
+            damage: damage as isize,
             damage_type: event.damage_type,
             enemy: event.enemy,
         });

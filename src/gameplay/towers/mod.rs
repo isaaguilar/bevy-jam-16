@@ -65,7 +65,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            status_debuff_multiplier::<Frozen, MoveSpeed>(0.).in_set(StatSet::Modify),
             (tick_cooldown, remove_cooldown).chain(),
             (
                 towers_fire,
