@@ -1,5 +1,6 @@
 use crate::data::PlayerState;
 use crate::gameplay::wave_manager::WaveManager;
+use crate::level::resource::{CurrentLoadedLevel, LevelSelect};
 use crate::prelude::*;
 use crate::theme::widget;
 use bevy::color::palettes::tailwind;
@@ -74,12 +75,16 @@ fn update_hud(player_state: Res<PlayerState>, mut hud_elements: Query<(&mut Text
 fn update_wave_tracker(
     wave_manager: Res<WaveManager>,
     mut hud_elements: Query<(&mut Text, &HudElement)>,
+    loaded_level: Res<CurrentLoadedLevel>,
 ) {
     for (mut text, element) in hud_elements.iter_mut() {
         match element {
             HudElement::LevelName => {
                 let remaining_waves = wave_manager.remaining_waves();
-                text.0 = format!("LEVEL {} - {remaining_waves} waves remain", "1");
+                text.0 = format!(
+                    "LEVEL {} - {remaining_waves} waves remain",
+                    loaded_level.0 + 1
+                );
             }
             _ => {}
         }
