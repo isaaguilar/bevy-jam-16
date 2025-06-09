@@ -207,7 +207,6 @@ fn wave_spawn_button_mouse_out(
     mut spawn_button_marker: Query<&mut ImageNode, With<SpawnButtonMarker>>,
     wave_manager: Res<WaveManager>,
 ) {
-    info!("Running");
     let Ok(mut image_node) = spawn_button_marker.single_mut() else {
         return;
     };
