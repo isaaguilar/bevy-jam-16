@@ -17,6 +17,10 @@ pub struct SoundEffects {
     tesla_attack: Handle<AudioSource>,
     #[asset(path = "audio/towers/spike_pit.ogg")]
     spike_pit: Handle<AudioSource>,
+    #[asset(path = "audio/towers/piston.ogg")]
+    piston: Handle<AudioSource>,
+    #[asset(path = "audio/towers/oil.ogg")]
+    oil: Handle<AudioSource>,
 }
 
 impl SoundEffects {
@@ -37,6 +41,13 @@ impl SoundEffects {
     }
     pub fn spike_fire(&self) -> Handle<AudioSource> {
         self.spike_pit.clone()
+    }
+    pub fn piston_fire(&self) -> Handle<AudioSource> {
+        self.piston.clone()
+    }
+
+    pub fn oil_fire(&self) -> Handle<AudioSource> {
+        self.oil.clone()
     }
 }
 

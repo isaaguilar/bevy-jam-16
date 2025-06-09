@@ -1,8 +1,6 @@
-use bevy::{color::palettes::css::*, prelude::*};
-use std::sync::Arc;
-
 use super::status_effects::*;
 use crate::level::resource::CellDirection;
+use bevy::{color::palettes::css, prelude::*};
 
 #[derive(Clone, Debug, Reflect, PartialEq)]
 pub enum TowerAttackType {
@@ -62,11 +60,11 @@ pub enum DamageType {
 impl DamageType {
     pub fn color(&self) -> Color {
         match self {
-            DamageType::Physical => GREY.into(),
-            DamageType::Burning => ORANGE.into(),
-            DamageType::Cold => AQUA.into(),
-            DamageType::Lightning => YELLOW.into(),
-            DamageType::Chemical => LIME.into(),
+            DamageType::Physical => css::PINK.into(),
+            DamageType::Burning => css::ORANGE.into(),
+            DamageType::Cold => css::AQUA.into(),
+            DamageType::Lightning => css::YELLOW.into(),
+            DamageType::Chemical => css::LIME.into(),
         }
     }
 }

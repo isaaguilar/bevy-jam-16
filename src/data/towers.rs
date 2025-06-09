@@ -199,6 +199,8 @@ impl Tower {
         match self {
             Tower::SpikePit => Some(Arc::new(SoundEffects::spike_fire)),
             Tower::Tesla => Some(Arc::new(SoundEffects::tesla_fire)),
+            Tower::Piston => Some(Arc::new(SoundEffects::piston_fire)),
+            Tower::Oil => Some(Arc::new(SoundEffects::oil_fire)),
             _ => None,
         }
     }
