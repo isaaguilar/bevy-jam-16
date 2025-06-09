@@ -74,17 +74,17 @@ impl Tower {
 
     pub fn price(&self) -> i32 {
         match self {
-            Tower::Piston => 100,
+            Tower::Piston => 50,
             Tower::Fan => 50,
-            Tower::SpikePit => 75,
-            Tower::Oil => 150,
-            Tower::TrapDoor => 200,
-            Tower::Ice => 125,
-            Tower::Acid => 175,
-            Tower::Tesla => 300,
-            Tower::Water => 80,
-            Tower::Flame => 120,
-            Tower::Portal => 400,
+            Tower::SpikePit => 25,
+            Tower::Oil => 30,
+            Tower::TrapDoor => 75,
+            Tower::Ice => 100,
+            Tower::Acid => 40,
+            Tower::Tesla => 40,
+            Tower::Water => 50,
+            Tower::Flame => 40,
+            Tower::Portal => 150,
         }
     }
 
@@ -167,15 +167,15 @@ impl Tower {
 
     pub fn cooldown(&self) -> f32 {
         match self {
-            Tower::Piston => 2.0,
+            Tower::Piston => 3.0,
             Tower::Fan => 0.,
-            Tower::SpikePit => 0.32,
-            Tower::Oil => 2.0,
-            Tower::TrapDoor => 1.5,
-            Tower::Ice => 0.67,
-            Tower::Acid => 2.0,
+            Tower::SpikePit => 0.5,
+            Tower::Oil => 4.0,
+            Tower::TrapDoor => 2.5,
+            Tower::Ice => 1.5,
+            Tower::Acid => 3.0,
             Tower::Tesla => 0.67,
-            Tower::Water => 2.0,
+            Tower::Water => 4.0,
             Tower::Flame => 0.67,
             Tower::Portal => 3.0,
         }
