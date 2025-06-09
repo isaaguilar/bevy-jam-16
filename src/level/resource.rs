@@ -3,22 +3,17 @@ use std::f32::consts::PI;
 
 use crate::data::Tower;
 
-// Temporary hardcoded map until I pull the asset-loading changes
+#[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct CurrentLoadedLevel(pub usize);
 
-pub const MAP_TEXT: &'static str = "^<<v<
->>^v^
-^<<<^
->>>>^
-";
+#[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct LevelSelect(pub usize);
 
-pub const MAP_TEXT2: &'static str = "^<<<<
->>>>^
-^<<<<
->>>>^
-";
+#[derive(Resource, Clone, Debug, Hash, Reflect, PartialEq, Eq)]
+pub struct UnlockedLevels(pub Vec<usize>);
 
-pub const MAP_TEXT3: &'static str = "^<<<<<<<<<<<<<
->>>>>>>>>>>>>^";
+#[derive(Event, Debug, Hash, PartialEq, Eq, Clone, Reflect)]
+pub struct GotoNextLevel(pub usize);
 
 // Which direction the enemies need to move in. If we end up adding splitting paths, this won't be
 // usable. It's mainly to help get a FWP going.
@@ -37,6 +32,7 @@ impl From<char> for CellDirection {
             '^' => CellDirection::Up,
             '<' => CellDirection::Left,
             'v' => CellDirection::Down,
+            'x' => CellDirection::Right,
             _ => todo!(),
         }
     }
