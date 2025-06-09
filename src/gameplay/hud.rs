@@ -102,6 +102,7 @@ fn bounty_earned(trigger: Trigger<BountyEarned>, mut commands: Commands) {
 
     commands.spawn((
         Lifetime::new(2.0),
+        StateScoped(Screen::Gameplay),
         HudElement::BountyEarned,
         Node {
             top: Val::Px(32.0),

@@ -34,17 +34,25 @@ fn spawn_credits_menu(mut commands: Commands) {
 
 fn created_by() -> impl Bundle {
     grid(vec![
-        ["@jaminhaber", "Did some coding"],
-        ["@Zellenon", "Did some coding"],
-        ["@isaaguilar", "Did some coding"],
+        [
+            "@zellenon",
+            "Core Game Framework\nLevel Editor\nStatus Effect Logic\nWave Manager and Wave Creator",
+        ],
+        [
+            "@jaminhaber",
+            "HUD and UI\nAsset management\nTower Spawning\nWeb builds",
+        ],
+        [
+            "@isaaguilar",
+            "Level Design and Progression\nTower Implementation\nCamera Controls\nEnemy Logic",
+        ],
     ])
 }
 
 fn assets() -> impl Bundle {
     grid(vec![
-        ["Ducky sprite", "CC0 by Caz Creates Games"],
-        ["Button SFX", "CC0 by Jaszunio15"],
-        ["Music", "CC BY 3.0 by Kevin MacLeod"],
+        ["Sprites", "@jaminhaber and @isaaguilar"],
+        ["Music", "@isaaguilar"],
     ])
 }
 
