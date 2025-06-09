@@ -28,6 +28,7 @@ fn spawn_main_menu(mut commands: Commands) {
         children![
             widget::title(TITLE_TEXT),
             widget::button("Play", enter_loading_or_gameplay_screen),
+            widget::button("Select Level", open_level_selector_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
         ],
