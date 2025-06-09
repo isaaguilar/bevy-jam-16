@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 
@@ -77,7 +79,11 @@ struct BodgeTimer(pub Timer);
 
 impl Default for BodgeTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(0.1, TimerMode::Once))
+        Self({
+            let mut temp = Timer::from_seconds(0.1, TimerMode::Once);
+            temp.set_elapsed(Duration::from_secs(100));
+            temp
+        })
     }
 }
 
@@ -162,6 +168,7 @@ fn tower_placement_change(
                 sprites.tower_bundle(tower, placement),
                 placement.sprite_offset(&tower),
                 SpawnedPreview,
+                Pickable::default(),
             ))
             .observe(observe_placeholder);
     });
