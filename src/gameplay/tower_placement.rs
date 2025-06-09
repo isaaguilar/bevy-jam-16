@@ -1,20 +1,17 @@
-use crate::gameplay::hotbar::HotbarItem;
-use crate::level::components::{Adjacent, ExactPosition, LEVEL_SCALING};
+use bevy::prelude::*;
+use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
+
 use crate::{
-    assets::TowerSprites,
+    assets::{SoundEffects, TowerSprites},
+    audio::sound_effect,
     data::*,
-    gameplay::messages::DisplayFlashMessage,
+    gameplay::{hotbar::HotbarItem, messages::DisplayFlashMessage},
     level::{
-        components::{Ceiling, Floor, Wall, WallDirection},
+        components::{Adjacent, Ceiling, ExactPosition, Floor, LEVEL_SCALING, Wall, WallDirection},
         resource::CellDirection,
     },
     prelude::*,
 };
-
-use crate::assets::SoundEffects;
-use crate::audio::sound_effect;
-use bevy::prelude::*;
-use bevy_composable::app_impl::{ComplexSpawnable, ComponentTreeable};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_event::<TowerPlacementEvent>();
@@ -74,6 +71,15 @@ impl TowerPreview {
 
 #[derive(Event, Debug, Clone, Copy, Reflect)]
 struct SelectTower(pub Entity);
+
+#[derive(Debug, Clone, Reflect)]
+struct BodgeTimer(pub Timer);
+
+impl Default for BodgeTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(0.1, TimerMode::Once))
+    }
+}
 
 fn remove_preview(
     windows: Query<&Window>,
@@ -174,7 +180,17 @@ fn observe_placeholder(
     towers: Query<(&ChildOf, &Tower)>,
     adjacent_placements: Query<(Entity, &Adjacent)>,
     hotbar: Query<(), With<HotbarItem>>,
+    mut timer: Local<BodgeTimer>,
+    time: Res<Time>,
 ) {
+    timer.0.tick(time.delta());
+    if timer.0.finished() {
+        timer.0.reset();
+        timer.0.unpause();
+    } else {
+        return;
+    }
+
     if let Ok(_) = hotbar.get(trigger.target) {
         return;
     }
