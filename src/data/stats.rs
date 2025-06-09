@@ -81,36 +81,37 @@ impl<T: StatTrait> Stat<T> {
 }
 
 define_stat!(MoveSpeed, "Move Speed");
-define_stat!(Friction, "Friction");
+define_stat!(StatFriction, "Friction");
+define_stat!(DamageMultiplierAll, "Global Damage Multiplier");
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Hash, Debug, Reflect)]
 pub struct DamageMultiplier<const G: DamageType>;
 
-impl StatTrait for DamageMultiplier<DamageType::Physical> {
+impl StatTrait for DamageMultiplier<{ DamageType::Physical }> {
     fn name() -> &'static str {
         "Physical Damage Multiplier"
     }
 }
 
-impl StatTrait for DamageMultiplier<DamageType::Burning> {
+impl StatTrait for DamageMultiplier<{ DamageType::Burning }> {
     fn name() -> &'static str {
         "Fire Damage Multiplier"
     }
 }
 
-impl StatTrait for DamageMultiplier<DamageType::Cold> {
+impl StatTrait for DamageMultiplier<{ DamageType::Cold }> {
     fn name() -> &'static str {
         "Cold Damage Multiplier"
     }
 }
 
-impl StatTrait for DamageMultiplier<DamageType::Chemical> {
+impl StatTrait for DamageMultiplier<{ DamageType::Chemical }> {
     fn name() -> &'static str {
         "Chemical Damage Multiplier"
     }
 }
 
-impl StatTrait for DamageMultiplier<DamageType::Lightning> {
+impl StatTrait for DamageMultiplier<{ DamageType::Lightning }> {
     fn name() -> &'static str {
         "Lightning Damage Multiplier"
     }
