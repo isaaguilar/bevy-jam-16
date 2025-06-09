@@ -1,3 +1,4 @@
+#![allow(incomplete_features)]
 #![feature(adt_const_params)]
 #![feature(unsized_const_params)]
 // Support configuring Bevy lints within code.
