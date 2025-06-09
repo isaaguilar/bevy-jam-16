@@ -30,6 +30,7 @@ impl From<char> for CellDirection {
             '^' => CellDirection::Up,
             '<' => CellDirection::Left,
             'v' => CellDirection::Down,
+            'x' | 'X' => CellDirection::Up,
             _ => todo!(),
         }
     }

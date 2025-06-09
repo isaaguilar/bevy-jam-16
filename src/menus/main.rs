@@ -18,8 +18,7 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(not(target_family = "wasm"))]
         children![
             widget::title(TITLE_TEXT),
-            widget::button("Play", enter_loading_or_gameplay_screen),
-            widget::button("Select Level", open_level_selector_menu),
+            widget::button("Play", open_level_selector_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
             widget::button("Exit", exit_app),
@@ -27,8 +26,7 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(target_family = "wasm")]
         children![
             widget::title(TITLE_TEXT),
-            widget::button("Play", enter_loading_or_gameplay_screen),
-            widget::button("Select Level", open_level_selector_menu),
+            widget::button("Play", open_level_selector_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
         ],
