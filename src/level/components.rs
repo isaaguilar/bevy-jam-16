@@ -130,24 +130,24 @@ impl LevelParent {
                             level_assets,
                             (x as f32 - 0.5 - (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
                             y as f32 * LEVEL_SCALING,
-                            WallDirection::Left,
-                        ) + Adjacent::new(
-                            x,
-                            y,
-                            GeneralPosition::LeftRight,
-                            ExactPosition::Wall(WallDirection::Left),
-                        )
-                        .store()
-                        << wall(
-                            level_assets,
-                            (x as f32 - 0.5 + (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
-                            y as f32 * LEVEL_SCALING,
                             WallDirection::Right,
                         ) + Adjacent::new(
                             x,
                             y,
                             GeneralPosition::LeftRight,
                             ExactPosition::Wall(WallDirection::Right),
+                        )
+                        .store()
+                        << wall(
+                            level_assets,
+                            (x as f32 - 0.5 + (WALL_TOTAL_WIDTH / 4.)) * LEVEL_SCALING,
+                            y as f32 * LEVEL_SCALING,
+                            WallDirection::Left,
+                        ) + Adjacent::new(
+                            x,
+                            y,
+                            GeneralPosition::LeftRight,
+                            ExactPosition::Wall(WallDirection::Left),
                         )
                         .store();
                 }
