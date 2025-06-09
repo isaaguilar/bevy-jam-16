@@ -1,6 +1,7 @@
 //! A splash screen that plays briefly at startup.
 
 use crate::assets::UiAssets;
+use crate::data::levels::LevelData;
 use crate::level::resource::{CurrentLoadedLevel, LevelSelect};
 use crate::{AppSystems, screens::Screen, theme::prelude::*};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
@@ -54,7 +55,6 @@ const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 fn spawn_screen(
     mut commands: Commands,
     assets: Res<UiAssets>,
-    asset_server: Res<AssetServer>,
     mut current_loaded_level: ResMut<CurrentLoadedLevel>,
     level_select: Res<LevelSelect>,
 ) {
@@ -136,13 +136,32 @@ fn tick_screen_timer(time: Res<Time>, mut timer: ResMut<ScreenTimer>) {
     timer.0.tick(time.delta());
 }
 
-fn check_splash_timer(timer: ResMut<ScreenTimer>, mut next_screen: ResMut<NextState<Screen>>) {
+fn check_splash_timer(
+    timer: ResMut<ScreenTimer>,
+    mut next_screen: ResMut<NextState<Screen>>,
+    level_select: Res<LevelSelect>,
+    level_data: Res<LevelData>,
+) {
     if timer.0.just_finished() {
-        next_screen.set(Screen::Gameplay);
+        if let Some(_) = level_data.maps.get(level_select.0).cloned() {
+            next_screen.set(Screen::Gameplay);
+        } else {
+            // Next level is unavailable (usually end of game)
+            next_screen.set(Screen::Title);
+        }
     }
 }
 
 // Early Exit from screen
-fn enter_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
-    next_screen.set(Screen::Gameplay);
+fn enter_title_screen(
+    mut next_screen: ResMut<NextState<Screen>>,
+    level_select: Res<LevelSelect>,
+    level_data: Res<LevelData>,
+) {
+    if let Some(_) = level_data.maps.get(level_select.0).cloned() {
+        next_screen.set(Screen::Gameplay);
+    } else {
+        // Next level is unavailable (usually end of game)
+        next_screen.set(Screen::Title);
+    }
 }
