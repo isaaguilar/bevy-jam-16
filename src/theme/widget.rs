@@ -71,6 +71,15 @@ pub fn ui_font(text: impl Into<String>) -> impl Bundle {
     )
 }
 
+pub fn ui_font_color(text: impl Into<String>, color: Color) -> impl Bundle {
+    (
+        Name::new("Text"),
+        Text(text.into()),
+        TextFont::from_font(LABEL_FONT).with_font_size(18.0),
+        TextColor(color),
+    )
+}
+
 pub fn ui_font_with_node(text: impl Into<String>, node: Node) -> impl Bundle {
     (
         Name::new("Text"),
