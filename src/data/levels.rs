@@ -58,15 +58,14 @@ impl Default for LevelData {
     fn default() -> Self {
         Self {
             maps: vec![
-                MAP_TEXT, MAP_TEXT1, MAP_TEXT2, MAP_TEXT3, MAP_TEXT4, MAP_TEXT5, MAP_TEXT6,
-                MAP_TEXT7,
+                MAP_TEXT1, MAP_TEXT2, MAP_TEXT3, MAP_TEXT4, MAP_TEXT5, MAP_TEXT6, MAP_TEXT7,
             ],
-            enemies: vec![test_waves()],
+            enemies: vec![map1(), map2(), map3(), map4(), map5(), map6(), map7()],
         }
     }
 }
 
-pub fn test_waves() -> VecDeque<Wave> {
+pub fn map1() -> VecDeque<Wave> {
     vec![
         //
         // Wave 1
@@ -75,6 +74,762 @@ pub fn test_waves() -> VecDeque<Wave> {
             (vec![basic_trooper(), turbo_trooper()], 0.),
         ]
         .into(),
+        // Wave 2
+        vec![
+            (vec![basic_trooper(), turbo_trooper()], 2.),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![basic_trooper()], 2.),
+            (vec![basic_trooper(), turbo_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 2.),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+        ]
+        .into(),
     ]
     .into()
 }
+
+pub fn map2() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper()], 2.),
+            (vec![basic_trooper(), turbo_trooper()], 0.),
+        ]
+        .into(),
+        //
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+pub fn map3() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+        ]
+        .into(),
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.0),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+pub fn map4() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 5
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 6
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+pub fn map5() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 5
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 6
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 7
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+pub fn map6() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+        ]
+        .into(),
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 5
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 5
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 6
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+pub fn map7() -> VecDeque<Wave> {
+    vec![
+        //
+        // Wave 1
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+        ]
+        .into(),
+        // Wave 2
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 3
+        vec![
+            (vec![chonkus_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 4
+        vec![
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 1.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 5
+        vec![
+            (vec![turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 6
+        vec![
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+        // Wave 6
+        vec![
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                0.5,
+            ),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![chonkus_trooper(), basic_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+            (
+                vec![chonkus_trooper(), basic_trooper(), turbo_trooper()],
+                1.5,
+            ),
+            (vec![chonkus_trooper()], 1.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![chonkus_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.5),
+            (vec![turbo_trooper()], 2.5),
+            (vec![basic_trooper(), turbo_trooper()], 1.0),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![basic_trooper()], 0.5),
+            (vec![turbo_trooper()], 0.5),
+            (vec![chonkus_trooper(), basic_trooper()], 0.5),
+            (vec![basic_trooper(), turbo_trooper()], 0.75),
+            (vec![turbo_trooper()], 0.5),
+        ]
+        .into(),
+    ]
+    .into()
+}
+
+/*
+
+(vec![chonkus_trooper(), basic_trooper(), turbo_trooper()], 0.5),
+
+(vec![chonkus_trooper(), basic_trooper()], 0.5),
+
+(vec![chonkus_trooper()], 0.5),
+(vec![ basic_trooper(), turbo_trooper()], 1.5),
+(vec![ turbo_trooper()], 2.5),
+
+
+(vec![ basic_trooper(), turbo_trooper()], 1.0),
+(vec![ basic_trooper(), turbo_trooper()], 0.75),
+
+(vec![ basic_trooper()], 0.5),
+
+(vec![ turbo_trooper()], 0.5),
+*/
