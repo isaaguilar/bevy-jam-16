@@ -359,7 +359,7 @@ fn right_click_tower_options(
     triggers: Trigger<Pointer<Click>>,
     windows: Query<&Window>,
     cameras: Query<(&Camera, &GlobalTransform)>,
-    mut preview: ResMut<TowerPreview>,
+    preview: Res<TowerPreview>,
     mut player_state: ResMut<PlayerState>,
     towers: Query<(Entity, &GlobalTransform, &Tower)>,
     mut commands: Commands,
