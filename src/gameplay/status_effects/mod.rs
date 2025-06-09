@@ -12,6 +12,7 @@ use common::{
 use display::{add_status_animation, animate_status_effect, remove_status_animation_on_timeout};
 use ice::freeze_when_wet;
 use std::time::Duration;
+use tesla::{damage_after_electrocute, electrocute_on_damage};
 
 use crate::{
     PausableSystems,
@@ -31,6 +32,7 @@ use super::stats::StatSet;
 pub mod common;
 pub mod display;
 pub mod ice;
+pub mod tesla;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TryApplyStatus>()
@@ -49,6 +51,13 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_observer(freeze_when_wet);
+    app.add_systems(
+        Update,
+        (damage_after_electrocute, electrocute_on_damage)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
+
     app.add_systems(
         Update,
         (
