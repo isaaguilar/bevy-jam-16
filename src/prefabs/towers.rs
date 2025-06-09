@@ -16,7 +16,7 @@ use super::{physics::GamePhysicsLayer as GPL, utils::TowerSprite};
 
 pub fn tower(tower: Tower, direction: CellDirection) -> ComponentTree {
     let tower_specific_components = match tower {
-        Tower::Piston => FireDirection(direction).store(),
+        Tower::Piston => FireDirection(direction.flip()).store(),
         Tower::Fan => FanNeedsDirection.store(),
         Tower::Portal => todo!(),
         _ => ().store(),

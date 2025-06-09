@@ -1,7 +1,5 @@
-use bevy::prelude::*;
-use std::f32::consts::PI;
-
 use crate::data::Tower;
+use bevy::prelude::*;
 
 #[derive(Resource, Clone, Copy, Debug, Hash, Reflect, PartialEq, Eq)]
 pub struct CurrentLoadedLevel(pub usize);
@@ -32,7 +30,7 @@ impl From<char> for CellDirection {
             '^' => CellDirection::Up,
             '<' => CellDirection::Left,
             'v' => CellDirection::Down,
-            'x' => CellDirection::Right,
+            'x' | 'X' => CellDirection::Up,
             _ => todo!(),
         }
     }
@@ -61,12 +59,10 @@ impl CellDirection {
             _ => match self {
                 CellDirection::Up => Transform::from_xyz(0., -5., 0.),
                 CellDirection::Down => Transform::from_xyz(0., 5., 0.),
-                CellDirection::Left => {
-                    Transform::from_xyz(0., -5., 0.).with_rotation(Quat::from_rotation_z(-PI / 2.0))
+                CellDirection::Right => {
+                    Transform::from_xyz(-5., 0., 0.).with_scale(Vec3::new(-1., 1., 1.))
                 }
-                CellDirection::Right => Transform::from_xyz(0., 5., 0.)
-                    .with_rotation(Quat::from_rotation_z(-PI / 2.0))
-                    .with_scale(Vec3::new(-1., 1., 1.)),
+                CellDirection::Left => Transform::from_xyz(5., 0., 0.),
             },
         }
     }

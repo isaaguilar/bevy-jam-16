@@ -13,13 +13,13 @@ pub const MAP_TEXT1: &'static str = "^<<v<
 >>>>^
 ";
 
-pub const MAP_TEXT2: &'static str = "^<<<<
+pub const MAP_TEXT3: &'static str = "^<<<<
 >>>>^
 ^<<<<
 >>>>^
 ";
 
-pub const MAP_TEXT3: &'static str = "^<<<<<<<<<<<<<
+pub const MAP_TEXT2: &'static str = "^<<<<<<<<<<<<<
 >>>>>>>>>>>>>^";
 
 pub const MAP_TEXT4: &'static str = "^v<<<v<
